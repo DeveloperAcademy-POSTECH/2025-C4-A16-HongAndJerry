@@ -1,3 +1,4 @@
+
 //
 //  VideoSegment.swift
 //  HongAndJerry
@@ -7,6 +8,7 @@
 
 import AVKit
 import Foundation
+import AVFoundation
 
 struct VideoSegment {
     let origin: VideoSource
@@ -18,3 +20,75 @@ struct VideoSegment {
     let cropWidth: CGFloat
     let cropHeight: CGFloat
 }
+
+extension VideoSegment {
+    static func sample1() async throws -> VideoSegment {
+        let url = Bundle.main.url(forResource: "video1", withExtension: "MP4")!
+        let asset = AVURLAsset(url: url)
+        let duration = try await asset.load(.duration)
+        
+        let origin = VideoSource(
+            asset: asset,
+            url: url.absoluteString,
+            duration: duration
+        )
+        
+        return VideoSegment(
+            origin: origin,
+            asset: asset,
+            trimStartTime: .zero,
+            trimEndTime: duration,
+            cropX: 0,
+            cropY: 0,
+            cropWidth: 1,
+            cropHeight: 1
+        )
+    }
+    
+    static func sample2() async throws -> VideoSegment {
+        let url = Bundle.main.url(forResource: "video2", withExtension: "MOV")!
+        let asset = AVURLAsset(url: url)
+        let duration = try await asset.load(.duration)
+        
+        let origin = VideoSource(
+            asset: asset,
+            url: url.absoluteString,
+            duration: duration
+        )
+        
+        return VideoSegment(
+            origin: origin,
+            asset: asset,
+            trimStartTime: .zero,
+            trimEndTime: duration,
+            cropX: 0,
+            cropY: 0,
+            cropWidth: 1,
+            cropHeight: 1
+        )
+    }
+    
+    static func sample3() async throws -> VideoSegment {
+        let url = Bundle.main.url(forResource: "video3", withExtension: "MOV")!
+        let asset = AVURLAsset(url: url)
+        let duration = try await asset.load(.duration)
+        
+        let origin = VideoSource(
+            asset: asset,
+            url: url.absoluteString,
+            duration: duration
+        )
+        
+        return VideoSegment(
+            origin: origin,
+            asset: asset,
+            trimStartTime: .zero,
+            trimEndTime: duration,
+            cropX: 0,
+            cropY: 0,
+            cropWidth: 1,
+            cropHeight: 1
+        )
+    }
+}
+
