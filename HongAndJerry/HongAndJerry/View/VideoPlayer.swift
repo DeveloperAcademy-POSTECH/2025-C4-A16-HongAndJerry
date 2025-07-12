@@ -8,18 +8,11 @@ import SwiftUI
 import Foundation
 
 struct VideoPlayer: View {
-    let videoPlayerViewModel: VideoPlayerViewModel
+    let viewModel: VideoViewModel
     
     var body: some View {
         VStack {
             Text("Video Player")
         }
     }
-}
-
-#Preview {
-    
-    
-    let viewModel = VideoPlayerViewModel();
-    VideoPlayer(videoPlayerViewModel: viewModel)
 }

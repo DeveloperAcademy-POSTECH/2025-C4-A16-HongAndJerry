@@ -8,8 +8,14 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var viewModel = VideoViewModel(segments: [])
+    
     var body: some View {
-        VideoPlayer()
+        VStack {
+            VideoPlayer(viewModel: viewModel)
+        }.task {
+            await viewModel.loadInitialData()
+        }
     }
 }
 
