@@ -7,9 +7,14 @@
 ## 2. UI/UX Breakdown
 - **Main Screen:** Divided into two sections:
     - **Top (Video Preview):** A preview area showing the three videos playing at the same time in the 1x3 layout. The order of the tracks in the editor determines the vertical position of the videos.
-    - **Bottom (Timeline Editor):** An editor panel with three distinct tracks.
+    - **Bottom (Timeline Editor):** An editor panel that includes:
+    - **Time Display:** A text overlay fixed to the top-left corner, showing the current playback time and total duration in "MM:SS / MM:SS" format. This display does not scroll with the timeline.
+    - **Timeline:** A scrollable area composed of two main vertical components:
+        - **Time Ruler:** A horizontally scrollable ruler displayed at the top of the editor. It shows time markers (e.g., "0s", "10s", "20s") with dots in between. The interval between markers is dynamically calculated based on the total video duration. The "0s" marker aligns perfectly with the central playhead at the start.
+        - **Video Tracks:** Three distinct tracks stacked vertically below the time ruler.
 - **Key Interactions:**
-    - **Playback:** The playhead (a vertical bar) is fixed in the center of the editor. During playback, the timeline tracks scroll from right to left underneath the playhead.
+    - **Playback & Scrolling:** A white, vertical playhead is fixed at the horizontal center of the editor, overlaying the entire timeline editor. During playback, both the Time Ruler and the Video Tracks scroll in sync from right to left under the playhead. The scroll position is programmatically driven by the current playback time. The total scrollable width is proportional to the `totalDuration` from the `VideoViewModel`.
+    - **Manual Scrubbing:** Users can manually drag the timeline (both ruler and tracks) horizontally to scrub through the video. This action updates the playback time for the entire composition.
     - **Trimming:** Users can trim each video clip by dragging handles at the beginning and end of each track.
     - **Reordering:** Users can long-press and drag a track to change its vertical order, which will correspond to a change in the video's position in the preview layout.
     - **Zoom:** Pinch-to-zoom functionality for the timeline is **not** required.

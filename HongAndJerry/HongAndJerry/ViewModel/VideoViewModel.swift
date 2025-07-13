@@ -16,6 +16,7 @@ import Foundation
     var videoTrackIDs: [CMPersistentTrackID] = []
     var audioTrackIDs: [CMPersistentTrackID] = []
     var totalDuration: CMTime = .zero
+    var currentTime: CMTime = .zero
     
     var player: AVPlayer?
     var isPlaying: Bool = false
