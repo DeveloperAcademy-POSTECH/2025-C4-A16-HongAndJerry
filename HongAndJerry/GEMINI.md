@@ -37,3 +37,43 @@
     - Receive the `viewModel` as a simple `let` constant.
     - Do not require `@ObservedObject` or other property wrappers.
     - SwiftUI automatically tracks dependencies and updates the view only when necessary.
+
+## 5. Project File Structure
+
+```
+HongAndJerry/
+├───HongAndJerry/
+│   ├───ContentView.swift
+│   ├───HongAndJerryApp.swift
+│   ├───Assets.xcassets/
+│   │   ├───Contents.json
+│   │   ├───AccentColor.colorset/
+│   │   │   └───Contents.json
+│   │   └───AppIcon.appiconset/
+│   │       └───Contents.json
+│   ├───Files/
+│   │   ├───video1.MP4
+│   │   ├───video2.MOV
+│   │   └───video3.MOV
+│   ├───Model/
+│   │   ├───VideoSegment.swift
+│   │   └───VideoSource.swift
+│   ├───Preview Content/
+│   │   └───Preview Assets.xcassets/
+│   │       └───Contents.json
+│   ├───View/
+│   │   ├───VideoEditor/
+│   │   │   └───VideoEditor.swift
+│   │   └───VideoPlayer/
+│   │       ├───VideoPlayer.swift
+│   │       ├───VideoUIView.swift
+│   │       └───VideoView.swift
+│   └───ViewModel/
+│       └───VideoViewModel.swift
+└───HongAndJerry.xcodeproj/
+    ├───project.pbxproj
+    └───project.xcworkspace/
+```
+
+## 6. Communication Rules
+- To save tokens, please answer in English.

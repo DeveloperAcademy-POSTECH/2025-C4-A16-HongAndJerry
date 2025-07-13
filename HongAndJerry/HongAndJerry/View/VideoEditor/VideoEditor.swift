@@ -1,18 +1,19 @@
 //
-//  VideoPlayer.swift
+//  VideoEditor.swift
 //  HongAndJerry
 //
-//  Created by Donggyun Yang on 7/11/25.
+//  Created by Donggyun Yang on 7/12/25.
 //
+
 import SwiftUI
 import Foundation
 
-struct VideoPlayer: View {
+struct VideoEditor: View {
     let viewModel: VideoViewModel
     
     var body: some View {
-        VStack {
-            Text("Video Player")
+        ZStack {
+            Text("VideoEditor")
         }
     }
 }
