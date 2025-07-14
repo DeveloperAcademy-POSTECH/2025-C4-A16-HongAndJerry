@@ -33,7 +33,7 @@ var body: some View {
     ScrollView(.horizontal, showsIndicators: false) {
       HStack {
         ForEach(viewModel.attachments) { attachment in
-          ImageAttachmentView(imageAttachment: attachment)
+          ImageAttachmentView(videoAttachment: attachment)
 //          attachment.thumbnail
         }
       }
@@ -45,7 +45,7 @@ var body: some View {
 struct ImageAttachmentView: View {
     
     /// An image that a person selects in the Photos picker.
-  @ObservedObject var imageAttachment: VideoAttachment
+  @ObservedObject var videoAttachment: VideoAttachment
     
     /// A container view for the row.
     var body: some View {
@@ -53,11 +53,12 @@ struct ImageAttachmentView: View {
             
           
             // Display the image that the text describes.
-          switch imageAttachment.videoStatus {
+          switch videoAttachment.videoStatus {
             case .loading:
               Image("progress.indicator")
             case .finished(let image):
-                image.resizable().aspectRatio(contentMode: .fit).frame(height: 100)
+            Image(uiImage: image)
+              .resizable().aspectRatio(contentMode: .fit).frame(height: 100)
             case .failed:
                 Image(systemName: "exclamationmark.triangle.fill")
             default:
@@ -65,7 +66,11 @@ struct ImageAttachmentView: View {
             }
         }.task {
             // Asynchronously display the photo.
-          await imageAttachment.loadThumbnail()
+          
+          // 이미 썸네일이 있거나 로딩 중이면 실행하지 않음
+                      if videoAttachment.videoStatus == nil {
+                          await videoAttachment.loadThumbnail()
+                      }
         }
     }
 }

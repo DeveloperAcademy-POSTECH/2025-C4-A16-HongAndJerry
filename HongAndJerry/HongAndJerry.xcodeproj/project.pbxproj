@@ -6,8 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		6CFD57232E25137A00D3AD90 /* VideoTransferable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CFD57222E25137A00D3AD90 /* VideoTransferable.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		217467852E1CED01008E0045 /* HongAndJerry.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HongAndJerry.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6CFD57222E25137A00D3AD90 /* VideoTransferable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTransferable.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -32,6 +37,7 @@
 		2174677C2E1CED00008E0045 = {
 			isa = PBXGroup;
 			children = (
+				6CFD57222E25137A00D3AD90 /* VideoTransferable.swift */,
 				217467872E1CED01008E0045 /* HongAndJerry */,
 				217467862E1CED01008E0045 /* Products */,
 			);
@@ -119,6 +125,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6CFD57232E25137A00D3AD90 /* VideoTransferable.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
