@@ -82,3 +82,25 @@ HongAndJerry/
 
 ## 6. Communication Rules
 - To save tokens, please answer in English.
+
+## 7. Trim Feature Implementation Plan
+
+**Core Principle:** The UI representation is a clipped "viewport" into the full data model. The data model stores absolute time, while the view calculates its appearance based on that data.
+
+**1. Data Model (`VideoSegment.swift`):**
+   - Must store `trimStartTime` and `trimEndTime` as **absolute time values** relative to the original video source.
+   - This data is the single source of truth.
+
+**2. View Logic (`VideoTrackView.swift`) - The "Viewport" Model:**
+   - **Visual Start:** The view for each track must always visually start at the 0s mark of the timeline.
+   - **Hidden Content:** Trimmed-out portions of the video are not grayed out; they are completely hidden.
+   - **Implementation Steps:**
+     a. **Inner Container:** The view contains an inner `HStack` that holds the thumbnails for the **entire duration of the original video**.
+     b. **Offset Calculation:** This inner `HStack` is given a horizontal offset calculated as `offsetX = -trimStartTime.seconds * pixelsPerSecond`. This shifts the full thumbnail strip to the left, aligning the desired start frame with the view's leading edge (the 0s position).
+     c. **Frame & Clipping:** The parent `VideoTrackView` sets its own frame width based on the **trimmed duration**: `width = (trimEndTime - trimStartTime).seconds * pixelsPerSecond`. It then applies `.clipped()` to hide any part of the inner `HStack` that falls outside this frame.
+
+**3. Interaction Logic (`DragGesture` on Trim Handles):**
+   - Dragging a handle modifies the `trimStartTime` or `trimEndTime` values in the data model.
+   - This data change automatically triggers two updates:
+     a. **UI Update:** The `VideoTrackView`'s offset and frame width are recalculated, creating the illusion that hidden thumbnails are being revealed as the frame expands.
+     b. **Player Update:** The `VideoViewModel` rebuilds the `AVComposition` using the new time range and updates the `AVPlayer` item.
