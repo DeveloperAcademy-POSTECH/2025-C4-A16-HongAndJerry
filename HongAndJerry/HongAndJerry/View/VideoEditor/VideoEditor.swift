@@ -14,32 +14,51 @@ import CoreMedia
 struct VideoEditor: View {
     let viewModel: VideoViewModel
     
+    @State private var previousTime: CMTime = .zero
+    
     var body: some View {
         ZStack(alignment: .topLeading) {
             // Use GeometryReader to get the width of the container view
             GeometryReader { geometry in
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 0) {
-                        // Left padding to center the "0s" mark at the start
-                        Spacer()
-                            .frame(width: geometry.size.width / 2)
-                        
                         // Main content area for the timeline
-                        VStack(alignment: .leading, spacing: 0) {
+                        VStack(alignment: .leading, spacing: 15) {
                             // 1. Time Ruler
                             TimeRulerView(viewModel: viewModel)
                             
-                            // 2. Video Tracks Area (Placeholder)
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.3))
-                                .frame(height: 170)
+                            // 2. Video Tracks Area
+                            VStack(alignment: .leading, spacing: 0) {
+                                ForEach(viewModel.segments) { segment in
+                                    VideoTrackView(segment: segment, viewModel: viewModel)
+                                }
+                            }
                         }
-                        //.frame(width: 2000) // No longer needed, width is now dynamic
-                        
-                        // Right padding to allow scrolling to the end
-                        Spacer()
-                            .frame(width: geometry.size.width / 2)
                     }
+                    .offset(x: geometry.size.width / 2 - (viewModel.currentTime.seconds * viewModel.pixelsPerSecond))
+                    .animation(.linear(duration: 0.01), value: viewModel.currentTime)
+                    .gesture(
+                        DragGesture()
+                            .onChanged { value in
+                                if !viewModel.isScrubbing {
+                                    viewModel.isScrubbing = true
+                                    previousTime = viewModel.currentTime
+                                    viewModel.pause()
+                                }
+                                
+                                let translationX = value.translation.width
+                                let timeOffset = -translationX / viewModel.pixelsPerSecond
+                                let newTime = CMTimeAdd(previousTime, CMTime(seconds: timeOffset, preferredTimescale: 600))
+                                
+                                // Ensure the new time is within the valid range
+                                let clampedTime = max(.zero, min(newTime, viewModel.totalDuration))
+                                viewModel.seek(to: clampedTime)
+                            }
+                            .onEnded { _ in
+                                viewModel.isScrubbing = false
+                                previousTime = .zero
+                            }
+                    )
                 }
             }
             

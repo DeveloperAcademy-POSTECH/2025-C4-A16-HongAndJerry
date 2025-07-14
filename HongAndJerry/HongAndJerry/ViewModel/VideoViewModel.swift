@@ -17,22 +17,78 @@ import Foundation
     var audioTrackIDs: [CMPersistentTrackID] = []
     var totalDuration: CMTime = .zero
     var currentTime: CMTime = .zero
+
+    // MARK: - Computed Properties for Timeline UI
+
+    /// The number of pixels that represent one second on the timeline.
+    let pixelsPerSecond: CGFloat = 25.0
+
+    /// The major interval for the time ruler, calculated based on the total duration.
+    var majorInterval: Int {
+        let totalSeconds = Int(totalDuration.seconds)
+        if totalSeconds < 10 { return 1 }
+        if totalSeconds < 60 { return 5 }
+        if totalSeconds < 300 { return 10 }
+        return 30
+    }
+
+    /// The time step (in seconds) for generating thumbnails, derived from the major interval.
+    /// This ensures that the density of thumbnails adapts to the timeline's scale.
+    var thumbnailTimeStep: Double {
+        // Use max to ensure the step is at least 1 second.
+        // This prevents generating too many thumbnails for very short videos.
+//        return max(1.0, Double(majorInterval) / 3.0)
+        return 3
+    }
     
     var player: AVPlayer?
     var isPlaying: Bool = false
+    var isScrubbing: Bool = false
+    
+    private var timeObserverToken: Any?
     
     init() {
         
+    }
+    
+    deinit {
+        removePeriodicTimeObserver()
     }
 
     func play() {
         player?.play()
         isPlaying = true
+        addPeriodicTimeObserver()
     }
 
     func pause() {
         player?.pause()
         isPlaying = false
+        removePeriodicTimeObserver()
+    }
+
+    func seek(to time: CMTime) {
+        player?.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero)
+        self.currentTime = time
+    }
+    
+    private func addPeriodicTimeObserver() {
+        // Avoid adding multiple observers.
+        guard timeObserverToken == nil else { return }
+        
+        let interval = CMTime(value: 1, timescale: 60)
+        
+        timeObserverToken = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+            guard let self = self, !self.isScrubbing else { return }
+            self.currentTime = time
+        }
+    }
+    
+    private func removePeriodicTimeObserver() {
+        if let token = timeObserverToken {
+            player?.removeTimeObserver(token)
+            timeObserverToken = nil
+        }
     }
 }
 

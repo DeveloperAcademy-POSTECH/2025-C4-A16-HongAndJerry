@@ -11,28 +11,14 @@ import SwiftUI
 struct TimeRulerView: View {
     let viewModel: VideoViewModel
     
-    private let pixelsPerSecond: CGFloat = 25.0
-    
     // MARK: - Computed Properties
     
     private var totalDurationSeconds: Int {
         Int(viewModel.totalDuration.seconds)
     }
     
-    private var majorInterval: Int {
-        if totalDurationSeconds < 10 {
-            return 1
-        } else if totalDurationSeconds < 60 {
-            return 5
-        } else if totalDurationSeconds < 300 {
-            return 10
-        } else {
-            return 30
-        }
-    }
-    
     private var rulerWidth: CGFloat {
-        CGFloat(totalDurationSeconds) * pixelsPerSecond
+        CGFloat(totalDurationSeconds) * viewModel.pixelsPerSecond
     }
     
     // MARK: - Body
@@ -44,7 +30,7 @@ struct TimeRulerView: View {
                     Spacer()
                     
                     // Label for major intervals
-                    if second % majorInterval == 0 {
+                    if second % viewModel.majorInterval == 0 {
                         Text("\(second)s")
                             .font(.system(size: 14))
                             .foregroundColor(.gray)
@@ -56,11 +42,10 @@ struct TimeRulerView: View {
                             .frame(width: 1, height: 2)
                     }
                 }
-                .frame(width: pixelsPerSecond)
+                .frame(width: viewModel.pixelsPerSecond)
             }
         }
         .frame(width: rulerWidth)
         .frame(height: 20)
-        .border(.blue)
     }
 }

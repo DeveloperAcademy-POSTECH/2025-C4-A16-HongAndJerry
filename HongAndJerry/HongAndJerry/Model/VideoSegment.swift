@@ -10,7 +10,8 @@ import AVKit
 import Foundation
 import AVFoundation
 
-struct VideoSegment {
+struct VideoSegment: Identifiable {
+    let id: UUID = UUID()
     let origin: VideoSource
     let asset: AVAsset
     let trimStartTime: CMTime
