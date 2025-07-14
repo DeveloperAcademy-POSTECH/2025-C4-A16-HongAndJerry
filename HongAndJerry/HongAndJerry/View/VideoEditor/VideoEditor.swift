@@ -29,7 +29,7 @@ struct VideoEditor: View {
                             
                             // 2. Video Tracks Area
                             VStack(alignment: .leading, spacing: 0) {
-                                ForEach(viewModel.segments) { segment in
+                                ForEach(viewModel.segments.reversed()) { segment in
                                     VideoTrackView(segment: segment, viewModel: viewModel)
                                 }
                             }
