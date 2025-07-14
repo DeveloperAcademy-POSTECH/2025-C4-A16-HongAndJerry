@@ -28,7 +28,7 @@ struct VideoEditor: View {
                             TimeRulerView(viewModel: viewModel)
                             
                             // 2. Video Tracks Area
-                            VStack(alignment: .leading, spacing: 0) {
+                            VStack(alignment: .leading, spacing: 5) {
                                 ForEach(viewModel.segments.reversed()) { segment in
                                     VideoTrackView(segment: segment, viewModel: viewModel)
                                 }
@@ -65,7 +65,7 @@ struct VideoEditor: View {
             // Playhead
             Rectangle()
                 .fill(Color.white)
-                .frame(width: 2, height: 170)
+                .frame(width: 2, height: 180)
                 .frame(maxWidth: .infinity, alignment: .center)
                 .offset(y: 25)
 
