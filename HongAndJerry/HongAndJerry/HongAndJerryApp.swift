@@ -11,7 +11,7 @@ import SwiftUI
 struct HongAndJerryApp: App {
     var body: some Scene {
         WindowGroup {
-          VideoSelectView()
+          ContentView()
         }
     }
 }

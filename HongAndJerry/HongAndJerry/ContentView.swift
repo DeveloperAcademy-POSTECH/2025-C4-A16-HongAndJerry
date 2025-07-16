@@ -7,15 +7,14 @@
 
 import SwiftUI
 
+// 사용 예시
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationView {
+            VideoGalleryView()
+                .navigationTitle("비디오 선택")
+                .navigationBarTitleDisplayMode(.inline)
         }
-        .padding()
     }
 }
 
