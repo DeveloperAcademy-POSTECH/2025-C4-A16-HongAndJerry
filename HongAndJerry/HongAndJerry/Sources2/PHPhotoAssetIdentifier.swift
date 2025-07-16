@@ -8,7 +8,7 @@
 import Foundation
 import Photos
 import PhotosUI
-//import UniformTypeIdentifiers
+import UniformTypeIdentifiers
 import CoreTransferable
 
 struct PHPhotoAssetIdentifier: Transferable {
@@ -19,6 +19,6 @@ struct PHPhotoAssetIdentifier: Transferable {
     }
 
     static var supportedContentTypes: [UTType] {
-        [UTType("public.movie")!]
+      [.movie]
     }
 }
