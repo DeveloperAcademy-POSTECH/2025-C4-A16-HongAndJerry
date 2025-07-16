@@ -27,6 +27,15 @@ var body: some View {
       .photosPickerStyle(.inline)
       .photosPickerAccessoryVisibility(.hidden)
     }
+    .onAppear {
+      NotificationCenter.default.addObserver(forName: .didGenerateThumbnail, object: nil, queue: .main) { notification in
+        guard
+          let id = notification.userInfo?["id"] as? String,
+          let image = notification.userInfo?["image"] as? UIImage
+        else { return }
+        viewModel.cacheThumbnail(image, for: id)
+      }
+    }
   }
   
   func imageList() -> some View {
@@ -68,9 +77,9 @@ struct ImageAttachmentView: View {
             // Asynchronously display the photo.
           
           // 이미 썸네일이 있거나 로딩 중이면 실행하지 않음
-                      if videoAttachment.videoStatus == nil {
-                          await videoAttachment.loadThumbnail()
-                      }
+            if videoAttachment.videoStatus == nil {
+                await videoAttachment.loadThumbnail()
+            }
         }
     }
 }

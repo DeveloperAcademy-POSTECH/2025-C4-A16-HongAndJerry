@@ -5,23 +5,34 @@ import AVFoundation
 @MainActor final class VideoSelectViewModel: ObservableObject {
   @Published var selection = [PhotosPickerItem]() {
     didSet {
-      // Update the attachments according to the current picker selection.
+      var newAttachmentByIdentifier = self.attachmentByIdentifier
+
       let newAttachments = selection.map { item in
-        // Access an existing attachment, if it exists; otherwise, create a new attachment.
-        attachmentByIdentifier[item.identifier] ?? VideoAttachment(item)
+        if let existing = newAttachmentByIdentifier[item.identifier] {
+          return existing
+        } else {
+          let newAttachment = VideoAttachment(item)
+          if let cached = thumbnailCache[item.identifier] {
+            newAttachment.thumbnail = cached
+            newAttachment.videoStatus = .finished(cached)
+          }
+          newAttachmentByIdentifier[item.identifier] = newAttachment
+          return newAttachment
+        }
       }
-      // Update the saved attachments array for any new attachments loaded in scope.
-      let newAttachmentByIdentifier = newAttachments.reduce(into: [:]) { partialResult, attachment in
-        partialResult[attachment.id] = attachment
-      }
-      // To support asynchronous access, assign new arrays to the instance properties rather than updating the existing arrays.
-      attachments = newAttachments
-      attachmentByIdentifier = newAttachmentByIdentifier
+
+      self.attachments = newAttachments
+      self.attachmentByIdentifier = newAttachmentByIdentifier
     }
   }
   @Published var attachments = [VideoAttachment]()
     
   private var attachmentByIdentifier = [String: VideoAttachment]()
+  private var thumbnailCache: [String: UIImage] = [:]
+  
+  func cacheThumbnail(_ image: UIImage, for id: String) {
+    thumbnailCache[id] = image
+  }
 }
 
 
@@ -76,7 +87,7 @@ import AVFoundation
   func pickerItemToAVAsset(from videoSelection: PhotosPickerItem) async -> AVAsset? {
     print(" 2) pickerItemToAVAsset()")
     guard let url = try? await loadVideo(videoSelection) else { return nil }
-    let asset = AVURLAsset(url: url)
+    let asset = AVURLAsset(url: url) // 비동기
     print(" 4) asset : \(asset)")
     return asset
   }
@@ -92,6 +103,11 @@ import AVFoundation
         let thumbnailImge: CGImage = try await generator.image(at: .zero).image
         self.thumbnail = UIImage(cgImage: thumbnailImge)
         self.videoStatus = .finished(self.thumbnail!)
+        if let image = self.thumbnail {
+          DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .didGenerateThumbnail, object: nil, userInfo: ["id": self.id, "image": image])
+          }
+        }
       } catch {
         self.videoStatus = .failed
       }
@@ -108,3 +124,6 @@ private extension PhotosPickerItem {
   }
 }
 
+extension Notification.Name {
+  static let didGenerateThumbnail = Notification.Name("didGenerateThumbnail")
+}
