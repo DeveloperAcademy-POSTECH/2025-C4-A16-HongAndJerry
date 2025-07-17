@@ -104,3 +104,55 @@ HongAndJerry/
    - This data change automatically triggers two updates:
      a. **UI Update:** The `VideoTrackView`'s offset and frame width are recalculated, creating the illusion that hidden thumbnails are being revealed as the frame expands.
      b. **Player Update:** The `VideoViewModel` rebuilds the `AVComposition` using the new time range and updates the `AVPlayer` item.
+
+---
+## 8. System Architecture Blueprint
+
+### 8.1. Guiding Principles
+
+*   **Single Source of Truth**: The `VideoViewModel`'s `segments` array is the ultimate authority on the project's state. All other components must derive their state from this source.
+*   **Command Pattern**: All state modifications MUST be encapsulated in `EditOperation` objects. This ensures operations are testable, extensible, and potentially reversible (Undo/Redo).
+*   **Strict Separation of Concerns**: Each component adheres to a single, well-defined responsibility, modeled after a film production team.
+    *   `VideoViewModel`: Orchestration (The Producer).
+    *   `PlayerController`: Playback Control (The Operator).
+    *   `CompositionBuilder`: `AVFoundation` Logic (The Editor).
+*   **Stateful vs. Stateless Implementation**:
+    *   **`class`**: Used for objects with a unique identity and shared, mutable state (e.g., `VideoSegment`, `PlayerController`, `VideoViewModel`).
+    *   **`struct`**: Used for stateless "worker" objects that perform calculations without maintaining state (e.g., `CompositionBuilder`, `TrimOperation`).
+
+### 8.2. Component Roles & Responsibilities
+
+#### a. `VideoSegment` (class)
+- **Persona**: Raw Footage Can.
+- **Primary Responsibility**: To be the data model for a single video clip, holding all its associated state.
+- **Implementation Rationale**: MUST be a `class` (reference type) because it represents a unique entity with an identity that is shared and mutated across the app. It works with the `@Observable` framework.
+- **Core State & Data**: `asset`, `trimStartTime`, `trimEndTime`, `thumbnails`.
+- **Core Behaviors & API**: `generateThumbnails()`.
+
+#### b. `CompositionBuilder` (struct)
+- **Persona**: The Film Editor.
+- **Primary Responsibility**: To translate the `[VideoSegment]` array into a playable `AVPlayerItem` by handling all complex `AVFoundation` logic.
+- **Implementation Rationale**: MUST be a `struct` (value type) because it is a stateless worker. It takes input, produces output, and retains no memory of past operations, ensuring thread safety and predictability.
+- **Core Behaviors & API**: `build(from: [VideoSegment]) -> CompositionBuildResult`.
+
+#### c. `PlayerController` (class)
+- **Persona**: The Playback Operator.
+- **Primary Responsibility**: To own, manage, and control the `AVPlayer` instance.
+- **Implementation Rationale**: MUST be a `class` because it manages a unique, stateful system resource (`AVPlayer`).
+- **Core State & Data**: `player`, `isPlaying`, `currentTime`.
+- **Core Behaviors & API**: `play()`, `pause()`, `seek(to:)`, `replaceCurrentItem(with:)`.
+
+#### d. `EditOperation` (protocol)
+- **Persona**: The Work Order.
+- **Primary Responsibility**: To define a contract that encapsulates a single, atomic editing action.
+- **Implementation Rationale**: A `protocol` is used to define a common interface for all command objects, enabling the Command Pattern.
+- **Core Behaviors & API**: `apply(on: [VideoSegment]) -> EditResult`.
+
+#### e. `VideoViewModel` (class)
+- **Persona**: The Executive Producer.
+- **Primary Responsibility**: To act as the central coordinator, orchestrating all interactions between the UI and the system's specialist components. It owns the application's high-level state.
+- **Implementation Rationale**: MUST be a `class` as it owns the application's core state (`segments`) and must persist throughout the app's lifecycle.
+- **Core State & Data**: `segments` (Source of Truth), `playerController` (dependency), `isScrubbing`.
+- **Core Behaviors & API**:
+    - `perform(operation: EditOperation)`: The single, unified entry point for all state-mutating requests from the UI.
+    - `rebuildPlayerItem()`: A private method to coordinate the `CompositionBuilder` and `PlayerController` after a state change.
