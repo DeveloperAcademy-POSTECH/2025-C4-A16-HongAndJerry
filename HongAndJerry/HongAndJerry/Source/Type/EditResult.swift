@@ -5,14 +5,10 @@
 //  Created by Rama on 7/16/25.
 //
 
-import SwiftUI
+import Foundation
 
-struct EditResult: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-    }
-}
-
-#Preview {
-    EditResult()
+enum EditResult {
+    case segmentsUpdated([VideoSegment])
+    case exportCompleted(URL)
+    case noChange
 }
