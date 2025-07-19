@@ -8,7 +8,7 @@
 import Photos
 import SwiftUI
 
-class HJGalleryViewModel: ObservableObject {
+class GalleryViewModel: ObservableObject {
     @Published var videos: [PHAsset] = []           // 전체 비디오
     @Published var selectedVideos: [PHAsset] = []   // 선택한 비디오
     
@@ -23,7 +23,7 @@ class HJGalleryViewModel: ObservableObject {
     }
 }
 
-extension HJGalleryViewModel {
+extension GalleryViewModel {
     
     // private func
     /// 설정에 따른 사용자로부터 갤러리 접근 권한 요청

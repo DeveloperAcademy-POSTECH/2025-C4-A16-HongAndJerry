@@ -8,7 +8,7 @@
 import SwiftUI
 import Photos
 
-struct HJVideoThumbnail: View {
+struct VideoThumbnail: View {
     let video: PHAsset
     let isSelected: Bool
     let selectionIndex: Int?
@@ -38,7 +38,7 @@ struct HJVideoThumbnail: View {
     }
     
     // View
-    
+    // TODO: - 컴포넌트 뺼래 말래
     func thumbnailImage(width: CGFloat, height: CGFloat) -> some View {
         Rectangle()
             .fill(Color.gray.opacity(0.3))
@@ -57,28 +57,14 @@ struct HJVideoThumbnail: View {
     
     var selectedState: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 4)
-                .stroke(Color.blue, lineWidth: 3)
+            Rectangle()
+                .strokeBorder(Color.accent, lineWidth: 2)
             
-            VStack {
-                HStack {
-                    Spacer()
-                    ZStack {
-                        Circle()
-                            .fill(Color.blue)
-                            .frame(width: 24, height: 24)
-                        
-                        if let index = selectionIndex {
-                            Text("\(index)")
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                        }
-                    }
-                }
-                Spacer()
+            if let index = selectionIndex {
+                Text("\(index)")
+                    .font(.SUITBody)    // TODO: - Font 
+                    .foregroundColor(Color.accent)
             }
-            .padding(4)
         }
     }
     
@@ -92,7 +78,7 @@ struct HJVideoThumbnail: View {
         
         manager.requestImage(
             for: video,
-            targetSize: CGSize(width: 200, height: 200),
+            targetSize: CGSize(width: 130, height: 130),
             contentMode: .aspectFill,
             options: option
         ) { image, _ in

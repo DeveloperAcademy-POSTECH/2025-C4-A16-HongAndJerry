@@ -9,7 +9,7 @@ import SwiftUI
 import Photos
 
 /// 선택한 비디오의 섬네일
-struct HJSelectedVideoThumbnail: View {
+struct SelectedVideoThumbnail: View {
     
     let video: PHAsset
     let index: Int
@@ -18,17 +18,19 @@ struct HJSelectedVideoThumbnail: View {
     @State private var thumbnail: UIImage?
     
     var body: some View {
+        
+        // TODO: - 컴포넌트 분리 하기 (섬네일 / 버튼)
         ZStack(alignment: .topTrailing) {
             Rectangle()
                 .fill(Color.gray.opacity(0.3))
-                .frame(width: 116, height: 116)
+                .frame(width: 68, height: 68)
                 .overlay(
                     Group {
                         if let thumbnail = thumbnail {
                             Image(uiImage: thumbnail)
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
-                                .frame(width: 116, height: 116)
+                                .frame(width: 68, height: 68)
                                 .clipped()
                         }
                     }

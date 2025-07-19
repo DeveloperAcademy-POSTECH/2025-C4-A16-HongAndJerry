@@ -7,15 +7,15 @@
 
 import SwiftUI
 
-struct HJAllVideoGridScrollView: View {
+struct AllVideoGridScrollView: View {
     
-    @ObservedObject var viewModel: HJGalleryViewModel
+    @ObservedObject var viewModel: GalleryViewModel
     
     var body: some View {
         ScrollView {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3)) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 2), count: 3), spacing: 2) {
                 ForEach(viewModel.videos, id: \.localIdentifier) { video in
-                    HJVideoThumbnail(
+                    VideoThumbnail(
                         video: video,
                         isSelected: viewModel.selectedVideos.contains(video),
                         selectionIndex: viewModel.getSelectionIndex(for: video),
