@@ -24,13 +24,15 @@ struct AllVideoGridScrollView: View {
                         video: video,
                         isSelected: viewModel.selectedVideos.contains(video),
                         selectionIndex: viewModel.getSelectionIndex(for: video),
-                        onTap: { viewModel.toggleSelection(video) }
+                        onTap: { viewModel.send(.toggleSelection(video)) }
                     )
                 }
             }
         }
         .onAppear {
-            viewModel.loadVideos()
+            Task {
+                await viewModel.loadVideos()
+            }
         }
     }
 }
