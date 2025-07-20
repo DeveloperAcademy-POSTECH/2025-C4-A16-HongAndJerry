@@ -13,6 +13,8 @@ final class CropViewModel {
     
     enum Action {
         case loadThumbnail
+        case goToNextPhoto
+        case goToPreviousPhoto
     }
     
     var selectedVideos: [PHAsset]
@@ -26,47 +28,62 @@ final class CropViewModel {
 }
 
 extension CropViewModel {
-   func loadThumbnails() {
-            Task {
-                await loadThumbnailsAsync()
+    
+    func send(_ action: Action) {
+        
+        switch action {
+        case .loadThumbnail:
+            loadThumbnails()
+            
+        case .goToNextPhoto:
+            if currentIndex < 2 { currentIndex += 1 }
+            
+        case .goToPreviousPhoto:
+            if currentIndex > 0 { currentIndex -= 1 }
+        }
+    }
+    
+    private func loadThumbnails() {
+        Task {
+            await loadThumbnailsAsync()
+        }
+    }
+    
+    @MainActor
+    private func loadThumbnailsAsync() async {
+        isLoading = true
+        
+        for video in selectedVideos {
+            let thumbnail = await loadSingleThumbnail(for: video)
+            if let thumbnail = thumbnail {
+                thumbnails[video.localIdentifier] = thumbnail
             }
         }
         
-        @MainActor
-        private func loadThumbnailsAsync() async {
-            isLoading = true
+        isLoading = false   // 로딩이 끝나면 TabView에 이미지 띄움
+    }
+    
+    private func loadSingleThumbnail(for video: PHAsset) async -> UIImage? {
+        return await withCheckedContinuation { continuation in
+            let manager = PHImageManager.default()
+            let options = PHImageRequestOptions()
+            options.deliveryMode = .highQualityFormat
+            options.isNetworkAccessAllowed = true
+            options.isSynchronous = false
             
-            for video in selectedVideos {
-                let thumbnail = await loadSingleThumbnail(for: video)
-                if let thumbnail = thumbnail {
-                    thumbnails[video.localIdentifier] = thumbnail
-                }
-            }
+            let targetSize = PHImageManagerMaximumSize // 원본 해상도
             
-            isLoading = false
-        }
-        
-        private func loadSingleThumbnail(for video: PHAsset) async -> UIImage? {
-            return await withCheckedContinuation { continuation in
-                let manager = PHImageManager.default()
-                let options = PHImageRequestOptions()
-                options.deliveryMode = .highQualityFormat
-                options.isNetworkAccessAllowed = true
-                options.isSynchronous = false
-                
-                let targetSize = CGSize(width: 500, height: 500)
-                
-                manager.requestImage(
-                    for: video,
-                    targetSize: targetSize,
-                    contentMode: .aspectFill,
-                    options: options
-                ) { image, info in
-                    let isDegraded = info?[PHImageResultIsDegradedKey] as? Bool ?? false
-                    if !isDegraded {
-                        continuation.resume(returning: image)
-                    }
+            manager.requestImage(
+                for: video,
+                targetSize: targetSize,
+                contentMode: .aspectFill,
+                options: options
+            ) { image, info in
+                let isDegraded = info?[PHImageResultIsDegradedKey] as? Bool ?? false
+                if !isDegraded {
+                    continuation.resume(returning: image)
                 }
             }
         }
+    }
 }
