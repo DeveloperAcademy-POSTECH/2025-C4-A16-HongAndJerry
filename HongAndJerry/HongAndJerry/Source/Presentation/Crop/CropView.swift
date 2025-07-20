@@ -12,6 +12,10 @@ struct CropView: View {
     
     @Bindable var viewModel: CropViewModel
     
+    @State var cropArea: CGRect = .init(x: 0, y: 0, width: 100, height: 100)
+    @State var imageViewSize: CGSize = .zero
+    @State var croppedImage: UIImage?
+    
     var body: some View {
         ZStack {
             // soop TODO: 다들 배경 어떻게 하나 물어보고 변경하깅~
@@ -35,7 +39,7 @@ struct CropView: View {
             TabView(selection: $viewModel.currentIndex) {
                 ForEach(Array(viewModel.selectedVideos.enumerated()), id: \.1.localIdentifier) { index, video in
                     thumbnailCell(video: video)
-                    .tag(index)
+                        .tag(index)
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))    // 탭뷰 좌우 스크롤 설정
@@ -66,6 +70,17 @@ struct CropView: View {
                 Image(uiImage: thumbnail)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
+                    .overlay(alignment: .topLeading) {
+                        GeometryReader { geometry in
+                            CropBox(rect: $cropArea)
+                                .onAppear {
+                                    self.imageViewSize = geometry.size
+                                }
+                                .onChange(of: geometry.size) {
+                                    self.imageViewSize = $0
+                                }
+                        }
+                    }
             } else {
                 Rectangle()
                     .fill(Color.gray.opacity(0.3))
