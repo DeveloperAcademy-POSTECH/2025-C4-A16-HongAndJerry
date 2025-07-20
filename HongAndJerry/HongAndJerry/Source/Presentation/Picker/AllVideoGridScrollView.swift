@@ -13,7 +13,12 @@ struct AllVideoGridScrollView: View {
     
     var body: some View {
         ScrollView {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 2), count: 3), spacing: 2) {
+            LazyVGrid(
+                columns: Array(
+                    repeating: GridItem(.flexible(), spacing: 2),
+                    count: 3),
+                spacing: 2
+            ) {
                 ForEach(viewModel.videos, id: \.localIdentifier) { video in
                     VideoThumbnail(
                         video: video,
