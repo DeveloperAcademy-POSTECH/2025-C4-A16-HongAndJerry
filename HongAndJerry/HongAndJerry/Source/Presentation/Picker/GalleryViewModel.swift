@@ -23,6 +23,14 @@ final class GalleryViewModel {
     
     private let maxSelection = 3                    // 최대 선택 개수
     
+    var selectedCount: Int {
+        selectedVideos.count
+    }
+    
+    var canProceedToEdit: Bool {
+        selectedVideos.count == maxSelection
+    }
+    
     init(
         videos: [PHAsset] = [],
         selectedVideos: [PHAsset] = []
