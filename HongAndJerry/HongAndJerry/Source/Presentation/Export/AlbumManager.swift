@@ -10,7 +10,7 @@ import Photos
 final class AlbumManager: AlbumRepository {
     
     func checkAlbum(named title: String) throws -> PHAssetCollection {
-        if let album = fetchAlbum(title: title) { return album }
+        if let existingAlbum = fetchExistingAlbum(title: title) { return album }
         return try createAlbum(title: title)
     }
 
