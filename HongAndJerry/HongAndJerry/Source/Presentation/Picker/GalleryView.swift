@@ -25,15 +25,21 @@ struct GalleryView: View {
                             // TODO: - 선택 영상 목록 등장시 애니메이션 효과 주기
                     }
                     AllVideoGridScrollView(viewModel: viewModel)
+                    
+                    // TODO: 다음 버튼이 생성되고 나서, 갤러리 최하단에 도달했을 경우 하단에 공백
                 }
                 
                 VStack {
-                    Button {
-                        showCropPage = true
-                    } label: {
-                        Text("확인")
-                            .padding()
-                            .background(Color.accent)
+                    Spacer()
+                    
+                    if viewModel.canProceedToEdit {
+                        CtaButton(
+                            buttonType: .next,
+                            isDisabled: .constant(false)
+                        ) {
+                            showCropPage = true
+                        }
+                        .padding(.horizontal, 16)
                     }
                 }
             }
