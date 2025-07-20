@@ -56,6 +56,7 @@ struct CropView: View {
                     nextButton
                 }
             }
+            .padding(.horizontal, 16)
         }
     }
     
