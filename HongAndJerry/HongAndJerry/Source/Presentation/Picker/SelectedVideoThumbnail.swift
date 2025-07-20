@@ -49,6 +49,7 @@ struct SelectedVideoThumbnail: View {
         }
     }
     
+    // TODO: - VideoThumbnail에도 같은 함수가 있어서 수정해야 함...
     /// 섬네일 로딩 함수
     private func loadThumbnail() {
         let manager = PHImageManager.default()

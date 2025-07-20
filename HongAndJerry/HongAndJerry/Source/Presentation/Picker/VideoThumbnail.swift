@@ -68,6 +68,7 @@ struct VideoThumbnail: View {
         }
     }
     
+    // TODO: - SelectedViewThumbnail에도 같은 함수가 있어서 수정해야 함...
     // func
     
     private func loadThumbnail() {
@@ -87,11 +88,4 @@ struct VideoThumbnail: View {
             }
         }
     }
-    
-    private func formatDuration(_ duration: TimeInterval) -> String {
-        let minutes = Int(duration) / 60
-        let seconds = Int(duration) % 60
-        return String(format: "%d:%02d", minutes, seconds)
-    }
-
 }
