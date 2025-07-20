@@ -11,7 +11,7 @@ import Photos
 struct GalleryView: View {
     
     @State var viewModel = GalleryViewModel()
-    @State var showCropPage: Bool = false // TODO: - NavigationPath 정의되면 수정
+    @State var showCropPage: Bool = false // soop TODO: - NavigationPath 정의되면 수정
     
     var body: some View {
         NavigationStack {
@@ -22,11 +22,11 @@ struct GalleryView: View {
                     // 선택 비디오 가로스크롤 뷰
                     if !viewModel.selectedVideos.isEmpty {
                         SelectedVideoHorizontalScrollView(viewModel: viewModel)
-                            // TODO: - 선택 영상 목록 등장시 애니메이션 효과 주기
+                            // soop TODO: - 선택 영상 목록 등장시 애니메이션 효과 주기
                     }
                     AllVideoGridScrollView(viewModel: viewModel)
                     
-                    // TODO: 다음 버튼이 생성되고 나서, 갤러리 최하단에 도달했을 경우 하단에 공백
+                    // soop TODO: 다음 버튼이 생성되고 나서, 갤러리 최하단에 도달했을 경우 하단에 공백
                 }
                 
                 VStack {

@@ -19,7 +19,7 @@ struct SelectedVideoThumbnail: View {
     
     var body: some View {
         
-        // TODO: - 컴포넌트 분리 하기 (섬네일 / 버튼)
+        // soop TODO: - 컴포넌트 분리 하기 (섬네일 / 버튼)
         ZStack(alignment: .topTrailing) {
             Rectangle()
                 .fill(Color.gray.opacity(0.3))
@@ -49,7 +49,7 @@ struct SelectedVideoThumbnail: View {
         }
     }
     
-    // TODO: - VideoThumbnail에도 같은 함수가 있어서 수정해야 함...
+    // soop TODO: - VideoThumbnail에도 같은 함수가 있어서 수정해야 함...
     /// 섬네일 로딩 함수
     private func loadThumbnail() {
         let manager = PHImageManager.default()

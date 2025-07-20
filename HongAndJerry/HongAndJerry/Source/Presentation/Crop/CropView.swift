@@ -14,7 +14,7 @@ struct CropView: View {
     
     var body: some View {
         ZStack {
-            // TODO: 다들 배경 어떻게 하나 물어보고 변경하깅~
+            // soop TODO: 다들 배경 어떻게 하나 물어보고 변경하깅~
             Color.background.ignoresSafeArea()
             Group {
                 if viewModel.isLoading {
