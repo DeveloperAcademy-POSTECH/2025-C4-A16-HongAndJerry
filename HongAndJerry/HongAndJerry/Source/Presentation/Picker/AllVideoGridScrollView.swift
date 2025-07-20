@@ -9,7 +9,7 @@ import SwiftUI
 
 struct AllVideoGridScrollView: View {
     
-    @ObservedObject var viewModel: GalleryViewModel
+    var viewModel: GalleryViewModel
     
     var body: some View {
         ScrollView {

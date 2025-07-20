@@ -10,7 +10,7 @@ import Photos
 
 struct GalleryView: View {
     
-    @StateObject var viewModel = GalleryViewModel()
+    @State var viewModel = GalleryViewModel()
     
     var body: some View {
         ZStack {

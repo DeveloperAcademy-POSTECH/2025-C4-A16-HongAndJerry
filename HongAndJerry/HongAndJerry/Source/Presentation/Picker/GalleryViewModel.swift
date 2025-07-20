@@ -8,9 +8,8 @@
 import Photos
 import SwiftUI
 
-class GalleryViewModel: ObservableObject {
-    @Published var videos: [PHAsset] = []           // 전체 비디오
-    @Published var selectedVideos: [PHAsset] = []   // 선택한 비디오
+// TODO: - 뷰모델 이름 다시 정하기... 비디오 선택 + 비디오 편집 기능 분리해야 하나
+@Observable
     
     private let maxSelection = 3                    // 최대 선택 개수
     

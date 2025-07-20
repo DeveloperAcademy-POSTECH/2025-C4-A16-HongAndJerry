@@ -11,7 +11,7 @@ import Photos
 /// 선택한 비디오 배열의 수평 스크롤 뷰
 struct SelectedVideoHorizontalScrollView: View {
     
-    @ObservedObject var viewModel: GalleryViewModel
+    var viewModel: GalleryViewModel
 //    @ObservedObject private var selectedVideos: [PHAsset]
     
     var body: some View {
