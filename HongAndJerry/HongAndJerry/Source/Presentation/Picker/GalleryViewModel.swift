@@ -25,6 +25,14 @@ import SwiftUI
 extension GalleryViewModel {
     
     // private func
+    // TODO: - 리턴 수정하기 ...
+    func getSelectionIndex(for video: PHAsset) -> Int? {
+        let videoId = video.localIdentifier
+        let index = selectedVideos.firstIndex(where: { $0.localIdentifier == videoId })
+        
+        return index.map { $0 + 1 }
+    }
+    
     /// 설정에 따른 사용자로부터 갤러리 접근 권한 요청
     private func requestPhotoLibraryPermission(completion: @escaping (Bool) -> Void) {
         let status = PHPhotoLibrary.authorizationStatus() // 사용자의 접근 권한 상태 확인
@@ -86,13 +94,11 @@ extension GalleryViewModel {
     /// 선택한 비디오가 이미 선택 비디오 목록에 있다면 삭제
     func removeVideo(_ video: PHAsset) {
         selectedVideos.removeAll { $0 == video }
-    }
-    
-    /// 비디오를 선택한 순서를 인덱스로 반환
-    func getSelectionIndex(for video: PHAsset) -> Int? {
-        if let index = selectedVideos.firstIndex(of: video) {
-            return index + 1
-        }
-        return nil
+    /// 비디오 삭제
+    /// 비디오의 id를 비교하여, 선택한 비디오 배열에 존재하면 삭제
+    private func removeVideo(_ video: PHAsset) {
+        let videoId = video.localIdentifier
+        
+        selectedVideos.removeAll { $0.localIdentifier == videoId }
     }
 }

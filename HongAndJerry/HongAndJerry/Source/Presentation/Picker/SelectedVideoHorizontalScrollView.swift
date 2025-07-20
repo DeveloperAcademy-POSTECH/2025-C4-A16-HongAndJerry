@@ -17,9 +17,9 @@ struct SelectedVideoHorizontalScrollView: View {
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 20) {
-                ForEach(Array(viewModel.selectedVideos.enumerated()), id: \.offset) { index, video in
+                ForEach(Array(viewModel.selectedVideos.enumerated()), id: \.element.localIdentifier) { index, video in
                     SelectedVideoThumbnail(video: video, index: index + 1) {
-                        viewModel.removeVideo(video)
+                        viewModel.send(.removeSelection(video))
                     }
                 }
             }
