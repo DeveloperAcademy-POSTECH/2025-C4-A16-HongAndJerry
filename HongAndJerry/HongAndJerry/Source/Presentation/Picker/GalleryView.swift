@@ -16,13 +16,13 @@ struct GalleryView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.background
+                Color.background.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
                     // 선택 비디오 가로스크롤 뷰
                     if !viewModel.selectedVideos.isEmpty {
                         SelectedVideoHorizontalScrollView(viewModel: viewModel)
-                        
+                            // TODO: - 선택 영상 목록 등장시 애니메이션 효과 주기
                     }
                     AllVideoGridScrollView(viewModel: viewModel)
                 }
