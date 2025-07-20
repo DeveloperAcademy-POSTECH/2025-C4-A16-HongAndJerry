@@ -26,6 +26,19 @@ struct GalleryView: View {
                     }
                     AllVideoGridScrollView(viewModel: viewModel)
                 }
+                
+                VStack {
+                    Button {
+                        showCropPage = true
+                    } label: {
+                        Text("확인")
+                            .padding()
+                            .background(Color.accent)
+                    }
+                }
+            }
+            .fullScreenCover(isPresented: $showCropPage) {
+                CropView(viewModel: .init(selectedVideos: viewModel.selectedVideos))
             }
         }
     }
