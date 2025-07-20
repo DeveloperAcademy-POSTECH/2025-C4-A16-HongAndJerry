@@ -11,7 +11,9 @@ extension ExportNameSpace {
     enum ExportView {
         static let export = "내보내기"
     }
-    
+}
+
+extension ExportNameSpace {
     enum AlertRejectMessage {
         static let title = "권한 거부됨"
         static let message = "사진 접근 권한이 필요합니다"
