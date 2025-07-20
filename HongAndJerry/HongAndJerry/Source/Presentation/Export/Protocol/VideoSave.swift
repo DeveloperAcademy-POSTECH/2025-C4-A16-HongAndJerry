@@ -7,6 +7,6 @@
 
 import Photos
 
-protocol VideoSave {
+protocol VideoSaving {
     func save(video: AVAsset, to album: PHAssetCollection) async throws
 }

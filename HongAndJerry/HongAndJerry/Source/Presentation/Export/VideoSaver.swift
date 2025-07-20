@@ -7,7 +7,7 @@
 
 import Photos
 
-final class VideoSaver: VideoSave {
+final class VideoSaver: VideoSaving {
 
     func save(
         video: AVAsset,
