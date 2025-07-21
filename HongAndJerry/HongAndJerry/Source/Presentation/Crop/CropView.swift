@@ -38,7 +38,7 @@ struct CropView: View {
         VStack {
             TabView(selection: $viewModel.currentIndex) {
                 ForEach(Array(viewModel.selectedVideos.enumerated()), id: \.1.localIdentifier) { index, video in
-                    thumbnailCell(video: video)
+                    thumbnailCell(videoIndex: index)
                         .tag(index)
                 }
             }
@@ -64,30 +64,28 @@ struct CropView: View {
         }
     }
     
-    func thumbnailCell(video: PHAsset)-> some View {
+    func thumbnailCell(videoIndex: Int)-> some View {
         Group {
-            if let thumbnail = viewModel.thumbnails[video.localIdentifier] {
-                Image(uiImage: thumbnail)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .overlay(alignment: .topLeading) {
-                        GeometryReader { geometry in
-                            CropBox(rect: $cropArea)
-                                .onAppear {
-                                    self.imageViewSize = geometry.size
-                                }
-                                .onChange(of: geometry.size) {
-                                    self.imageViewSize = $0
-                                }
+            var crop = viewModel.crops[videoIndex]
+            
+            Image(uiImage: crop.thumbnail)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .overlay(alignment: .topLeading) {
+                    GeometryReader { geometry in
+                        CropBox(rect: .constant(crop.cropRect))
+                            .onAppear {
+                                self.imageViewSize = geometry.size
+                            }
+                            .onChange(of: geometry.size) {
+                                self.imageViewSize = $0
                         }
                     }
-            } else {
-                Rectangle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(width: 300, height: 300)
-                    .cornerRadius(12)
-                    .overlay(ProgressView())
-            }
+                }
+            
+            
+//            if let thumbnail = viewModel.crops[videoIndex].thumbnail {
+            
         }
     }
     

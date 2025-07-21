@@ -22,6 +22,8 @@ final class CropViewModel {
     var thumbnails: [String: UIImage] = [:]
     var isLoading = true
     
+    var crops: [Crop] = []
+    
     init(selectedVideos: [PHAsset]) {
         self.selectedVideos = selectedVideos
     }
@@ -57,6 +59,7 @@ extension CropViewModel {
             let thumbnail = await loadSingleThumbnail(for: video)
             if let thumbnail = thumbnail {
                 thumbnails[video.localIdentifier] = thumbnail
+                crops.append(Crop(localIdentifier: video.localIdentifier, cropRect: .init(x: 0, y: 0, width: 100, height: 100), thumbnail: thumbnail))
             }
         }
         
