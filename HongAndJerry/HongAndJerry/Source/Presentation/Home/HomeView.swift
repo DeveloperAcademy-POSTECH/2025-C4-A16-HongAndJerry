@@ -36,9 +36,9 @@ extension HomeView: View {
                     .padding(.horizontal)
             }
             .background(Color.background)
-            .navigationDestination(for: Screen.self) { _ in
-                FrameSelectView()
-                    .environment(router)
+            .navigationDestination(for: Screen.self) { screen in
+                RoutingView(navigateDestination: screen)
+                .environment(router)
             }
         }
     }

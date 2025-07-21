@@ -9,7 +9,7 @@ import SwiftUI
 import Photos
 
 struct CropView: View {
-    
+    @EnvironmentObject var router: Router
     @Bindable var viewModel: CropViewModel
     
     @State var cropArea: CGRect = .init(x: 0, y: 0, width: 100, height: 100)
@@ -20,12 +20,17 @@ struct CropView: View {
         ZStack {
             // soop TODO: 다들 배경 어떻게 하나 물어보고 변경하깅~
             Color.background.ignoresSafeArea()
-            Group {
-                if viewModel.isLoading {
-                    ProgressView("로딩 중...")
-                        .frame(width: 300, height: 300)
-                } else {
-                    tabView
+            VStack {
+                Group {
+                    if viewModel.isLoading {
+                        ProgressView("로딩 중...")
+                            .frame(width: 300, height: 300)
+                    } else {
+                        tabView
+                    }
+                }
+                CtaButton(buttonType: .next, isDisabled: .constant(false)) {
+                    router.push(screen: .videoEditView)
                 }
             }
             .onAppear {

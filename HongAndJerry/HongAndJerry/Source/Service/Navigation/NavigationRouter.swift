@@ -6,12 +6,13 @@
 //
 
 import Foundation
+import Photos
 
 public enum Screen: Hashable {
     case home
     case selectFrame
     case selectVideo
-    case editVideoRatio
+    case editVideoRatio([PHAsset])
     case videoEditView
 }
 
