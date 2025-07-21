@@ -8,15 +8,6 @@
 import Foundation
 import AVFoundation
 
-/// CompositionBuilder의 빌드 결과를 캡슐화하는 구조체입니다.
-///
-/// 이 구조체는 재생 준비가 완료된 최종 `AVPlayerItem`과
-/// 비디오의 총 길이를 함께 담고 있습니다.
-struct CompositionBuildResult {
-    let playerItem: AVPlayerItem
-    let totalDuration: CMTime
-}
-
 /// 여러 비디오 세그먼트로부터 AVPlayerItem을 만드는 역할을 전담하는 상태 없는 빌더입니다.
 ///
 /// 이 빌더는 다음과 같은 모든 AVFoundation 관련 로직을 캡슐화합니다:
