@@ -9,33 +9,37 @@ import AVKit
 
 #if DEBUG
 extension VideoSegment {
-   static func mock(
-       url: String = "mock://video/segment.mp4",
-       sourceDuration: TimeInterval = 60,
-       startTime: TimeInterval = 0,
-       trimmedDuration: TimeInterval = 30
-   ) -> VideoSegment {
-       let mockSource = VideoSource.mock(
-           url: url,
-           duration: sourceDuration
-       )
-       
-       return VideoSegment(
-           source: mockSource,
-           startTime: CMTime(seconds: startTime, preferredTimescale: 600),
-           trimmedDuration: CMTime(seconds: trimmedDuration, preferredTimescale: 600)
-       )
-   }
-   
-   static func mockList(count: Int = 3) -> [VideoSegment] {
-       (0..<count).map { index in
-           mock(
-               url: "mock://video/segment\(index + 1).mp4",
-               sourceDuration: Double(40 + index * 20),
-               startTime: Double(index * 2),
-               trimmedDuration: Double(15 + index * 5)
-           )
-       }
-   }
+    /// 실제 비디오 파일을 기반으로 VideoSegment의 단일 목(mock) 객체를 비동기적으로 생성합니다.
+    static func mock(
+        resourceName: String,
+        resourceExtension: String
+    ) async throws -> VideoSegment {
+        let mockSource = try await VideoSource.mock(
+            resourceName: resourceName,
+            resourceExtension: resourceExtension
+        )
+        
+        return VideoSegment(source: mockSource)
+    }
+    
+    /// `Resources` 폴더에 있는 모든 샘플 비디오를 사용하여 `VideoSegment` 목 리스트를 비동기적으로 생성합니다.
+    static func mockList() async -> [VideoSegment] {
+        let videoResources = [
+            ("video1", "MP4"),
+            ("video2", "MOV"),
+            ("video3", "MOV")
+        ]
+        
+        var segments: [VideoSegment] = []
+        for (name, ext) in videoResources {
+            do {
+                let segment = try await mock(resourceName: name, resourceExtension: ext)
+                segments.append(segment)
+            } catch {
+                print("Failed to create mock segment for \(name).\(ext): \(error)")
+            }
+        }
+        return segments
+    }
 }
 #endif

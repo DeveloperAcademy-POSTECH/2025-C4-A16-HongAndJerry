@@ -28,15 +28,10 @@ final class TrimOperation: EditOperation {
         pixelsPerSecond * trimMinimumDurarion
     }
     
-    var mockSegments: [VideoSegment] {
-        VideoSegment.mockList()
-    }
-    
-    /// 비디오 세그먼트에 트림 작업을 적용
-    /// - Parameter segments: 트림할 비디오 세그먼트 배열
-    /// - Returns: 트림된 결과를 담은 EditResult
     func apply(on segments: [VideoSegment]) async throws -> EditResult {
-        return .segmentsUpdated(mockSegments)
+        // TODO: 실제 트림 로직 구현 필요
+        // 현재는 받은 세그먼트를 그대로 반환합니다.
+        return .segmentsUpdated(segments)
     }
     
     /// 핸들 드래그 동작을 처리
