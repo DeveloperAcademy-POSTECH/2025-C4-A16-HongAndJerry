@@ -15,6 +15,10 @@ struct FullScreenControlsView: View {
     @State private var isSeeking = false
     @State private var sliderValue: Double = 0
     
+    // 쓰로틀링을 위한 마지막 seek 실행 시간
+    @State private var lastSeekTime: TimeInterval = 0
+    private let throttleInterval: TimeInterval = 0.1 // 0.1초 간격으로 제한
+    
     var body: some View {
         HStack(spacing: 15) {
             // 재생/일시정지 버튼
@@ -42,8 +46,8 @@ struct FullScreenControlsView: View {
             ) {
                 isEditing in
                 self.isSeeking = isEditing
-                if !isEditing {
-                    viewModel.playerController.seek(to: CMTime(seconds: sliderValue, preferredTimescale: 600))
+                if isEditing {
+                    viewModel.playerController.pause()
                 }
             }
             
@@ -65,8 +69,19 @@ struct FullScreenControlsView: View {
         }
         .padding(.horizontal, 14)
         .onChange(of: viewModel.playerController.currentTime) {
+            // 사용자가 슬라이더를 조작하고 있지 않을 때만, 외부의 시간 변화를 슬라이더에 반영합니다.
             if !isSeeking {
                 sliderValue = viewModel.playerController.currentTime.seconds
+            }
+        }
+        .onChange(of: sliderValue) {
+            // 슬라이더 값이 바뀔 때 쓰로틀링을 적용하여 seek를 호출합니다.
+            let now = Date.now.timeIntervalSinceReferenceDate
+            if now - lastSeekTime > throttleInterval {
+                if isSeeking {
+                    viewModel.playerController.seek(to: CMTime(seconds: sliderValue, preferredTimescale: 600))
+                    lastSeekTime = now
+                }
             }
         }
     }
