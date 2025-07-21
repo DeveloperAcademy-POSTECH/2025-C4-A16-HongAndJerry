@@ -18,13 +18,15 @@ struct EditorWorkspaceView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            EditorHeaderView()
+            
             VideoPlayerView(playerController: viewModel.playerController)
                 // 이 뷰가 "videoPlayer"라는 ID를 가짐을 선언합니다.
                 .matchedGeometryEffect(id: "videoPlayer", in: namespace)
                 .padding(.horizontal, 80)
-                .padding(.top, 21)
+//                .padding(.top, 21)
                 .padding(.bottom, 8)
-                .border(Color.white, width: 2)
+                .border(.white, width: 1)
             
             PlaybackControlsView(viewModel: viewModel)
             
