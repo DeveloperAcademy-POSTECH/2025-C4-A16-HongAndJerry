@@ -10,11 +10,11 @@ import Photos
 final class AlbumManager: AlbumRepository {
     
     func checkAlbum(named title: String) throws -> PHAssetCollection {
-        if let existingAlbum = fetchExistingAlbum(title: title) { return album }
+        if let existingAlbum = fetchExistingAlbum(title: title) { return existingAlbum }
         return try createAlbum(title: title)
     }
 
-    private func fetchAlbum(title: String) -> PHAssetCollection? {
+    private func fetchExistingAlbum(title: String) -> PHAssetCollection? {
         let options = PHFetchOptions()
         options.predicate = NSPredicate(format: "title = %@", title)
         return PHAssetCollection.fetchAssetCollections(
