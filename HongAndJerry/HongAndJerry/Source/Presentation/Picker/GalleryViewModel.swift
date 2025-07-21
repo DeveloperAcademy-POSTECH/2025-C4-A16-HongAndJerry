@@ -9,7 +9,7 @@ import Photos
 import SwiftUI
 import Foundation
 
-// TODO: - 뷰모델 이름 다시 정하기... 비디오 선택 + 비디오 편집 기능 분리해야 하나
+// soop TODO: - 뷰모델 이름 다시 정하기... 비디오 선택 + 비디오 편집 기능 분리해야 하나
 @Observable
 final class GalleryViewModel {
     
@@ -22,6 +22,14 @@ final class GalleryViewModel {
     var selectedVideos: [PHAsset] = []   // 선택한 비디오
     
     private let maxSelection = 3                    // 최대 선택 개수
+    
+    var selectedCount: Int {
+        selectedVideos.count
+    }
+    
+    var canProceedToEdit: Bool {
+        selectedVideos.count == maxSelection
+    }
     
     init(
         videos: [PHAsset] = [],
@@ -58,7 +66,7 @@ extension GalleryViewModel {
         await self.fetchVideos()
     }
     
-    // TODO: - 리턴 수정하기 ...
+    // soop TODO: - 리턴 수정하기 ...
     func getSelectionIndex(for video: PHAsset) -> Int? {
         let videoId = video.localIdentifier
         let index = selectedVideos.firstIndex(where: { $0.localIdentifier == videoId })
@@ -74,7 +82,7 @@ extension GalleryViewModel {
         case .authorized, .limited:
             return true
         case .denied, .restricted:
-            // TODO: -
+            // soop TODO: - 거부일 경우 로직 짜기
             return false
         case .notDetermined:
             return await withCheckedContinuation { continuation in

@@ -28,6 +28,7 @@ struct AllVideoGridScrollView: View {
                     )
                 }
             }
+            .scrollIndicators(.hidden)
         }
         .onAppear {
             Task {
