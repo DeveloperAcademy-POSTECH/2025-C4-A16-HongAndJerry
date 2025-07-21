@@ -15,7 +15,9 @@ struct PlaybackControlsView: View {
     var body: some View {
         HStack {
             // 왼쪽 자리 차지용 뷰 (투명)
-            Button(action: {}) {
+            Button {
+                
+            } label: {
                 Image(systemName: "arrow.up.left.and.arrow.down.right")
                     .font(.system(size: 17))
             }
@@ -25,13 +27,13 @@ struct PlaybackControlsView: View {
             Spacer()
 
             // 재생/일시정지 버튼 (가운데)
-            Button(action: {
+            Button {
                 if viewModel.playerController.isPlaying {
                     viewModel.playerController.pause()
                 } else {
                     viewModel.playerController.play()
                 }
-            }) {
+            } label: {
                 Image(systemName: viewModel.playerController.isPlaying ? "pause.fill" : "play.fill")
                     .font(.system(size: 17))
                     .foregroundColor(.white)
@@ -40,11 +42,11 @@ struct PlaybackControlsView: View {
             Spacer()
 
             // 전체 화면 버튼 (오른쪽)
-            Button(action: {
+            Button {
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                     viewModel.isFullScreen = true
                 }
-            }) {
+            } label: {
                 Image(systemName: "arrow.up.left.and.arrow.down.right")
                     .font(.system(size: 17))
                     .foregroundColor(.white)

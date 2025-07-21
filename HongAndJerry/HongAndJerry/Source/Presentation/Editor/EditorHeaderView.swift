@@ -13,9 +13,9 @@ struct EditorHeaderView: View {
     var body: some View {
         HStack {
             // 뒤로가기 버튼
-            Button(action: {
+            Button {
                 // TODO: 뒤로가기 기능 구현
-            }) {
+            } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 16))
                     .foregroundColor(.white)
@@ -24,9 +24,9 @@ struct EditorHeaderView: View {
             Spacer()
 
             // 내보내기 버튼
-            Button(action: {
+            Button {
                 // TODO: 내보내기 기능 구현
-            }) {
+            } label: {
                 Text("내보내기")
                     .font(.SUITHeader)
                     .foregroundColor(.accent)

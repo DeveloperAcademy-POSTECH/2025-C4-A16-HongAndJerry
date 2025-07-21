@@ -18,16 +18,16 @@ struct FullScreenControlsView: View {
     var body: some View {
         HStack(spacing: 15) {
             // 재생/일시정지 버튼
-            Button(action: {
+            Button {
                 if viewModel.playerController.isPlaying {
                     viewModel.playerController.pause()
                 } else {
                     viewModel.playerController.play()
                 }
-            }) {
+            } label: {
                 Image(systemName: viewModel.playerController.isPlaying ? "pause.fill" : "play.fill")
                     .foregroundColor(.white)
-                    .font(.title2)
+                    .font(.system(size: 16))
             }
 
             // 현재 시간
@@ -50,11 +50,11 @@ struct FullScreenControlsView: View {
                 .foregroundColor(.white)
 
             // 축소 버튼
-            Button(action: {
+            Button {
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                     viewModel.isFullScreen = false
                 }
-            }) {
+            } label: {
                 Image(systemName: "arrow.down.right.and.arrow.up.left")
                     .foregroundColor(.white)
                     .font(.title2)
