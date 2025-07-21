@@ -21,12 +21,12 @@ struct EditorWorkspaceView: View {
             EditorHeaderView()
             
             VideoPlayerView(playerController: viewModel.playerController)
-                // 이 뷰가 "videoPlayer"라는 ID를 가짐을 선언합니다.
+                // 이 뷰가 "videoPlayer"라는 ID를 가짐을 선언하여
+                // FullScreenPlayerView의 플레이어와 연결합니다.
                 .matchedGeometryEffect(id: "videoPlayer", in: namespace)
-                .padding(.horizontal, 80)
-//                .padding(.top, 21)
+                .padding(.top, 21)
                 .padding(.bottom, 8)
-                .border(.white, width: 1)
+                .padding(.horizontal, 80)
             
             PlaybackControlsView(viewModel: viewModel)
             
