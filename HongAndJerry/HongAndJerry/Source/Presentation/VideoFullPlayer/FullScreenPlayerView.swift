@@ -23,11 +23,10 @@ struct FullScreenPlayerView: View {
                 // EditorWorkspaceView의 플레이어와 연결합니다.
                 .matchedGeometryEffect(id: "videoPlayer", in: namespace)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .border(.white, width: 1)
+                
             // 2. 전체 화면용 컨트롤러
             FullScreenControlsView(viewModel: viewModel)
         }
         .background(Color.black.ignoresSafeArea())
-        .ignoresSafeArea()
     }
 }

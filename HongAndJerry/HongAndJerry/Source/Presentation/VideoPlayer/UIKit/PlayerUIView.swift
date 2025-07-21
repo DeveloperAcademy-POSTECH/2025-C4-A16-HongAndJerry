@@ -8,7 +8,7 @@
 import UIKit
 import AVFoundation
 
-class VideoUIView: UIView {
+class PlayerUIView: UIView {
     
     // MARK: - Properties
     
