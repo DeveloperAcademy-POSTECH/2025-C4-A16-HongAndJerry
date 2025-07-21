@@ -16,5 +16,7 @@ extension Font {
     static let SUITHeader = Font.custom("SUIT-SemiBold", size: 16)
     ///"SUIT-Regular", size: 12
     static let SUITTimer  = Font.custom("SUIT-Regular", size: 12)
+    ///"SUIT-Medium", size: 14
+    static let SUITBodyTitle  = Font.custom("SUIT-Medium", size: 14)
 }
 
