@@ -18,7 +18,7 @@ struct VideoView: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: VideoUIView, context: Context) {
-        if(uiView.player !== self.player) {
+        if uiView.player !== self.player {
             uiView.player = self.player
         }
     }

@@ -11,24 +11,17 @@ struct ContentView: View {
     /// 앱의 메인 뷰 모델입니다.
     /// `@State`로 선언하여 ContentView가 ViewModel의 생명주기를 소유하고 관리합니다.
     @State private var viewModel = VideoViewModel()
+    
+    /// 뷰 전환 애니메이션을 위한 네임스페이스입니다.
+    @Namespace private var videoAnimation
 
     var body: some View {
-        VStack(spacing: 0) {
-            // 비디오를 표시하는 뷰입니다.
-            // viewModel의 playerController를 전달합니다.
-            VideoPlayerView(playerController: viewModel.playerController)
-                .padding(.horizontal, 80)
-                .padding(.top, 21)
-                .padding(.bottom, 8)
-                .border(Color.white, width: 2)
-            
-            PlaybackControlsView(viewModel: viewModel)
-            
-            // TODO: 3단계 - EditorView 추가 영역
-            Spacer() // 임시로 공간을 채웁니다.
+        // isFullScreen 상태에 따라 다른 뷰를 보여줍니다.
+        if viewModel.isFullScreen {
+            FullScreenPlayerView(viewModel: viewModel, namespace: videoAnimation)
+        } else {
+            EditorWorkspaceView(viewModel: viewModel, namespace: videoAnimation)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity) // VStack이 전체 공간을 차지하도록 설정
-        .background(Color.black)
     }
 }
 

@@ -1,6 +1,5 @@
-
 //
-//  VideoPlayerUIView.swift
+//  VideoUIView.swift
 //  HongAndJerry
 //
 //  Created by Donggyun Yang on 7/12/25.

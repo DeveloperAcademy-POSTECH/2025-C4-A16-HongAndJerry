@@ -2,7 +2,7 @@
 //  PlaybackControlsView.swift
 //  HongAndJerry
 //
-//  Created by Gemini on 7/18/25.
+//  Created by Donggyun Yang on 7/18/25.
 //
 
 import SwiftUI
@@ -41,7 +41,9 @@ struct PlaybackControlsView: View {
 
             // 전체 화면 버튼 (오른쪽)
             Button(action: {
-                // TODO: 전체 화면 기능 구현
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                    viewModel.isFullScreen = true
+                }
             }) {
                 Image(systemName: "arrow.up.left.and.arrow.down.right")
                     .font(.system(size: 17))

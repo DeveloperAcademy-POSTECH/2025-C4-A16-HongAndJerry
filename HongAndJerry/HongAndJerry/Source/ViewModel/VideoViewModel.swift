@@ -27,6 +27,9 @@ class VideoViewModel {
     
     /// 컴포지션 생성을 담당하는 상태 없는(stateless) 빌더입니다.
     private let compositionBuilder = CompositionBuilder()
+
+    /// 현재 비디오 플레이어가 전체 화면 모드인지 여부를 나타냅니다.
+    var isFullScreen: Bool = false
     
     init() {
         // 비동기 초기화를 위해 Task를 사용합니다.

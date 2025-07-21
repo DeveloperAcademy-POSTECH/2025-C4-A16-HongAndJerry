@@ -2,7 +2,7 @@
 //  VideoPlayerView.swift
 //  HongAndJerry
 //
-//  Created by Gemini on 7/18/25.
+//  Created by Donggyun Yang on 7/18/25.
 //
 
 import SwiftUI
