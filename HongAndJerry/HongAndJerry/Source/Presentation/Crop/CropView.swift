@@ -42,6 +42,7 @@ struct CropView: View {
                         .tag(index)
                 }
             }
+            .indexViewStyle(.page(backgroundDisplayMode: .never))
             .tabViewStyle(.page(indexDisplayMode: .never))    // 탭뷰 좌우 스크롤 설정
             
             HStack {
@@ -64,28 +65,32 @@ struct CropView: View {
         }
     }
     
-    func thumbnailCell(videoIndex: Int)-> some View {
+    func thumbnailCell(videoIndex: Int) -> some View {
         Group {
-            var crop = viewModel.crops[videoIndex]
-            
-            Image(uiImage: crop.thumbnail)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .overlay(alignment: .topLeading) {
-                    GeometryReader { geometry in
-                        CropBox(rect: .constant(crop.cropRect))
-                            .onAppear {
-                                self.imageViewSize = geometry.size
-                            }
-                            .onChange(of: geometry.size) {
-                                self.imageViewSize = $0
+            if videoIndex < viewModel.crops.count {
+                let crop = viewModel.crops[videoIndex]
+                
+                Image(uiImage: crop.thumbnail)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .overlay(alignment: .topLeading) {
+                        GeometryReader { geometry in
+                            CropBox(rect: viewModel.bindingForCropRect(at: videoIndex))
+                                .allowsHitTesting(true) // 터치 이벤트 활성화
+                                .onAppear {
+                                    self.imageViewSize = geometry.size
+                                    if crop.cropRect == CGRect(x: 0, y: 0, width: 100, height: 100) {
+                                        let initialRect = viewModel.calculate16x9CropRect(in: geometry.size)
+                                        viewModel.updateCropRect(at: videoIndex, rect: initialRect)
+                                    }
+                                }
+                                .onChange(of: geometry.size) {
+                                    self.imageViewSize = $0
+                                }
                         }
                     }
-                }
-            
-            
-//            if let thumbnail = viewModel.crops[videoIndex].thumbnail {
-            
+                    .clipped() // 이미지 영역을 벗어나지 않도록
+            }
         }
     }
     

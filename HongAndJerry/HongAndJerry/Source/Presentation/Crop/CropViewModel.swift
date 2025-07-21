@@ -89,4 +89,46 @@ extension CropViewModel {
             }
         }
     }
+    
+    // CropRect 업데이트 메서드 추가
+    func updateCropRect(at index: Int, rect: CGRect) {
+        guard index < crops.count else { return }
+        crops[index].cropRect = rect
+    }
+    
+    // 개별 CropRect 바인딩 생성
+    func bindingForCropRect(at index: Int) -> Binding<CGRect> {
+        Binding(
+            get: {
+                guard index < self.crops.count else { return .zero }
+                return self.crops[index].cropRect
+            },
+            set: { newRect in
+                self.updateCropRect(at: index, rect: newRect)
+            }
+        )
+    }
+    
+    // CropView에 추가할 헬퍼 함수
+    func calculate16x9CropRect(in imageSize: CGSize, padding: CGFloat = 20) -> CGRect {
+        let aspectRatio: CGFloat = 16.0 / 9.0
+        let maxWidth = imageSize.width
+        let maxHeight = imageSize.height
+        
+        let widthBasedHeight = maxWidth / aspectRatio
+        let heightBasedWidth = maxHeight * aspectRatio
+        
+        let (cropWidth, cropHeight): (CGFloat, CGFloat) = {
+            if widthBasedHeight <= maxHeight {
+                return (maxWidth, widthBasedHeight)
+            } else {
+                return (heightBasedWidth, maxHeight)
+            }
+        }()
+        
+        let x = (imageSize.width - cropWidth) / 2
+        let y = (imageSize.height - cropHeight) / 2
+        
+        return CGRect(x: x, y: y, width: cropWidth, height: cropHeight)
+    }
 }
