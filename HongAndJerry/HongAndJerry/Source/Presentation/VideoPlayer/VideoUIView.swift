@@ -13,7 +13,10 @@ class VideoUIView: UIView {
     // MARK: - Properties
     
     private var playerLayer: AVPlayerLayer {
-        self.layer as! AVPlayerLayer
+        guard let layer = self.layer as? AVPlayerLayer else {
+            fatalError("Layer is not AVPlayerLayer")
+        }
+        return layer
     }
     
     var player: AVPlayer? {
