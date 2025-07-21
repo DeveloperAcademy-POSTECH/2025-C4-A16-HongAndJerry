@@ -37,7 +37,7 @@ struct FullScreenControlsView: View {
             // 현재 시간
             Text(viewModel.playerController.currentTime.formattedString)
                 .font(.caption.monospacedDigit())
-                .foregroundColor(.white)
+                .foregroundColor(.font)
             
             // 비디오 탐색 슬라이더
             Slider(
