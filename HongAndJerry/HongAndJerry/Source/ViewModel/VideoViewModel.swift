@@ -39,6 +39,13 @@ class VideoViewModel {
         }
     }
     
+    init(segments: [VideoSegment]) {
+        Task {
+            self.segments = segments
+            await rebuildPlayerItem()
+        }
+    }
+    
     /// 앱 시작 시 초기 비디오 세그먼트를 비동기적으로 로드합니다.
     /// `VideoSegment.mockList()` 비동기 함수를 사용합니다.
     private func loadInitialSegments() async {

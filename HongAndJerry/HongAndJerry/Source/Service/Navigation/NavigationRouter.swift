@@ -13,7 +13,7 @@ public enum Screen: Hashable {
     case selectFrame
     case selectVideo
     case editVideoRatio([PHAsset])
-    case videoEditView
+    case videoEditView([VideoSegment])
 }
 
 @Observable
