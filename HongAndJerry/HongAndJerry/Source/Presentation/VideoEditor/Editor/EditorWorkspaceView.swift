@@ -10,8 +10,8 @@ import SwiftUI
 /// 비디오 편집을 위한 기본 작업 공간 뷰입니다.
 /// 일반 모드에서 플레이어, 컨트롤러, 타임라인 에디터를 포함합니다.
 struct EditorWorkspaceView: View {
-    /// 앱의 메인 뷰 모델입니다.
-    var viewModel: VideoViewModel
+    /// 환경으로부터 주입받는 뷰 모델입니다.
+    @Environment(VideoViewModel.self) private var viewModel
     
     /// 뷰 전환 애니메이션을 위한 네임스페이스입니다.
     let namespace: Namespace.ID
@@ -28,7 +28,7 @@ struct EditorWorkspaceView: View {
                 .padding(.bottom, 8)
                 .padding(.horizontal, 80)
             
-            PlaybackControlsView(viewModel: viewModel)
+            PlaybackControlsView()
             
             // TODO: 3단계 - EditorView 추가 영역
             Spacer() // 임시로 공간을 채웁니다.

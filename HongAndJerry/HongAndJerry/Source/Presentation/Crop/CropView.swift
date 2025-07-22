@@ -30,7 +30,7 @@ struct CropView: View {
                     }
                 }
                 CtaButton(buttonType: .next, isDisabled: .constant(false)) {
-                    router.push(screen: .videoEditView)
+                    router.push(screen: .videoEditView([]))
                 }
             }
             .onAppear {

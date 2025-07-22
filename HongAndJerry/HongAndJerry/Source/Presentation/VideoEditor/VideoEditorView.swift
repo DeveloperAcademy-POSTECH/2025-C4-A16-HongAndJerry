@@ -19,16 +19,27 @@ struct VideoEditorView: View {
 
     /// Crop 흐름에서 완성된 VideoSegment 배열을 받아 ViewModel을 초기화합니다.
     init(segments: [VideoSegment]) {
-        // @State 객체를 외부 파라미터로 초기화하는 표준 방식입니다.
-        _viewModel = State(initialValue: VideoViewModel(segments: segments))
+        if segments.isEmpty {
+            _viewModel = State(initialValue: VideoViewModel())
+        } else {
+            // @State 객체를 외부 파라미터로 초기화하는 표준 방식입니다.
+            _viewModel = State(initialValue: VideoViewModel(segments: segments))
+        }
     }
 
     var body: some View {
-        // isFullScreen 상태에 따라 두 뷰를 전환합니다.
-        if viewModel.isFullScreen {
-            FullScreenPlayerView(viewModel: viewModel, namespace: videoAnimation)
-        } else {
-            EditorWorkspaceView(viewModel: viewModel, namespace: videoAnimation)
+        Group {
+            // isFullScreen 상태에 따라 두 뷰를 전환합니다.
+            if viewModel.isFullScreen {
+                FullScreenPlayerView(namespace: videoAnimation)
+            } else {
+                EditorWorkspaceView(namespace: videoAnimation)
+            }
         }
+        .environment(viewModel)
     }
+}
+
+#Preview {
+    VideoEditorView(segments: [])
 }

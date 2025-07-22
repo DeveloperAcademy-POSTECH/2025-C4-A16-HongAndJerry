@@ -8,7 +8,7 @@
 import Foundation
 import Photos
 
-public enum Screen: Hashable {
+enum Screen: Hashable {
     case home
     case selectFrame
     case selectVideo

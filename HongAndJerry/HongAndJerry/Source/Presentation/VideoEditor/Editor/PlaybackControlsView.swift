@@ -9,8 +9,8 @@ import SwiftUI
 
 /// 비디오 재생을 제어하는 버튼(재생/일시정지, 전체 화면)을 포함하는 뷰입니다.
 struct PlaybackControlsView: View {
-    /// 앱의 상태를 관리하는 뷰 모델입니다.
-    var viewModel: VideoViewModel
+    /// 환경으로부터 주입받는 뷰 모델입니다.
+    @Environment(VideoViewModel.self) private var viewModel
 
     var body: some View {
         HStack {
