@@ -102,10 +102,10 @@ struct CompositionBuilder {
         trackIDs: [CMPersistentTrackID],
         totalDuration: CMTime
     ) -> AVMutableVideoComposition {
-        let renderSize = CGSize(width: 1080, height: 1652)
+        let renderSize = CGSize(width: 1080, height: 1821)
         let videoComposition = AVMutableVideoComposition()
         videoComposition.renderSize = renderSize
-        videoComposition.frameDuration = CMTime(value: 1, timescale: 30)
+        videoComposition.frameDuration = CMTime(value: 1, timescale: 60)
         
         let mainInstruction = AVMutableVideoCompositionInstruction()
         mainInstruction.timeRange = CMTimeRange(start: .zero, duration: totalDuration)

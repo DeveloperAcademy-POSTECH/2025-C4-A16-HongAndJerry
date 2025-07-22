@@ -9,15 +9,15 @@ import SwiftUI
 import AVFoundation
 import Foundation
 
-struct VideoView: UIViewRepresentable {
+struct PlayerView: UIViewRepresentable {
     
     let player: AVPlayer
     
-    func makeUIView(context: Context) -> VideoUIView {
-        return VideoUIView(player: player)
+    func makeUIView(context: Context) -> PlayerUIView {
+        return PlayerUIView(player: player)
     }
     
-    func updateUIView(_ uiView: VideoUIView, context: Context) {
+    func updateUIView(_ uiView: PlayerUIView, context: Context) {
         if uiView.player !== self.player {
             uiView.player = self.player
         }

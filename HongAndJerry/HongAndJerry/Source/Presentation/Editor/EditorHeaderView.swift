@@ -17,7 +17,7 @@ struct EditorHeaderView: View {
                 // TODO: 뒤로가기 기능 구현
             } label: {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 16))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.white)
             }
 

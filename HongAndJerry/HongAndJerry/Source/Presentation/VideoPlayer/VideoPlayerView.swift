@@ -15,8 +15,8 @@ struct VideoPlayerView: View {
 
     var body: some View {
         // 기존에 구현된 VideoView를 사용하여 player를 화면에 렌더링합니다.
-        VideoView(player: playerController.player)
-            .aspectRatio(9 / 16, contentMode: .fit)
+        PlayerView(player: playerController.player)
+            .aspectRatio(1080 / 1821, contentMode: .fit)
             .background(Color.black)
     }
 }
