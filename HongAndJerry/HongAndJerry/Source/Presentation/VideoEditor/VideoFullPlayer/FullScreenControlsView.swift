@@ -10,7 +10,7 @@ import AVKit
 
 /// 전체 화면 모드에서 사용될 컨트롤 뷰입니다.
 struct FullScreenControlsView: View {
-    var viewModel: VideoViewModel
+    @Environment(VideoViewModel.self) private var viewModel
     
     @State private var isSeeking = false
     @State private var sliderValue: Double = 0

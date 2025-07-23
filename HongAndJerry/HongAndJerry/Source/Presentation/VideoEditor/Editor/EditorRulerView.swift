@@ -1,0 +1,48 @@
+//
+//  EditorRulerView.swift
+//  HongAndJerry
+//
+//  Created by Donggyun Yang on 7/21/25.
+//
+
+import SwiftUI
+
+/// 타임라인 상단에 시간 눈금을 표시하는 뷰입니다.
+/// 이 뷰는 스스로 스크롤되지 않으며, 부모 뷰의 offset에 의해 위치가 결정됩니다.
+struct EditorRulerView: View {
+    @Environment(VideoViewModel.self) private var viewModel
+    
+    /// 눈금의 높이
+    private let TICK_HEIGHT: CGFloat = 2
+    
+    /// 1초당 픽셀 수. 타임라인의 줌 레벨에 해당합니다.
+    let pixelsPerSecond: CGFloat
+
+    var body: some View {
+        HStack(alignment: .bottom, spacing: 0) {
+            // totalDuration이 0보다 클 때만 눈금을 그립니다.
+            if viewModel.playerController.totalDuration.seconds > 0 {
+                let totalSeconds = Int(viewModel.playerController.totalDuration.seconds.rounded(.up))
+                
+                // 1초 단위로 순회하며 2초, 10초 간격에 맞춰 그립니다.
+                ForEach(0..<totalSeconds, id: \.self) { second in
+                    VStack {
+                        // 10초 간격의 레이블
+                        if second % 10 == 0
+                            || second == totalSeconds
+                        {
+                            Text("\(second)s")
+                                .font(.SUITTimer)
+                                .foregroundColor(.inactive)
+                        } else {
+                            Rectangle()
+                                .fill(.inactive)
+                                .frame(width: 1, height: TICK_HEIGHT)
+                        }
+                    }
+                    .frame(width: pixelsPerSecond)
+                }
+            }
+        }
+    }
+}

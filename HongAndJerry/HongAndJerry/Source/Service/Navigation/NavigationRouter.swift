@@ -8,12 +8,12 @@
 import Foundation
 import Photos
 
-public enum Screen: Hashable {
+enum Screen: Hashable {
     case home
     case selectFrame
     case selectVideo
     case editVideoRatio([PHAsset])
-    case videoEditView
+    case videoEditView([VideoSegment])
 }
 
 @Observable
