@@ -29,19 +29,48 @@ class VideoSegment: Identifiable {
     
     /// 트리밍된 시간 범위 내의 비디오 콘텐츠를 나타내는 썸네일 이미지 모음입니다.
     /// 이 속성은 백그라운드 생성 프로세스를 통해 채워질 것입니다.
-    var thumbnails: [CGImage] = []
-
+    var thumbnails: [UIImage] = []
+    
     init(source: VideoSource) {
         self.source = source
         self.startTime = .zero
         self.trimmedDuration = source.duration
+        
+        Task {
+            await generateThumbnails()
+        }
     }
     
-    /// 세그먼트의 현재 시간 범위에 대한 썸네일 이미지를 비동기적으로 생성합니다.
-    /// 이 메서드는 나중에 비디오 에셋에서 프레임을 추출하도록 구현될 것입니다.
+    /// 1초 간격으로 썸네일 이미지를 비동기적으로 생성하여 `thumbnails` 배열을 채웁니다.
     func generateThumbnails() async {
-        // TODO: 썸네일 생성 로직 구현 필요.
-        // AVAssetImageGenerator를 사용하여 startTime과
-        // startTime + trimmedDuration 사이에서 일정한 간격으로 프레임을 추출하는 작업이 포함됩니다.
+        // UI 속성인 thumbnails 배열을 안전하게 비우기 위해 메인 액터에서 실행합니다.
+        await MainActor.run {
+            self.thumbnails.removeAll()
+        }
+        
+        let asset = self.source.asset
+        let imageGenerator = AVAssetImageGenerator(asset: asset)
+        imageGenerator.appliesPreferredTrackTransform = true
+        
+        let totalDurationSeconds = self.trimmedDuration.seconds
+        guard totalDurationSeconds > 0 else { return }
+        
+        // 2초 간격으로 CMTime 배열 생성
+        let times: [CMTime] = stride(from: 0, to: totalDurationSeconds, by: 3).map { second in
+            let timeValue = self.startTime.seconds + second
+            return CMTime(seconds: timeValue, preferredTimescale: 600)
+        }
+
+        for time in times {
+            do {
+                let cgImage = try await imageGenerator.image(at: time).image
+                // UI 속성인 thumbnails 배열에 안전하게 접근하기 위해 메인 액터에서 실행합니다.
+                await MainActor.run {
+                    self.thumbnails.append(UIImage(cgImage: cgImage))
+                }
+            } catch {
+                print("Failed to generate thumbnail at time \(time): \(error)")
+            }
+        }
     }
 }
