@@ -30,8 +30,25 @@ struct EditorWorkspaceView: View {
             
             PlaybackControlsView()
             
-            // TODO: 3단계 - EditorView 추가 영역
-            Spacer() // 임시로 공간을 채웁니다.
+            // ZStack을 사용하여 타임라인 위에 시간과 플레이헤드를 오버레이합니다.
+            ZStack(alignment: .topLeading) {
+                EditorTimelineView()
+                
+                // 중앙 플레이헤드
+                Rectangle()
+                    .fill(.white)
+                    .frame(width: 2)
+                    .padding(.vertical, 40) // 상하 여백
+                    .frame(maxWidth: .infinity) // ZStack 중앙 정렬을 위해
+                
+                // 시간 표시 텍스트
+                Text("\(viewModel.playerController.currentTime.formattedString) / \(viewModel.playerController.totalDuration.formattedString)")
+                    .font(.SUITTimer)
+                    .foregroundColor(.white)
+                    .frame(height: 40)
+                    .background(.black)
+            }
+            .frame(height: UIScreen.main.bounds.height / 3)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.black)
