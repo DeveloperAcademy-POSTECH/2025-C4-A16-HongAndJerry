@@ -42,7 +42,7 @@ class VideoSegment: Identifiable {
     }
     
     /// 1초 간격으로 썸네일 이미지를 비동기적으로 생성하여 `thumbnails` 배열을 채웁니다.
-    func generateThumbnails() async {
+    private func generateThumbnails() async {
         // UI 속성인 thumbnails 배열을 안전하게 비우기 위해 메인 액터에서 실행합니다.
         await MainActor.run {
             self.thumbnails.removeAll()

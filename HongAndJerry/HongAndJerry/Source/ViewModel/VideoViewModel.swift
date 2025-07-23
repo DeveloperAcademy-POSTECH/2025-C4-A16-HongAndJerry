@@ -22,7 +22,7 @@ final class VideoViewModel {
     var segments: [VideoSegment] = []
     
     /// 비디오 재생을 관리하는 `AVPlayer`의 래퍼(wrapper)입니다.
-    private let playerController = PlayerController()
+    let playerController = PlayerController()
     
     private var trimController = TrimController()
     
@@ -30,7 +30,7 @@ final class VideoViewModel {
     private let compositionBuilder = CompositionBuilder()
 
     /// 현재 비디오 플레이어가 전체 화면 모드인지 여부를 나타냅니다.
-    private var isFullScreen: Bool = false
+    var isFullScreen: Bool = false
     
     /// 각 세그먼트의 좌측/우측 핸들 오프셋을 저장하는 딕셔너리
     /// Key: 세그먼트 ID, Value: (좌측 핸들 오프셋, 우측 핸들 오프셋)
@@ -158,8 +158,8 @@ final class VideoViewModel {
             return
         }
         
-        let newStartTime = VideoEditingConstants.convertOffsetToTime(currentOffsets.left)
-        let newDuration = VideoEditingConstants.convertOffsetToTime(currentOffsets.right - currentOffsets.left)
+        let newStartTime = EditConstants.convertOffsetToTime(currentOffsets.left)
+        let newDuration = EditConstants.convertOffsetToTime(currentOffsets.right - currentOffsets.left)
         
         let trimOperation = TrimOperation(
             segmentID: selectedID,

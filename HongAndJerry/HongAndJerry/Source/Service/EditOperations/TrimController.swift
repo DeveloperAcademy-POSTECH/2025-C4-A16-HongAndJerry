@@ -23,8 +23,8 @@ struct TrimController {
     ) -> (left: CGFloat, right: CGFloat) {
         guard let segment = segments.first(where: { $0.id == segmentID}) else { return (left: 0, right: 0)}
         
-        let newLeftHandleOffset = VideoEditingConstants.convertTimeToOffset(segment.startTime)
-        let newRightHandleOffset = VideoEditingConstants.convertTimeToOffset(segment.startTime + segment.trimmedDuration)
+        let newLeftHandleOffset = EditConstants.convertTimeToOffset(segment.startTime)
+        let newRightHandleOffset = EditConstants.convertTimeToOffset(segment.startTime + segment.trimmedDuration)
         
         return (left: newLeftHandleOffset, right: newRightHandleOffset)
     }
@@ -94,11 +94,11 @@ struct TrimController {
     ) -> (left: CGFloat, right: CGFloat) {
         switch handleType {
         case .left:
-            let constrainedLeft = max(0, min(calculatedOffset.left, calculatedOffset.right - VideoEditingConstants.trackMinimumPixel))
+            let constrainedLeft = max(0, min(calculatedOffset.left, calculatedOffset.right - EditConstants.trackMinimumPixel))
             return (constrainedLeft, calculatedOffset.right)
             
         case .right:
-            let constrainedRight = max(calculatedOffset.left + VideoEditingConstants.trackMinimumPixel, min(calculatedOffset.right, screenWidth))
+            let constrainedRight = max(calculatedOffset.left + EditConstants.trackMinimumPixel, min(calculatedOffset.right, screenWidth))
             return (calculatedOffset.left, constrainedRight)
             
         case .none:

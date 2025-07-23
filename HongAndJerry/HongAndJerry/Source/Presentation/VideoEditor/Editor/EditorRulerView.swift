@@ -12,12 +12,6 @@ import SwiftUI
 struct EditorRulerView: View {
     @Environment(VideoViewModel.self) private var viewModel
     
-    /// 눈금의 높이
-    private let TICK_HEIGHT: CGFloat = 2
-    
-    /// 1초당 픽셀 수. 타임라인의 줌 레벨에 해당합니다.
-    let pixelsPerSecond: CGFloat
-
     var body: some View {
         HStack(alignment: .bottom, spacing: 0) {
             // totalDuration이 0보다 클 때만 눈금을 그립니다.
@@ -37,10 +31,10 @@ struct EditorRulerView: View {
                         } else {
                             Rectangle()
                                 .fill(.inactive)
-                                .frame(width: 1, height: TICK_HEIGHT)
+                                .frame(width: 1, height: EditConstants.tickHeight)
                         }
                     }
-                    .frame(width: pixelsPerSecond)
+                    .frame(width: EditConstants.pixelsPerSecond)
                 }
             }
         }
