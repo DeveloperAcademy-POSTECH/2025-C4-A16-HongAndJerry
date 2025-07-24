@@ -35,7 +35,7 @@ extension ExportNameSpace {
 
 extension ExportNameSpace {
     enum AppMain {
-        static let AppName = "swiftcut"
+        static let AppName = "WVDO"
         static let frameNavigationTitle = "프레임 선택"
     }
 }
