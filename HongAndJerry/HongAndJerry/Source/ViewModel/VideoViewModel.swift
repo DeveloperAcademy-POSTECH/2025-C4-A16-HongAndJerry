@@ -34,25 +34,30 @@ final class VideoViewModel {
     
     /// 각 세그먼트의 좌측/우측 핸들 오프셋을 저장하는 딕셔너리
     /// Key: 세그먼트 ID, Value: (좌측 핸들 오프셋, 우측 핸들 오프셋)
-    private var segmentHandleOffsets: [UUID: (left: CGFloat, right: CGFloat)] = [:]
+    var segmentHandleOffsets: [UUID: (left: CGFloat, right: CGFloat)] = [:]
 
     /// 현재 선택된 세그먼트의 ID (트림 작업 대상)
-    private var selectedSegmentID: UUID?
+    var selectedSegmentID: UUID?
     
     var scrollOffset: CGFloat = 0
     var screenWidth: CGFloat = 0
     var trackWidth: CGFloat = 0
     
-    /// 현재 선택된 세그먼트의 좌측 핸들 오프셋 반환
-    var leftHandleOffset: CGFloat {
-        guard let selectedID = selectedSegmentID else { return 0 }
-        return segmentHandleOffsets[selectedID]?.left ?? 0
-    }
-    
-    /// 현재 선택된 세그먼트의 우측 핸들 오프셋 반환
-    var rightHandleOffset: CGFloat {
-        guard let selectedID = selectedSegmentID else { return 0 }
-        return segmentHandleOffsets[selectedID]?.right ?? 0
+    func getHandleOffset(
+        segmentID: UUID,
+        handleType: HandleType,
+        trackWidth: CGFloat
+    ) -> CGFloat {
+        guard let offsets = segmentHandleOffsets[segmentID] else { return 0 }
+        
+        switch handleType {
+        case .left:
+            return offsets.left
+        case .right:
+            return offsets.right - trackWidth
+        case .none:
+            return 0
+        }
     }
 
     init() {

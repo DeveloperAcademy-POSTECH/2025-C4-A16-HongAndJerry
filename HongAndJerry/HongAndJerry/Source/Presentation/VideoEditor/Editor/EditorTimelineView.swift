@@ -61,6 +61,9 @@ struct EditorTimelineView: View {
                     self.currentOffset = -(viewModel.playerController.currentTime.seconds * EditConstants.pixelsPerSecond)
                 }
             }
+            .onAppear() {
+                viewModel.updateScreenWidth(geometry.size.width)
+            }
         }
         .contentShape(Rectangle())
         .gesture(
