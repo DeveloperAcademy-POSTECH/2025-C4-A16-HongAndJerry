@@ -35,10 +35,5 @@ struct VideoTrackView: View {
         // 썸네일이 아직 로드되지 않았을 경우를 대비해 배경색을 지정합니다.
         .background(Color.gray.opacity(0.5))
         .frame(width: totalTrackWidth, height: thumbnailHeight)
-        .mask(alignment: .leading) {
-            Rectangle()
-                .frame(width: viewModel.rightHandleOffset - viewModel.leftHandleOffset)
-                .offset(x: viewModel.leftHandleOffset)
-        }
     }
 }
