@@ -16,7 +16,7 @@ extension HomeView: View {
     var body: some View {
         NavigationStack(path: $router.route) {
             VStack {
-                Text("swiftcut")
+                Text(ExportNameSpace.AppMain.AppName)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.leading)
                     .font(.SUITTitle)
