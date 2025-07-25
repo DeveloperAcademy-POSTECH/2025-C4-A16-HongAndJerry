@@ -37,7 +37,7 @@ extension VideoSegment {
     /// `Resources` 폴더에 있는 모든 샘플 비디오를 사용하여 `VideoSegment` 목 리스트를 비동기적으로 생성합니다.
     static func mockList() async -> [VideoSegment] {
         let videoResources = [
-            ("video1", "MP4"),
+            ("video1", "MOV"),
             ("video2", "MOV"),
             ("video3", "MOV")
         ]
