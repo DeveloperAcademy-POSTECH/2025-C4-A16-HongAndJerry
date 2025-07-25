@@ -33,6 +33,7 @@ struct CropView: View {
                     router.push(screen: .videoEditView([]))
                 }
             }
+            .padding(.horizontal, 16)
             .onAppear {
                 viewModel.send(.loadThumbnail)
             }
@@ -89,8 +90,8 @@ struct CropView: View {
                                         viewModel.updateCropRect(at: videoIndex, rect: initialRect)
                                     }
                                 }
-                                .onChange(of: geometry.size) {
-                                    self.imageViewSize = $0
+                                .onChange(of: geometry.size) { oldValue, newValue in
+                                    self.imageViewSize = newValue
                                 }
                         }
                     }

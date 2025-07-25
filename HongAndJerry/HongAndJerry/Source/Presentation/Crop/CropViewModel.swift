@@ -59,7 +59,7 @@ extension CropViewModel {
             let thumbnail = await loadSingleThumbnail(for: video)
             if let thumbnail = thumbnail {
                 thumbnails[video.localIdentifier] = thumbnail
-                crops.append(Crop(localIdentifier: video.localIdentifier, cropRect: .init(x: 0, y: 0, width: 100, height: 100), thumbnail: thumbnail))
+                crops.append(Crop(video: video, localIdentifier: video.localIdentifier, cropRect: .init(x: 0, y: 0, width: 100, height: 100), thumbnail: thumbnail))
             }
         }
         
@@ -130,5 +130,9 @@ extension CropViewModel {
         let y = (imageSize.height - cropHeight) / 2
         
         return CGRect(x: x, y: y, width: cropWidth, height: cropHeight)
+    }
+    
+    func cropVideos() -> [AVAsset] {
+        return []
     }
 }
