@@ -22,8 +22,11 @@ struct GalleryView: View {
                 // 선택 비디오 가로스크롤 뷰
                 if !viewModel.selectedVideos.isEmpty {
                     SelectedVideoHorizontalScrollView(viewModel: viewModel)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .animation(.easeInOut, value: viewModel.selectedVideos)
                 }
                 AllVideoGridScrollView(viewModel: viewModel)
+                    .animation(.easeInOut, value: viewModel.selectedVideos)
                 Spacer()
                 VStack {
                     if viewModel.canProceedToEdit {
