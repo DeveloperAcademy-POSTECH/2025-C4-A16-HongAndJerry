@@ -178,4 +178,32 @@ final class VideoViewModel {
             print("@log - failed Trimming: \(error)")
         }
     }
+    
+    func editVideo(operation: EditOperation) async {
+        do {
+            // 1. 전달받은 operation을 현재 segments에 적용합니다.
+            let result = try await operation.apply(on: segments)
+            
+            // 2. operation의 실행 결과를 처리합니다.
+            switch result {
+            case .segmentsUpdated(let updatedSegments):
+                // 3. 결과로 받은 segments로 교체합니다.
+                self.segments = updatedSegments
+                
+                // 4. 변경된 segments를 기반으로 플레이어를 다시 빌드합니다.
+                await rebuildPlayerItem()
+                
+            case .exportCompleted(let url):
+                // 비디오 익스포트가 완료되었을 때의 로직 (필요시 구현)
+                print("Export completed at: \(url)")
+                
+            case .noChange:
+                // 변경 사항이 없을 경우 아무것도 하지 않습니다.
+                break
+            }
+        } catch {
+            // operation 적용 중 에러가 발생하면 로그를 출력합니다.
+            print("Failed to perform edit operation: \(error)")
+        }
+    }
 }
