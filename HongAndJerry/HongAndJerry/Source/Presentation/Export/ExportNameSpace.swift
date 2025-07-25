@@ -32,3 +32,10 @@ extension ExportNameSpace {
         static let buttonTitle = "닫기"
     }
 }
+
+extension ExportNameSpace {
+    enum AppMain {
+        static let AppName = "WVDO"
+        static let frameNavigationTitle = "프레임 선택"
+    }
+}

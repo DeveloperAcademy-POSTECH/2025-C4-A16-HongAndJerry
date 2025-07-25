@@ -6,17 +6,20 @@
 //
 
 import SwiftUI
+import Photos
 
 struct HomeView {
     @State private var router = Router()
     @State private var viewModel = AlbumVideoViewModel()
+    @State private var selectedAsset: PHAsset? = nil
+    @State private var showPlayer = false
 }
 
 extension HomeView: View {
     var body: some View {
         NavigationStack(path: $router.route) {
             VStack {
-                Text("swiftcut")
+                Text(ExportNameSpace.AppMain.AppName)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.leading)
                     .font(.SUITTitle)
@@ -26,7 +29,11 @@ extension HomeView: View {
                     Image(.logo)
                     Spacer()
                 } else {
-                    VideoScrollView(viewModel: $viewModel)
+                    VideoScrollView(
+                        viewModel: $viewModel,
+                        selectedAsset: $selectedAsset,
+                        showPlayer: $showPlayer
+                    )
                 }
                 CtaButton(
                     buttonType: .plus,
@@ -39,6 +46,11 @@ extension HomeView: View {
             .navigationDestination(for: Screen.self) { screen in
                 RoutingView(navigateDestination: screen)
                 .environment(router)
+            }
+            .sheet(isPresented: $showPlayer) {
+                if let asset = selectedAsset {
+                    VideoPlayer(asset: asset)
+                }
             }
         }
     }

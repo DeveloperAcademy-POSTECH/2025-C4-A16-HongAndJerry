@@ -9,29 +9,36 @@ import SwiftUI
 
 struct FrameSelectView {
     @EnvironmentObject var router: Router
+    @State private var viewModel = FrameSelectViewModel()
+    @State private var frameSelected: Bool = true
 }
 
 extension FrameSelectView: View {
     var body: some View {
         VStack {
             Spacer()
-            Text("추가예정")
-                .foregroundStyle(.font)
-                .frame(maxWidth: .infinity)
+            FrameView(
+                frameSelected: $frameSelected,
+                viewModel: $viewModel
+            )
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 40)
             Spacer()
+            
             CtaButton(
                 buttonType: .next,
-                isDisabled: .constant(false)) {
-                    router.push(screen: .selectVideo)
-                }
-                .padding()
+                isDisabled: $frameSelected
+            ) {
+                router.push(screen: .selectVideo)
+            }
+            .padding()
         }
         .navigationDestination(for: Screen.self) { _ in
             GalleryView()
                 .environment(router)
         }
         .background(Color.background)
-        .navigationTitle("프레임 선택")
+        .navigationTitle(ExportNameSpace.AppMain.frameNavigationTitle)
         .foregroundStyle(.font)
         .navigationBarBackButtonHidden(true)
         .toolbar {
@@ -39,9 +46,13 @@ extension FrameSelectView: View {
                 Button {
                     router.pop()
                 } label: {
-                    Image(systemName: "chevron.left")
+                    Image(systemName: Icon.SFsymbol.chevronLeft)
                 }
             }
         }
     }
+}
+
+#Preview {
+    FrameSelectView()
 }

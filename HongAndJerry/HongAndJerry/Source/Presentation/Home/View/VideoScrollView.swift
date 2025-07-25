@@ -6,10 +6,13 @@
 //
 
 import SwiftUI
+import Photos
 
 struct VideoScrollView {
     @Binding var viewModel: AlbumVideoViewModel
     let columns = Array(repeating: GridItem(.flexible()), count: 3)
+    @Binding var selectedAsset: PHAsset?
+    @Binding var showPlayer: Bool
 }
 
 extension VideoScrollView: View {
@@ -30,6 +33,10 @@ extension VideoScrollView: View {
                         Text(video.creationTimeValue)
                             .font(.SUITTimer)
                             .foregroundStyle(.inactive)
+                    }
+                    .onTapGesture {
+                        selectedAsset = video.asset
+                        showPlayer = true
                     }
                 }
             }

@@ -16,15 +16,17 @@ struct GalleryView: View {
     
     var body: some View {
         ZStack {
-            Color.background
+            Color.background.ignoresSafeArea()
             
             VStack(spacing: 0) {
                 // 선택 비디오 가로스크롤 뷰
                 if !viewModel.selectedVideos.isEmpty {
                     SelectedVideoHorizontalScrollView(viewModel: viewModel)
-                    
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .animation(.easeInOut, value: viewModel.selectedVideos)
                 }
                 AllVideoGridScrollView(viewModel: viewModel)
+                    .animation(.easeInOut, value: viewModel.selectedVideos)
                 Spacer()
                 VStack {
                     if viewModel.canProceedToEdit {
@@ -32,18 +34,13 @@ struct GalleryView: View {
                             buttonType: .next,
                             isDisabled: .constant(false)
                         ) {
-//                            showCropPage = true
                             router.push(screen: .editVideoRatio(viewModel.selectedVideos))
                         }
                         .padding(.horizontal, 16)
                     }
                 }
             }
-//            .fullScreenCover(isPresented: $showCropPage) {
-//                CropView(viewModel: .init(selectedVideos: viewModel.selectedVideos))
-//            }
         }
-        
     }
 }
 
