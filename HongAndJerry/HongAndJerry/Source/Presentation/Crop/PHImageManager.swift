@@ -35,13 +35,10 @@ extension PHImageManager {
     }
     
     func cropVideos(_ crops: [Crop]) async throws {
-        
         for crop in crops {
             let video  = try await self.requestAVAssetAsync(for: crop.video)        // AVAsset 타입의 비디오
             let videoSize = try await getVideoSize(from: video)                     // 비디오의 실제 사이즈
             let actualCropRect = self.convertThumbnailRectToVideoRect(thumbnailRect: crop.cropRect, thumbnailSize: crop.thumbnail.size, videoSize: videoSize)                           // 실제 크롭 영역
-            
-            
         }
         
     }
@@ -49,7 +46,6 @@ extension PHImageManager {
     func getVideoSize(from asset: AVAsset) async throws -> CGSize {
         guard let track = try? await asset.loadTracks(withMediaType: .video).first else {
             throw AssetError.assetNotFound
-            
         }
         
         let size = try await track.load(.naturalSize).applying(track.load(.preferredTransform))
