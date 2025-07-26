@@ -82,14 +82,17 @@ struct CompositionBuilder {
             }
 
             // 오디오 트랙 추가
-            if let audioTrack = try await asset.loadTracks(withMediaType: .audio).first {
-                // AVFoundation이 자동으로 트랙 ID를 할당하도록 합니다.
-                if let compositionTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) {
-                    try compositionTrack.insertTimeRange(timeRange, of: audioTrack, at: .zero)
-                    // 할당된 실제 ID를 배열에 추가합니다.
-                    audioTrackIDs.append(compositionTrack.trackID)
+            if(!segment.isMuted) {
+                if let audioTrack = try await asset.loadTracks(withMediaType: .audio).first {
+                    // AVFoundation이 자동으로 트랙 ID를 할당하도록 합니다.
+                    if let compositionTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) {
+                        try compositionTrack.insertTimeRange(timeRange, of: audioTrack, at: .zero)
+                        // 할당된 실제 ID를 배열에 추가합니다.
+                        audioTrackIDs.append(compositionTrack.trackID)
+                    }
                 }
             }
+            
             // 가장 긴 길이를 totalDuration으로 설정
             totalDuration = max(totalDuration, timeRange.duration)
         }

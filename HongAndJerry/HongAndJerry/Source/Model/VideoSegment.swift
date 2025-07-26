@@ -29,12 +29,17 @@ class VideoSegment: Identifiable {
     
     /// 트리밍된 시간 범위 내의 비디오 콘텐츠를 나타내는 썸네일 이미지 모음입니다.
     /// 이 속성은 백그라운드 생성 프로세스를 통해 채워질 것입니다.
-    var thumbnails: [UIImage] = []
+    var thumbnails: [UIImage]
+    
+    /// 현재 세그먼트의 오디오 on/off 상태를 나타냅니다.
+    var isMuted: Bool
     
     init(source: VideoSource) {
         self.source = source
         self.startTime = .zero
         self.trimmedDuration = source.duration
+        self.isMuted = false
+        self.thumbnails = []
         
         Task {
             await generateThumbnails()

@@ -30,12 +30,30 @@ struct EditorTimelineView: View {
                         .offset(x: -EditConstants.pixelsPerSecond / 2)
                     
                     ForEach(viewModel.segments) { segment in
-                        VideoTrackView(segment: segment)
+                        HStack(spacing: 16) {
+                            Button {
+                                let operation = AudioOperation(segmentID: segment.id, isMuted: !segment.isMuted)
+                                
+                                Task {
+                                    await viewModel.editVideo(operation: operation)
+                                }
+                            } label: {
+                                Image(systemName:
+                                        segment.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill"
+                                )
+                                .font(.system(size: 16))
+                                .foregroundStyle(.white)
+                            }
+                            .frame(width: 30, height: 30)
+                            .contentShape(Rectangle())
+                            
+                            VideoTrackView(segment: segment)
+                                .clipped()
+                        }
+                        .offset(x: -45)
                     }
-                    .clipped()
                 }
-                
-                Spacer().frame(width: halfViewWidth)
+                .frame(alignment: .leading)
             }
             .offset(x: currentOffset)
             .onChange(of: viewModel.playerController.currentTime) {
