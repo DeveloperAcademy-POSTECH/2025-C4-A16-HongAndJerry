@@ -31,20 +31,20 @@ struct TrimController {
     
     /// 핸들 드래그 시 새로운 오프셋을 계산하고 제약사항을 적용합니다.
     /// - Parameters:
-    ///   - oldOffsets: 드래그 시작 시점의 핸들 오프셋
+    ///   - initialOffsets: 드래그 시작 시점의 핸들 오프셋
     ///   - handleType: 드래그 중인 핸들 타입 (.left, .right, .none)
     ///   - translation: 드래그로 인한 이동 거리 (픽셀 단위)
     ///   - screenWidth: 화면 너비 (경계 제약사항 적용용)
     /// - Returns: 제약사항이 적용된 새로운 (좌측, 우측) 핸들 오프셋
     func dragHandle(
-        oldOffsets: (left: CGFloat, right: CGFloat),
+        initialOffsets: (left: CGFloat, right: CGFloat),
         handleType: HandleType,
         translation: CGFloat,
         screenWidth: CGFloat
     ) -> (left: CGFloat, right: CGFloat) {
         let calculatedOffset = calculateHandleOffset(
             handleType: handleType,
-            oldOffsets: oldOffsets,
+            initialOffsets: initialOffsets,
             translation: translation
         )
         
@@ -60,23 +60,23 @@ struct TrimController {
     /// 핸들 타입에 따라 이동 거리를 적용하여 새로운 오프셋을 계산합니다.
     /// - Parameters:
     ///   - handleType: 드래그 중인 핸들 타입
-    ///   - oldOffsets: 기존 핸들 오프셋
+    ///   - initialOffsets: 기존 핸들 오프셋
     ///   - translation: 드래그 이동 거리
     /// - Returns: 계산된 새로운 핸들 오프셋 (제약사항 적용 전)
     private func calculateHandleOffset(
         handleType: HandleType,
-        oldOffsets: (left: CGFloat, right: CGFloat),
+        initialOffsets: (left: CGFloat, right: CGFloat),
         translation: CGFloat
     ) -> (CGFloat, CGFloat) {
         switch handleType {
         case .left:
-            return (oldOffsets.left + translation, oldOffsets.right)
+            return (initialOffsets.left + translation, initialOffsets.right)
             
         case .right:
-            return (oldOffsets.left, oldOffsets.right + translation)
+            return (initialOffsets.left, initialOffsets.right + translation)
             
         case .none:
-            return oldOffsets
+            return initialOffsets
         }
     }
     

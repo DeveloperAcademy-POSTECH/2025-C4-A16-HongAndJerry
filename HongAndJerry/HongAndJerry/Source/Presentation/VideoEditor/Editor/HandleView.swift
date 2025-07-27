@@ -11,20 +11,13 @@ struct HandleView: View {
     @Environment(VideoViewModel.self) private var viewModel
     
     let handleType: HandleType
-    let trackWidth: CGFloat
     let segmentID: UUID
     
     var body: some View {
         Rectangle()
             .frame(width: EditConstants.handleWidth)
             .foregroundStyle(.yellow)
-            .offset(
-                x: viewModel.getHandleOffset(
-                    segmentID: segmentID,
-                    handleType: handleType,
-                    trackWidth: trackWidth
-                )
-            )
+            .offset(x: viewModel.draggingHandleType == handleType ? viewModel.handleDragTranslation : 0)
             .gesture(
                 DragGesture()
                     .onChanged { value in

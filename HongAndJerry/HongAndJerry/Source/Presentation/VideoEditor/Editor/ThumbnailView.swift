@@ -1,14 +1,8 @@
-//
-//  ThumbnailView.swift
-//  HongAndJerry
-//
-//  Created by Rama on 7/25/25.
-//
-
 import SwiftUI
 
 struct ThumbnailView: View {
     let segment: VideoSegment
+    let trackWidth: CGFloat
     
     var body: some View {
         HStack(spacing: 0) {
@@ -16,10 +10,17 @@ struct ThumbnailView: View {
                 Image(uiImage: uiImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                // TODO: rawVal 수정
-                    .frame(width: EditConstants.pixelsPerSecond * 3, height: EditConstants.pixelsPerSecond * 3 * (9 / 16))
+                    .frame(
+                        width: EditConstants.pixelsPerSecond * 3,
+                        height: EditConstants.thumbnailHeight
+                    )
                     .clipped()
             }
         }
+        .frame(
+            width: trackWidth,
+            height: EditConstants.thumbnailHeight
+        )
+        .offset(x: -(segment.startTime.seconds * EditConstants.pixelsPerSecond))
     }
 }

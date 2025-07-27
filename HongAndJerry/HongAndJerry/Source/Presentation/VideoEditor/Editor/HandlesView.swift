@@ -8,25 +8,27 @@
 import SwiftUI
 
 struct HandlesView: View {
+    @Environment(VideoViewModel.self) private var viewModel
+    
     let segment: VideoSegment
-    let trackWidth: CGFloat
+    let trimmedTrackWidth: CGFloat
     
     var body: some View {
         HStack(spacing: 0) {
-            HandleView(
-                handleType: .left,
-                trackWidth: trackWidth,
-                segmentID: segment.id
-            )
-            
-            Spacer()
-            
-            HandleView(
-                handleType: .right,
-                trackWidth: trackWidth,
-                segmentID: segment.id
-            )
+            if viewModel.selectedSegmentID == segment.id {
+                HandleView(
+                    handleType: .left,
+                    segmentID: segment.id
+                )
+                
+                Spacer()
+                
+                HandleView(
+                    handleType: .right,
+                    segmentID: segment.id
+                )
+            }
         }
-        
+        .frame(width: trimmedTrackWidth)
     }
 }

@@ -14,23 +14,27 @@ struct VideoTrackView: View {
     let segment: VideoSegment
 
     var body: some View {
-        let thumbnailWidth = EditConstants.pixelsPerSecond * 3
-        let thumbnailHeight = thumbnailWidth * (9 / 16)
-        let trackWidth = segment.trimmedDuration.seconds * EditConstants.pixelsPerSecond
+        let originalTrackWidth = segment.source.duration.seconds * EditConstants.pixelsPerSecond
+        let trimmedTrackWidth = segment.trimmedDuration.seconds * EditConstants.pixelsPerSecond
         
         ZStack(alignment: .leading) {
-            ThumbnailView(segment: segment)
+            ThumbnailView(
+                segment: segment,
+                trackWidth: originalTrackWidth
+            )
             
             HandlesView(
                 segment: segment,
-                trackWidth: trackWidth
+                trimmedTrackWidth: trimmedTrackWidth
             )
         }
+        .frame(width: originalTrackWidth, height: EditConstants.thumbnailHeight)
+        .clipped()
         .onTapGesture {
             viewModel.selectSegment(segment.id)
         }
         .background(Color.gray.opacity(0.5))
-        .frame(width: trackWidth, height: thumbnailHeight)
+        .contentShape(Rectangle())
     }
 }
 
