@@ -31,5 +31,9 @@ struct ThumbnailView: View {
             height: EditConstants.thumbnailHeight
         )
         .offset(x: -(segment.startTime.seconds * EditConstants.pixelsPerSecond))
+        .mask(alignment: .leading) {
+            Rectangle()
+                .frame(width: EditConstants.convertTimeToOffset(segment.trimmedDuration))
+        }
     }
 }

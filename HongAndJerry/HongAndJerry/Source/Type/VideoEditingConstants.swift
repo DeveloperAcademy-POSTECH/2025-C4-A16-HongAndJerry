@@ -20,7 +20,6 @@ struct EditConstants {
         EditConstants.pixelsPerSecond * EditConstants.trimMinimumDuration
     }
     
-    
     static func convertOffsetToTime(_ offset: CGFloat) -> CMTime {
         let seconds = Double(offset / EditConstants.pixelsPerSecond)
         return CMTime(seconds: seconds, preferredTimescale: 600)

@@ -20,8 +20,7 @@ struct VideoTrackView: View {
         ZStack(alignment: .leading) {
             ThumbnailView(
                 segment: segment,
-                initialTrackWidth: initialTrackWidth,
-                trimmedTrackWidth: trimmedTrackWidth
+                initialTrackWidth: initialTrackWidth
             )
             
             HandlesView(
@@ -37,7 +36,7 @@ struct VideoTrackView: View {
         .onTapGesture {
             viewModel.selectSegment(segment.id)
         }
-        .background(Color.gray.opacity(0.5))
+        .background(Color.black)
         .contentShape(Rectangle())
     }
 }
