@@ -85,6 +85,7 @@ final class VideoViewModel {
             initialRightHandleOffset = 0
             return
         }
+        
         initialLeftHandleOffset = offsets.left
         initialRightHandleOffset = offsets.right
     }
@@ -105,9 +106,12 @@ final class VideoViewModel {
         }
         handleDragTranslation = translation
         
-        guard let selectedID = selectedSegmentID else {
+        guard let selectedID = selectedSegmentID,
+              let selectedSegment = segments.first(where: { $0.id == selectedID }) else {
             return
         }
+        
+        let initialTrackWidth = EditConstants.convertTimeToOffset(selectedSegment.source.duration)
         
         let newOffsets = trimController.dragHandle(
             initialOffsets: (
@@ -116,7 +120,7 @@ final class VideoViewModel {
             ),
             handleType: type,
             translation: translation,
-            screenWidth: screenWidth
+            initialTrackWidth: initialTrackWidth
         )
         
         segmentHandleOffsets[selectedID] = newOffsets

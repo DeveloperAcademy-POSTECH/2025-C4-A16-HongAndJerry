@@ -8,8 +8,10 @@
 import SwiftUI
 
 struct ThumbnailView: View {
+    @Environment(VideoViewModel.self) private var viewModel
+    
     let segment: VideoSegment
-    let trackWidth: CGFloat
+    let initialTrackWidth: CGFloat
     
     var body: some View {
         HStack(spacing: 0) {
@@ -25,7 +27,7 @@ struct ThumbnailView: View {
             }
         }
         .frame(
-            width: trackWidth,
+            width: initialTrackWidth,
             height: EditConstants.thumbnailHeight
         )
         .offset(x: -(segment.startTime.seconds * EditConstants.pixelsPerSecond))

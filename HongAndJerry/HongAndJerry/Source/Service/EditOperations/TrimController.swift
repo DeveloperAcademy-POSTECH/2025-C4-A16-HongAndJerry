@@ -13,7 +13,9 @@ struct TrimController {
         segmentID: UUID,
         segments: [VideoSegment]
     ) -> (left: CGFloat, right: CGFloat) {
-        guard let segment = segments.first(where: { $0.id == segmentID}) else { return (left: 0, right: 0)}
+        guard let segment = segments.first(where: { $0.id == segmentID }) else {
+            return (left: 0, right: 0)
+        }
         
         let newLeftHandleOffset = EditConstants.convertTimeToOffset(segment.startTime)
         let newRightHandleOffset = EditConstants.convertTimeToOffset(segment.startTime + segment.trimmedDuration)
@@ -25,7 +27,7 @@ struct TrimController {
         initialOffsets: (left: CGFloat, right: CGFloat),
         handleType: HandleType,
         translation: CGFloat,
-        screenWidth: CGFloat
+        initialTrackWidth: CGFloat
     ) -> (left: CGFloat, right: CGFloat) {
         let calculatedOffset = calculateHandleOffset(
             handleType: handleType,
@@ -36,7 +38,7 @@ struct TrimController {
         let constrainedOffset = applyConstraints(
             handleType: handleType,
             calculatedOffset: calculatedOffset,
-            screenWidth: screenWidth
+            initialTrackWidth: initialTrackWidth
         )
 
         return constrainedOffset
@@ -62,7 +64,7 @@ struct TrimController {
     private func applyConstraints(
         handleType: HandleType,
         calculatedOffset: (left: CGFloat, right: CGFloat),
-        screenWidth: CGFloat
+        initialTrackWidth: CGFloat
     ) -> (left: CGFloat, right: CGFloat) {
         switch handleType {
         case .left:
@@ -70,7 +72,7 @@ struct TrimController {
             return (constrainedLeft, calculatedOffset.right)
             
         case .right:
-            let constrainedRight = max(calculatedOffset.left + EditConstants.trackMinimumPixel, min(calculatedOffset.right, screenWidth))
+            let constrainedRight = max(calculatedOffset.left + EditConstants.trackMinimumPixel, min(calculatedOffset.right, initialTrackWidth))
             return (calculatedOffset.left, constrainedRight)
             
         case .none:
