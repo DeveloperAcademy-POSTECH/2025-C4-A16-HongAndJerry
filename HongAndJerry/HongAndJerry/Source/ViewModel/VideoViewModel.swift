@@ -12,27 +12,21 @@ import Observation
 @Observable
 final class VideoViewModel {
     var segments: [VideoSegment] = []
-    
-    let playerController = PlayerController()
-    
-    private var trimController = TrimController()
-    
-    private let compositionBuilder = CompositionBuilder()
-
+    var draggingHandleType: HandleType = .none
+    var handleDragTranslation: CGFloat = .zero
+    var selectedSegmentID: UUID?
+    var scrollOffset: CGFloat = 0
+    var screenWidth: CGFloat = 0
     var isFullScreen: Bool = false
-    
     var segmentHandleOffsets: [UUID: (left: CGFloat, right: CGFloat)] = [:]
     
     private var initialLeftHandleOffset: CGFloat = 0
     private var initialRightHandleOffset: CGFloat = 0
-
-    var draggingHandleType: HandleType = .none
-    var handleDragTranslation: CGFloat = .zero
-
-    var selectedSegmentID: UUID?
     
-    var scrollOffset: CGFloat = 0
-    var screenWidth: CGFloat = 0
+    let playerController = PlayerController()
+    
+    private let trimController = TrimController()
+    private let compositionBuilder = CompositionBuilder()
     
     init() {
         Task {
@@ -125,6 +119,7 @@ final class VideoViewModel {
         
         segmentHandleOffsets[selectedID] = newOffsets
     }
+    
     
     func onHandleDragEnd() async {
         guard let selectedID = selectedSegmentID,

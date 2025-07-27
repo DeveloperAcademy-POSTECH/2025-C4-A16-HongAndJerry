@@ -11,7 +11,6 @@ struct HandleView: View {
     @Environment(VideoViewModel.self) private var viewModel
     
     let handleType: HandleType
-    let segmentID: UUID
     
     var body: some View {
         Rectangle()

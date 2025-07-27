@@ -14,22 +14,12 @@ struct VideoTrackView: View {
     let segment: VideoSegment
 
     var body: some View {
-        let initialTrackWidth = EditConstants.convertTimeToOffset(segment.source.duration)
-        let trimmedTrackWidth = EditConstants.convertTimeToOffset(segment.trimmedDuration)
-        
         ZStack(alignment: .leading) {
-            ThumbnailView(
-                segment: segment,
-                initialTrackWidth: initialTrackWidth
-            )
-            
-            HandlesView(
-                segment: segment,
-                trimmedTrackWidth: trimmedTrackWidth
-            )
+            ThumbnailView(segment: segment)
+            HandlesView(segment: segment)
         }
         .frame(
-            width: initialTrackWidth,
+            width: EditConstants.convertTimeToOffset(segment.source.duration),
             height: EditConstants.thumbnailHeight
         )
         .clipped()
