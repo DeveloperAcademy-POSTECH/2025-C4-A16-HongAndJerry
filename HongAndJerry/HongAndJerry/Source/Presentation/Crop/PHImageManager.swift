@@ -34,13 +34,17 @@ extension PHImageManager {
         }
     }
     
-    func cropVideos(_ crops: [Crop]) async throws {
+    func cropVideos(crops: [Crop]) async throws -> [(AVAsset, AVVideoComposition)] {
+        var array: [(AVAsset, AVVideoComposition)] = []
+        
         for crop in crops {
             let video  = try await self.requestAVAssetAsync(for: crop.video)        // AVAsset 타입의 비디오
             let videoSize = try await getVideoSize(from: video)                     // 비디오의 실제 사이즈
             let actualCropRect = self.convertThumbnailRectToVideoRect(thumbnailRect: crop.cropRect, thumbnailSize: crop.thumbnail.size, videoSize: videoSize)                           // 실제 크롭 영역
+            let composition = try await self.makeCroppedVideoComposition(crop: actualCropRect, asset: video)
+            array.append((video, composition))
         }
-        
+        return array
     }
     
     func getVideoSize(from asset: AVAsset) async throws -> CGSize {
@@ -73,17 +77,23 @@ extension PHImageManager {
         return videoRect
     }
     
-    func makeCroppedVideo(crop: CGRect, asset: AVAsset) async throws -> AVMutableVideoComposition {
-        let videoComposition = try await AVMutableVideoComposition.videoComposition(with: asset) { request in
-            let cropFilter = CIFilter(name: "CICrop")!
-            cropFilter.setValue(request.sourceImage, forKey: kCIInputImageKey)
-            cropFilter.setValue(CIVector(cgRect: crop), forKey: "inputRectanlge")
-            let cropped = cropFilter.outputImage!
-            let translated = cropped.transformed(by: CGAffineTransform(translationX: -crop.origin.x, y: -crop.origin.y))
-            request.finish(with: translated, context: nil)
+    func makeCroppedVideoComposition(crop: CGRect, asset: AVAsset) async throws -> AVVideoComposition {
+        let videoComposition = try await AVVideoComposition.videoComposition(with: asset) { request in
+            do {
+                guard let cropFilter = CIFilter(name: "CICrop") else {
+                    throw NSError(domain: "CropFilter", code: -1, userInfo: [NSLocalizedDescriptionKey: "CICrop 필터 생성 실패"])
+                }
+                cropFilter.setValue(request.sourceImage, forKey: kCIInputImageKey)
+                cropFilter.setValue(CIVector(cgRect: crop), forKey: "inputRectangle")
+                guard let cropped = cropFilter.outputImage else {
+                    throw NSError(domain: "CropFilter", code: -2, userInfo: [NSLocalizedDescriptionKey: "출력 이미지 생성 실패"])
+                }
+                let translated = cropped.transformed(by: CGAffineTransform(translationX: -crop.origin.x, y: -crop.origin.y))
+                request.finish(with: translated, context: nil)
+            } catch {
+                request.finish(with: error)
+            }
         }
-        
-        videoComposition.renderSize = crop.size
         
         return videoComposition
     }
