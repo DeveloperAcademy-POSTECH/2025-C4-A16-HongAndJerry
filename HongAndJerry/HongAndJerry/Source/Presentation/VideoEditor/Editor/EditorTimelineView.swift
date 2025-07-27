@@ -53,11 +53,14 @@ struct EditorTimelineView: View {
                         .offset(x: -45)
                     }
                 }
-                .frame(alignment: .leading)
+                
+                // 오른쪽 Spacer: 마지막 부분이 중앙에 올 수 있도록 스크롤 여유 공간을 확보합니다.
+                Spacer().frame(width: halfViewWidth)
             }
             .offset(x: currentOffset)
             .onChange(of: viewModel.playerController.currentTime) {
-                if !isTimelineDragging && !isAnimatingScroll {
+                // 사용자가 드래그하고 있지 않을 때만, 재생 시간에 맞춰 타임라인을 자동으로 스크롤합니다.
+                if !isTimelineDragging {
                     self.currentOffset = -(viewModel.playerController.currentTime.seconds * EditConstants.pixelsPerSecond)
                 }
             }
@@ -137,6 +140,8 @@ struct EditorTimelineView: View {
     /// 오프셋을 경계 내로 제한하는 함수
     private func clampOffset(_ offset: CGFloat) -> CGFloat {
         let totalTimelineWidth = (viewModel.playerController.totalDuration.seconds * EditConstants.pixelsPerSecond)
+        
+        // 스크롤 가능한 최대/최소 오프셋을 계산합니다.
         let minOffset = -totalTimelineWidth
         let maxOffset: CGFloat = 0
         return min(maxOffset, max(minOffset, offset))

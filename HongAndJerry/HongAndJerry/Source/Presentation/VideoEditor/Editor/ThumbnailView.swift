@@ -1,3 +1,10 @@
+//
+//  ThumbnailView.swift
+//  HongAndJerry
+//
+//  Created by Rama on 7/25/25.
+//
+
 import SwiftUI
 
 struct ThumbnailView: View {

@@ -110,7 +110,7 @@ final class VideoViewModel {
         }
         
         let newOffsets = trimController.dragHandle(
-            initHandles: (
+            initialOffsets: (
                 left: initialLeftHandleOffset,
                 right: initialRightHandleOffset
             ),
