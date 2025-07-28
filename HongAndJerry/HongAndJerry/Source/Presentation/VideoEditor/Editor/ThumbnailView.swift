@@ -34,10 +34,11 @@ struct ThumbnailView: View {
             Rectangle()
                 .frame(width: EditConstants.convertTimeToOffset(segment.trimmedDuration))
         }
-        .overlay {
+        .overlay(alignment: .leading) {
             if viewModel.selectedSegmentID == segment.id {
                 Rectangle()
                     .stroke(.accent, lineWidth: 1)
+                    .frame(width: EditConstants.convertTimeToOffset(segment.trimmedDuration))
             }
         }
     }
