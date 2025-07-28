@@ -32,6 +32,7 @@ struct VideoEditorView: View {
             }
         }
         .environment(viewModel)
+        .navigationBarHidden(true)
     }
 }
 

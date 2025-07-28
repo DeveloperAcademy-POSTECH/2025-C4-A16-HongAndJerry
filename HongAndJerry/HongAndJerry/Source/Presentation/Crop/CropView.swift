@@ -33,11 +33,11 @@ struct CropView: View {
                     router.push(screen: .videoEditView([]))
                 }
             }
-            .padding(.horizontal, 16)
             .onAppear {
                 viewModel.send(.loadThumbnail)
             }
         }
+        .hjNavigationBar(title: ExportNameSpace.AppMain.cropVideoTitle)
     }
     
     var tabView: some View {
@@ -67,7 +67,6 @@ struct CropView: View {
                     nextButton
                 }
             }
-            .padding(.horizontal, 16)
         }
     }
     

@@ -37,5 +37,7 @@ extension ExportNameSpace {
     enum AppMain {
         static let AppName = "WVDO"
         static let frameNavigationTitle = "프레임 선택"
+        static let selectVideoTitle = "영상 선택"
+        static let cropVideoTitle = " 비율 조정"
     }
 }

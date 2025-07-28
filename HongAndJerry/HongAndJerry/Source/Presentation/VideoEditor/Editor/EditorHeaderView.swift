@@ -10,20 +10,20 @@ import SwiftUI
 /// 에디터 화면 상단에 표시될 헤더 뷰입니다.
 /// 뒤로가기 버튼과 내보내기 버튼을 포함합니다.
 struct EditorHeaderView: View {
+    @EnvironmentObject var router: Router
+    
     var body: some View {
         HStack {
-            // 뒤로가기 버튼
             Button {
-                // TODO: 뒤로가기 기능 구현
+                router.pop()
             } label: {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: 22, weight: .medium))
                     .foregroundColor(.white)
             }
 
             Spacer()
-
-            // 내보내기 버튼
+            
             Button {
                 // TODO: 내보내기 기능 구현
             } label: {
@@ -32,7 +32,8 @@ struct EditorHeaderView: View {
                     .foregroundColor(.accent)
             }
         }
+        .padding(.leading, 8)
+        .padding(.trailing, 28)
         .padding(.vertical, 16)
-        .padding(.horizontal, 28)
     }
 }
