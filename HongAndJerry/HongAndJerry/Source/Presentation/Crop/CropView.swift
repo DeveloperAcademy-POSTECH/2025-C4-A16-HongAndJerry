@@ -90,15 +90,14 @@ struct CropView: View {
                             CropBox(rect: viewModel.bindingForCropRect(at: videoIndex))
                                 .allowsHitTesting(true)
                                 .onAppear {
-                                    self.imageViewSize = geometry.size
+                                    viewModel.send(.setContainerSize(geometry.size, at: videoIndex))
                                     if crop.cropRect == .zero {
                                         let initialRect = viewModel.calculate16x9CropRect(in: geometry.size)
                                         viewModel.updateCropRect(at: videoIndex, rect: initialRect)
-                                        viewModel.send(.setDefaultThumnailSize(.init(x: 0, y: 0, width: geometry.size.width, height: geometry.size.height)))
                                     }
                                 }
                                 .onChange(of: geometry.size) { oldValue, newValue in
-                                    self.imageViewSize = newValue
+                                    viewModel.send(.setContainerSize(newValue, at: videoIndex))
                                 }
                         }
                     }

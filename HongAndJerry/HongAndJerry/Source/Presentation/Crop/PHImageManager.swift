@@ -34,16 +34,19 @@ extension PHImageManager {
         }
     }
     
-    func cropVideos(crops: [Crop], defaultThumbnailSize: CGRect) async throws -> [(AVAsset, AVVideoComposition)] {
+    func cropVideos(crops: [Crop]) async throws -> [(AVAsset, AVVideoComposition)] {
         var array: [(AVAsset, AVVideoComposition)] = []
         
         for crop in crops {
             let video  = try await self.requestAVAssetAsync(for: crop.video)        // AVAsset 타입의 비디오
             let videoSize = try await getVideoSize(from: video)                     // 비디오의 실제 사이즈
             print("비디오 사이즈 : \(videoSize)")
-            let actualCropRect = self.convertThumbnailRectToVideoRect(thumbnailRect: crop.cropRect, thumbnailSize: crop.thumbnail.size, defaultThumbnailSize: defaultThumbnailSize, videoSize: videoSize)                           // 실제 크롭 영역
+            let actualCropRect = self.convertThumbnailRectToVideoRect(thumbnailRect: crop.cropRect, thumbnailSize: crop.thumbnail.size, containerSize: crop.containerSize, videoSize: videoSize)                           // 실제 크롭 영역
             print("사용자가 선택한 사각형 사이즈 : \(crop.cropRect)")
 //            print("\(actualCropRect)")
+            print("힝구")
+            print(actualCropRect)
+            print("===")
             let composition = try await self.makeCroppedVideoComposition(crop: actualCropRect, asset: video)
             array.append((video, composition))
         }
@@ -60,25 +63,53 @@ extension PHImageManager {
         return CGSize(width: abs(size.width), height: abs(size.height))
     }
     
+    /// .aspectRatio(contentMode: .fit) 로 인해 생긴 레터박스를 계산하여,
+    /// 썸네일 이미지 뷰 안에 실제 썸네일이 그려지는 영역(CGRect)을 반환합니다.
+    private func calculateFittedRect(from containerSize: CGSize, imageSize: CGSize) -> CGRect {
+        let containerAspectRatio = containerSize.width / containerSize.height
+        let imageAspectRatio = imageSize.width / imageSize.height
+
+        var finalSize: CGSize = .zero
+        var origin: CGPoint = .zero
+
+        // 컨테이너가 이미지보다 넓은 경우 (세로에 맞춰짐, 좌우에 레터박스)
+        if containerAspectRatio > imageAspectRatio {
+            finalSize.height = containerSize.height
+            finalSize.width = imageSize.width * (containerSize.height / imageSize.height)
+            origin.x = (containerSize.width - finalSize.width) / 2
+            origin.y = 0
+        } else { // 컨테이너가 이미지보다 좁거나 같은 경우 (가로에 맞춰짐, 상하에 레터박스)
+            finalSize.width = containerSize.width
+            finalSize.height = imageSize.height * (containerSize.width / imageSize.width)
+            origin.x = 0
+            origin.y = (containerSize.height - finalSize.height) / 2
+        }
+
+        return CGRect(origin: origin, size: finalSize)
+    }
+
     func convertThumbnailRectToVideoRect(
         thumbnailRect: CGRect,
         thumbnailSize: CGSize,
-        defaultThumbnailSize: CGRect,
+        containerSize: CGSize,
         videoSize: CGSize
     ) -> CGRect {
-        // 썸네일과 실제 비디오의 비율 계산
-    
+        print("containerSize: \(containerSize)")
+        // 1. .fit 모드에서 실제 썸네일 이미지가 표시되는 영역을 계산합니다. (레터박스 제외)
+        let fittedRect = calculateFittedRect(from: containerSize, imageSize: thumbnailSize)
+
+        // 2. 사용자가 선택한 크롭 영역(thumbnailRect)을 실제 이미지(fittedRect) 기준의 상대 좌표로 변환합니다.
+        let relativeX = thumbnailRect.origin.x - fittedRect.origin.x
+        let relativeY = thumbnailRect.origin.y - fittedRect.origin.y
         
-        let scaleX = videoSize.width / defaultThumbnailSize.width
-        let scaleY = videoSize.height / defaultThumbnailSize.height
-        
-        print("scaleX(\(scaleX)) = \(videoSize.width) / \(defaultThumbnailSize.width)")
-        print("scaleY(\(scaleY)) = \(videoSize.height) / \(defaultThumbnailSize.height)")
-        
-        // CGRect를 실제 비디오 좌표로 변환
+        // 썸네일 뷰 크기 대비 실제 비디오 해상도의 스케일링 비율을 계산합니다.
+        let scaleX = videoSize.width / fittedRect.width
+        let scaleY = videoSize.height / fittedRect.height
+
+        // 3. 상대 좌표와 스케일링 비율을 사용하여 실제 비디오의 크롭 좌표를 계산합니다.
         let videoRect = CGRect(
-            x: thumbnailRect.origin.x * scaleX,
-            y: thumbnailRect.origin.y * scaleY,
+            x: relativeX * scaleX,
+            y: relativeY * scaleY,
             width: thumbnailRect.width * scaleX,
             height: thumbnailRect.height * scaleY
         )
@@ -87,53 +118,41 @@ extension PHImageManager {
     }
     
     func makeCroppedVideoComposition(crop: CGRect, asset: AVAsset) async throws -> AVVideoComposition {
-        let videoComposition = try await AVVideoComposition.videoComposition(
-            with: asset
-        ) { request in
-            do {
-                guard let cropFilter = CIFilter(
-                    name: "CICrop"
-                ) else {
-                    throw NSError(
-                        domain: "CropFilter",
-                        code: -1,
-                        userInfo: [NSLocalizedDescriptionKey: "CICrop 필터 생성 실패"]
-                    )
-                }
-                cropFilter.setValue(
-                    request.sourceImage,
-                    forKey: kCIInputImageKey
-                )
-                cropFilter.setValue(
-                    CIVector(
-                        cgRect: crop
-                    ),
-                    forKey: "inputRectangle"
-                )
-                guard let cropped = cropFilter.outputImage else {
-                    throw NSError(
-                        domain: "CropFilter",
-                        code: -2,
-                        userInfo: [NSLocalizedDescriptionKey: "출력 이미지 생성 실패"]
-                    )
-                }
-                let translated = cropped.transformed(
-                    by: CGAffineTransform(
-                        translationX: -crop.origin.x,
-                        y: -crop.origin.y
-                    )
-                )
-                request.finish(
-                    with: translated,
-                    context: nil
-                )
-            } catch {
-                request.finish(
-                    with: error
-                )
-            }
+        // 크롭 영역의 크기가 0이면 빈 Composition을 반환하여 크래시를 방지합니다.
+        guard crop.width > 0, crop.height > 0 else {
+            return AVVideoComposition()
         }
+
+        // 1. 비디오 트랙과 기본 정보를 비동기로 로드합니다.
+        guard let videoTrack = try await asset.loadTracks(withMediaType: .video).first else {
+            throw AssetError.assetNotFound
+        }
+        let frameRate = try await videoTrack.load(.nominalFrameRate)
+        let originalTransform = try await videoTrack.load(.preferredTransform)
+
+        // 2. AVFoundation의 표준 도구를 사용하여 Composition을 구성합니다.
+        let composition = AVMutableVideoComposition()
+        composition.renderSize = crop.size // 최종 결과물 크기를 크롭 영역의 크기로 설정
+        composition.frameDuration = CMTime(value: 1, timescale: CMTimeScale(frameRate > 0 ? frameRate : 30))
         
-        return videoComposition
+        let instruction = AVMutableVideoCompositionInstruction()
+        let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: videoTrack)
+
+        // 3. 최종 변환 행렬(Transform)을 계산합니다.
+        // 이 행렬은 원본 비디오를 최종 캔버스에 어떻게 위치시킬지 결정합니다.
+        // a. 원본 비디오의 방향(회전)을 그대로 가져옵니다.
+        // b. 크롭 영역의 왼쪽 상단이 (0,0)이 되도록 비디오를 평행 이동시킵니다.
+        let finalTransform = originalTransform.concatenating(CGAffineTransform(translationX: -crop.origin.x, y: -crop.origin.y))
+
+        // 4. Layer Instruction에 최종적으로 계산된 변환 행렬만 설정합니다.
+        layerInstruction.setTransform(finalTransform, at: .zero)
+
+        // 5. Composition을 최종 구성합니다.
+        let duration = try await asset.load(.duration)
+        instruction.timeRange = CMTimeRange(start: .zero, duration: duration)
+        instruction.layerInstructions = [layerInstruction]
+        composition.instructions = [instruction]
+
+        return composition
     }
 }

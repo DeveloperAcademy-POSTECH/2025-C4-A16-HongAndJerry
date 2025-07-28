@@ -48,7 +48,7 @@ extension HomeView: View {
             }
             .sheet(isPresented: $showPlayer) {
                 if let asset = selectedAsset {
-                    VideoPlayer(asset: asset)
+                    HomeVideoPlayer(asset: asset)
                 }
             }
         }

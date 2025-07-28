@@ -15,7 +15,7 @@ final class CropViewModel {
         case loadThumbnail
         case goToNextPhoto
         case goToPreviousPhoto
-        case setDefaultThumnailSize(CGRect)
+        case setContainerSize(CGSize, at: Int)
     }
     
     var selectedVideos: [PHAsset]
@@ -24,7 +24,6 @@ final class CropViewModel {
     var isLoading = true
     
     var crops: [Crop] = []
-    var defaultThumnailSize: CGRect = .zero
     
     var croppedVideos: [(AVAsset, AVVideoComposition)] = []
     
@@ -47,8 +46,8 @@ extension CropViewModel {
         case .goToPreviousPhoto:
             if currentIndex > 0 { currentIndex -= 1 }
             
-        case .setDefaultThumnailSize(let rect):
-            setDefaultThumbnailSize(rect: rect)
+        case .setContainerSize(let size, let index):
+            setContainerSize(size, at: index)
         }
     }
     
@@ -138,20 +137,19 @@ extension CropViewModel {
         
         let rect = CGRect(x: x, y: y, width: cropWidth, height: cropHeight)
         
-//        send(.setDefaultThumnailSize(rect))
-        
         return rect
     }
     
-    private func setDefaultThumbnailSize(rect: CGRect) {
-        self.defaultThumnailSize = rect
+    private func setContainerSize(_ size: CGSize, at index: Int) {
+        guard index < crops.count else { return }
+        crops[index].containerSize = size
     }
     
     @MainActor
     func cropVideos() async {
 
         do {
-            croppedVideos = try await PHImageManager.default().cropVideos(crops: crops, defaultThumbnailSize: defaultThumnailSize)
+            croppedVideos = try await PHImageManager.default().cropVideos(crops: crops)
         } catch {
             print("eee")
         }
