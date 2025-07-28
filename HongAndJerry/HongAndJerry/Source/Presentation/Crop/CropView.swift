@@ -16,6 +16,8 @@ struct CropView: View {
     @State var imageViewSize: CGSize = .zero
     @State var croppedImage: UIImage?
     
+    @State var isCropTestViewShown: Bool = false
+    
     var body: some View {
         ZStack {
             // soop TODO: 다들 배경 어떻게 하나 물어보고 변경하깅~
@@ -30,11 +32,15 @@ struct CropView: View {
                     }
                 }
                 CtaButton(buttonType: .next, isDisabled: .constant(false)) {
-                    router.push(screen: .videoEditView([]))
+//                    router.push(screen: .videoEditView([]))
+                    self.isCropTestViewShown = true
                 }
             }
             .onAppear {
                 viewModel.send(.loadThumbnail)
+            }
+            .fullScreenCover(isPresented: $isCropTestViewShown) {
+                CropTestView(viewModel: viewModel)
             }
         }
         .hjNavigationBar(title: ExportNameSpace.AppMain.cropVideoTitle)
@@ -85,9 +91,10 @@ struct CropView: View {
                                 .allowsHitTesting(true)
                                 .onAppear {
                                     self.imageViewSize = geometry.size
-                                    if crop.cropRect == CGRect(x: 0, y: 0, width: 100, height: 100) {
+                                    if crop.cropRect == .zero {
                                         let initialRect = viewModel.calculate16x9CropRect(in: geometry.size)
                                         viewModel.updateCropRect(at: videoIndex, rect: initialRect)
+                                        viewModel.send(.setDefaultThumnailSize(.init(x: 0, y: 0, width: geometry.size.width, height: geometry.size.height)))
                                     }
                                 }
                                 .onChange(of: geometry.size) { oldValue, newValue in

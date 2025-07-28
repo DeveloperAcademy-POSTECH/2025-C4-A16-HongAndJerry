@@ -19,7 +19,7 @@ struct CropBox: View {
     
     public init(
         rect: Binding<CGRect>,
-        minSize: CGSize = .init(width: 100, height: 100)
+        minSize: CGSize = .zero
     ) {
         self._rect = rect
         self.minSize = minSize

@@ -15,6 +15,7 @@ final class CropViewModel {
         case loadThumbnail
         case goToNextPhoto
         case goToPreviousPhoto
+        case setDefaultThumnailSize(CGRect)
     }
     
     var selectedVideos: [PHAsset]
@@ -23,6 +24,9 @@ final class CropViewModel {
     var isLoading = true
     
     var crops: [Crop] = []
+    var defaultThumnailSize: CGRect = .zero
+    
+    var croppedVideos: [(AVAsset, AVVideoComposition)] = []
     
     init(selectedVideos: [PHAsset]) {
         self.selectedVideos = selectedVideos
@@ -42,6 +46,9 @@ extension CropViewModel {
             
         case .goToPreviousPhoto:
             if currentIndex > 0 { currentIndex -= 1 }
+            
+        case .setDefaultThumnailSize(let rect):
+            setDefaultThumbnailSize(rect: rect)
         }
     }
     
@@ -59,7 +66,7 @@ extension CropViewModel {
             let thumbnail = await loadSingleThumbnail(for: video)
             if let thumbnail = thumbnail {
                 thumbnails[video.localIdentifier] = thumbnail
-                crops.append(Crop(video: video, localIdentifier: video.localIdentifier, cropRect: .init(x: 0, y: 0, width: 100, height: 100), thumbnail: thumbnail))
+                crops.append(Crop(video: video, localIdentifier: video.localIdentifier, cropRect: .zero, thumbnail: thumbnail))
             }
         }
         
@@ -110,7 +117,7 @@ extension CropViewModel {
     }
     
     // CropView에 추가할 헬퍼 함수
-    func calculate16x9CropRect(in imageSize: CGSize, padding: CGFloat = 20) -> CGRect {
+    func calculate16x9CropRect(in imageSize: CGSize) -> CGRect {
         let aspectRatio: CGFloat = 16.0 / 9.0
         let maxWidth = imageSize.width
         let maxHeight = imageSize.height
@@ -129,10 +136,24 @@ extension CropViewModel {
         let x = (imageSize.width - cropWidth) / 2
         let y = (imageSize.height - cropHeight) / 2
         
-        return CGRect(x: x, y: y, width: cropWidth, height: cropHeight)
+        let rect = CGRect(x: x, y: y, width: cropWidth, height: cropHeight)
+        
+//        send(.setDefaultThumnailSize(rect))
+        
+        return rect
     }
     
-    func cropVideos() -> [AVAsset] {
-        return []
+    private func setDefaultThumbnailSize(rect: CGRect) {
+        self.defaultThumnailSize = rect
+    }
+    
+    @MainActor
+    func cropVideos() async {
+
+        do {
+            croppedVideos = try await PHImageManager.default().cropVideos(crops: crops, defaultThumbnailSize: defaultThumnailSize)
+        } catch {
+            print("eee")
+        }
     }
 }
