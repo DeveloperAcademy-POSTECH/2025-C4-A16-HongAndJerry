@@ -29,6 +29,7 @@ struct VideoThumbnail: View {
             }
         }
         .aspectRatio(1, contentMode: .fit)
+        .contentShape(Rectangle())
         .onTapGesture {
             onTap()
         }

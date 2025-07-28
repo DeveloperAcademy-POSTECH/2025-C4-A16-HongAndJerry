@@ -25,22 +25,27 @@ struct GalleryView: View {
                         .transition(.move(edge: .top).combined(with: .opacity))
                         .animation(.easeInOut, value: viewModel.selectedVideos)
                 }
-                AllVideoGridScrollView(viewModel: viewModel)
-                    .animation(.easeInOut, value: viewModel.selectedVideos)
-                Spacer()
-                VStack {
-                    if viewModel.canProceedToEdit {
-                        CtaButton(
-                            buttonType: .next,
-                            isDisabled: .constant(false)
-                        ) {
-                            router.push(screen: .editVideoRatio(viewModel.selectedVideos))
+                
+                ZStack {
+                    AllVideoGridScrollView(viewModel: viewModel)
+                        .animation(.easeInOut, value: viewModel.selectedVideos)
+                    
+                    VStack {
+                        Spacer()
+                        
+                        if viewModel.canProceedToEdit {
+                            CtaButton(
+                                buttonType: .next,
+                                isDisabled: .constant(false)
+                            ) {
+                                router.push(screen: .editVideoRatio(viewModel.selectedVideos))
+                            }
                         }
-                        .padding(.horizontal, 16)
                     }
                 }
             }
         }
+        .hjNavigationBar(title: ExportNameSpace.AppMain.selectVideoTitle)
     }
 }
 

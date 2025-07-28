@@ -46,7 +46,10 @@ struct EditorWorkspaceView: View {
                     .font(.SUITTimer)
                     .foregroundColor(.white)
                     .frame(height: EditConstants.rulerHeight)
-                    .background(.black)
+                    .background(
+                        Rectangle().fill(.black)
+                    )
+                    .padding(.leading, 16)
             }
             .frame(height: UIScreen.main.bounds.height / 3)
         }
