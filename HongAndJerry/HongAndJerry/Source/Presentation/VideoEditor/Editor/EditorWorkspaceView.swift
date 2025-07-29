@@ -18,7 +18,7 @@ struct EditorWorkspaceView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            EditorHeaderView()
+            EditorHeaderView(videoAsset: viewModel.getFinalVideoAsset())
             
             VideoPlayerView(playerController: viewModel.playerController)
                 // 이 뷰가 "videoPlayer"라는 ID를 가짐을 선언하여

@@ -12,6 +12,8 @@ import Observation
 @Observable
 final class VideoViewModel {
     var segments: [VideoSegment] = []
+    private var playerItem: AVPlayerItem?
+    
     var draggingHandleType: HandleType = .none
     var handleDragTranslation: CGFloat = .zero
     var selectedSegmentID: UUID?
@@ -58,6 +60,8 @@ final class VideoViewModel {
             }
             
             let buildResult = try await compositionBuilder.build(from: segments)
+            self.playerItem = buildResult.playerItem
+            
             playerController.replaceCurrentItem(with: buildResult.playerItem)
         } catch {
             print("Error rebuilding player item: \(error)")
@@ -183,6 +187,14 @@ final class VideoViewModel {
         } catch {
             // operation 적용 중 에러가 발생하면 로그를 출력합니다.
             print("Failed to perform edit operation: \(error)")
+        }
+    }
+    
+    func getFinalVideoAsset() -> AVAsset? {
+        if let playerItem = self.playerItem {
+            return playerItem.asset
+        } else {
+            return nil
         }
     }
 }
