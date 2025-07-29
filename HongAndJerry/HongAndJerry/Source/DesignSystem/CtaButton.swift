@@ -43,13 +43,14 @@ extension CtaButton: View {
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
             }
-            .padding(.horizontal)
             .frame(maxWidth: .infinity)
             .frame(height: 55)
             .background(isDisabled ? .inactive : Color.accent)
             .clipShape(RoundedRectangle(cornerRadius: 4))
         }
         .disabled(isDisabled)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 48)
     }
 }
 

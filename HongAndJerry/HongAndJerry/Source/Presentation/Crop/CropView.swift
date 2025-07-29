@@ -52,7 +52,6 @@ struct CropView: View {
             .tabViewStyle(.page(indexDisplayMode: .never))    // 탭뷰 좌우 스크롤 설정
             
             HStack {
-                
                 if viewModel.currentIndex > 0 {
                     previousButton
                 }
@@ -67,6 +66,8 @@ struct CropView: View {
                     nextButton
                 }
             }
+            .padding(.vertical, 16)
+            .padding(.horizontal, 16)
         }
     }
     
@@ -81,7 +82,7 @@ struct CropView: View {
                     .overlay(alignment: .topLeading) {
                         GeometryReader { geometry in
                             CropBox(rect: viewModel.bindingForCropRect(at: videoIndex))
-                                .allowsHitTesting(true) // 터치 이벤트 활성화
+                                .allowsHitTesting(true)
                                 .onAppear {
                                     self.imageViewSize = geometry.size
                                     if crop.cropRect == CGRect(x: 0, y: 0, width: 100, height: 100) {
