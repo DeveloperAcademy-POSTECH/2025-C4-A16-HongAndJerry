@@ -50,6 +50,7 @@ extension PHImageManager {
             let composition = try await self.makeCroppedVideoComposition(crop: actualCropRect, asset: video)
             array.append((video, composition))
         }
+        print(array)
         return array
     }
     
@@ -154,5 +155,69 @@ extension PHImageManager {
         composition.instructions = [instruction]
 
         return composition
+    }
+    
+    /// 크롭이 적용된 비디오를 실제로 렌더링해서 새로운 AVAsset으로 변환합니다.
+        func exportCroppedVideos(crops: [Crop]) async throws -> [AVAsset] {
+            var exportedAssets: [AVAsset] = []
+            
+            for (index, crop) in crops.enumerated() {
+                let originalAsset = try await self.requestAVAssetAsync(for: crop.video)
+                let videoSize = try await getVideoSize(from: originalAsset)
+                let actualCropRect = self.convertThumbnailRectToVideoRect(
+                    thumbnailRect: crop.cropRect,
+                    thumbnailSize: crop.thumbnail.size,
+                    containerSize: crop.containerSize,
+                    videoSize: videoSize
+                )
+                
+                // 크롭 composition 생성
+                let composition = try await self.makeCroppedVideoComposition(crop: actualCropRect, asset: originalAsset)
+                
+                // 실제로 렌더링해서 새로운 asset 생성
+                let exportedAsset = try await exportToNewAsset(asset: originalAsset, composition: composition, index: index)
+                exportedAssets.append(exportedAsset)
+            }
+            
+            return exportedAssets
+        }
+        
+        /// AVAsset과 composition을 실제로 렌더링해서 새로운 파일로 저장합니다.
+    private func exportToNewAsset(asset: AVAsset, composition: AVVideoComposition, index: Int) async throws -> AVAsset {
+        // 임시 파일 경로 생성
+        let tempDirectory = FileManager.default.temporaryDirectory
+        let outputURL = tempDirectory.appendingPathComponent("croppedVideo_\(index)_\(UUID().uuidString).mov")
+        
+        // 기존 파일이 있다면 삭제
+        if FileManager.default.fileExists(atPath: outputURL.path) {
+            try FileManager.default.removeItem(at: outputURL)
+        }
+        
+        // Export session 생성
+        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {
+            throw AssetError.assetNotFound
+        }
+        
+        // Export 설정
+        exportSession.outputURL = outputURL
+        exportSession.outputFileType = .mov
+        exportSession.videoComposition = composition
+        
+        // Export 실행
+        await exportSession.export()
+        
+        // 에러 체크
+        if let error = exportSession.error {
+            throw error
+        }
+        
+        guard exportSession.status == .completed else {
+            throw AssetError.assetNotFound
+        }
+        
+        // 새로운 AVAsset 생성
+        return AVURLAsset(url: outputURL)
+        
+    
     }
 }
