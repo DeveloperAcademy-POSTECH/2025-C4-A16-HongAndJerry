@@ -170,5 +170,28 @@ extension CropViewModel {
             }
         }
     }
+
+    func createVideoSegments() async -> [VideoSegment] {
+        
+        if croppedVideos.isEmpty {
+            print("croppedVideos.isEmpty")
+            return await VideoSegment.mockList()
+        }
+        
+        var segments: [VideoSegment] = []
+        
+        for crop in croppedVideos {
+            segments.append(
+                VideoSegment(
+                    source: VideoSource(
+                        asset: crop.0,  // 이미 크롭이 적용된 AVAsset
+                        url: "",
+                        duration: crop.0.duration
+                    )
+                )
+            )
+        }
+        
+        return segments
     }
 }
