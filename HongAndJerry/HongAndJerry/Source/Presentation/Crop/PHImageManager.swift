@@ -40,13 +40,8 @@ extension PHImageManager {
         for crop in crops {
             let video  = try await self.requestAVAssetAsync(for: crop.video)        // AVAsset 타입의 비디오
             let videoSize = try await getVideoSize(from: video)                     // 비디오의 실제 사이즈
-            print("비디오 사이즈 : \(videoSize)")
             let actualCropRect = self.convertThumbnailRectToVideoRect(thumbnailRect: crop.cropRect, thumbnailSize: crop.thumbnail.size, containerSize: crop.containerSize, videoSize: videoSize)                           // 실제 크롭 영역
-            print("사용자가 선택한 사각형 사이즈 : \(crop.cropRect)")
-            //            print("\(actualCropRect)")
-            print("힝구")
-            print(actualCropRect)
-            print("===")
+            
             let composition = try await self.makeCroppedVideoComposition(crop: actualCropRect, asset: video)
             array.append((video, composition))
         }
