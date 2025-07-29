@@ -147,13 +147,6 @@ extension CropViewModel {
     
     @MainActor
     func cropVideos() async {
-        print("🔍 crops 배열 확인:")
-        for (index, crop) in crops.enumerated() {
-            print("  [\(index)] cropRect: \(crop.cropRect)")
-            print("  [\(index)] containerSize: \(crop.containerSize)")
-            print("  [\(index)] thumbnailSize: \(crop.thumbnail.size)")
-        }
-        
         do {
             // 새로운 방법: 실제로 렌더링된 AVAsset들을 받아옴
             let exportedAssets = try await PHImageManager.default().exportCroppedVideos(crops: crops)
@@ -170,7 +163,7 @@ extension CropViewModel {
             }
         }
     }
-
+    
     func createVideoSegments() async -> [VideoSegment] {
         
         if croppedVideos.isEmpty {

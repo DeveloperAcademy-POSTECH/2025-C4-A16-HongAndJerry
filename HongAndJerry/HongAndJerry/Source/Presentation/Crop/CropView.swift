@@ -37,7 +37,7 @@ struct CropView: View {
                         let segments = await viewModel.createVideoSegments()
                         router.push(screen: .videoEditView(segments))
                     }
-//                    self.isCropTestViewShown = true
+                    //                    self.isCropTestViewShown = true
                 }
             }
             .onAppear {

@@ -43,7 +43,7 @@ extension PHImageManager {
             print("비디오 사이즈 : \(videoSize)")
             let actualCropRect = self.convertThumbnailRectToVideoRect(thumbnailRect: crop.cropRect, thumbnailSize: crop.thumbnail.size, containerSize: crop.containerSize, videoSize: videoSize)                           // 실제 크롭 영역
             print("사용자가 선택한 사각형 사이즈 : \(crop.cropRect)")
-//            print("\(actualCropRect)")
+            //            print("\(actualCropRect)")
             print("힝구")
             print(actualCropRect)
             print("===")
@@ -69,10 +69,10 @@ extension PHImageManager {
     private func calculateFittedRect(from containerSize: CGSize, imageSize: CGSize) -> CGRect {
         let containerAspectRatio = containerSize.width / containerSize.height
         let imageAspectRatio = imageSize.width / imageSize.height
-
+        
         var finalSize: CGSize = .zero
         var origin: CGPoint = .zero
-
+        
         // 컨테이너가 이미지보다 넓은 경우 (세로에 맞춰짐, 좌우에 레터박스)
         if containerAspectRatio > imageAspectRatio {
             finalSize.height = containerSize.height
@@ -85,10 +85,10 @@ extension PHImageManager {
             origin.x = 0
             origin.y = (containerSize.height - finalSize.height) / 2
         }
-
+        
         return CGRect(origin: origin, size: finalSize)
     }
-
+    
     func convertThumbnailRectToVideoRect(
         thumbnailRect: CGRect,
         thumbnailSize: CGSize,
@@ -98,7 +98,7 @@ extension PHImageManager {
         print("containerSize: \(containerSize)")
         // 1. .fit 모드에서 실제 썸네일 이미지가 표시되는 영역을 계산합니다. (레터박스 제외)
         let fittedRect = calculateFittedRect(from: containerSize, imageSize: thumbnailSize)
-
+        
         // 2. 사용자가 선택한 크롭 영역(thumbnailRect)을 실제 이미지(fittedRect) 기준의 상대 좌표로 변환합니다.
         let relativeX = thumbnailRect.origin.x - fittedRect.origin.x
         let relativeY = thumbnailRect.origin.y - fittedRect.origin.y
@@ -106,7 +106,7 @@ extension PHImageManager {
         // 썸네일 뷰 크기 대비 실제 비디오 해상도의 스케일링 비율을 계산합니다.
         let scaleX = videoSize.width / fittedRect.width
         let scaleY = videoSize.height / fittedRect.height
-
+        
         // 3. 상대 좌표와 스케일링 비율을 사용하여 실제 비디오의 크롭 좌표를 계산합니다.
         let videoRect = CGRect(
             x: relativeX * scaleX,
@@ -123,14 +123,14 @@ extension PHImageManager {
         guard crop.width > 0, crop.height > 0 else {
             return AVVideoComposition()
         }
-
+        
         // 1. 비디오 트랙과 기본 정보를 비동기로 로드합니다.
         guard let videoTrack = try await asset.loadTracks(withMediaType: .video).first else {
             throw AssetError.assetNotFound
         }
         let frameRate = try await videoTrack.load(.nominalFrameRate)
         let originalTransform = try await videoTrack.load(.preferredTransform)
-
+        
         // 2. AVFoundation의 표준 도구를 사용하여 Composition을 구성합니다.
         let composition = AVMutableVideoComposition()
         composition.renderSize = crop.size // 최종 결과물 크기를 크롭 영역의 크기로 설정
@@ -138,51 +138,51 @@ extension PHImageManager {
         
         let instruction = AVMutableVideoCompositionInstruction()
         let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: videoTrack)
-
+        
         // 3. 최종 변환 행렬(Transform)을 계산합니다.
         // 이 행렬은 원본 비디오를 최종 캔버스에 어떻게 위치시킬지 결정합니다.
         // a. 원본 비디오의 방향(회전)을 그대로 가져옵니다.
         // b. 크롭 영역의 왼쪽 상단이 (0,0)이 되도록 비디오를 평행 이동시킵니다.
         let finalTransform = originalTransform.concatenating(CGAffineTransform(translationX: -crop.origin.x, y: -crop.origin.y))
-
+        
         // 4. Layer Instruction에 최종적으로 계산된 변환 행렬만 설정합니다.
         layerInstruction.setTransform(finalTransform, at: .zero)
-
+        
         // 5. Composition을 최종 구성합니다.
         let duration = try await asset.load(.duration)
         instruction.timeRange = CMTimeRange(start: .zero, duration: duration)
         instruction.layerInstructions = [layerInstruction]
         composition.instructions = [instruction]
-
+        
         return composition
     }
     
     /// 크롭이 적용된 비디오를 실제로 렌더링해서 새로운 AVAsset으로 변환합니다.
-        func exportCroppedVideos(crops: [Crop]) async throws -> [AVAsset] {
-            var exportedAssets: [AVAsset] = []
+    func exportCroppedVideos(crops: [Crop]) async throws -> [AVAsset] {
+        var exportedAssets: [AVAsset] = []
+        
+        for (index, crop) in crops.enumerated() {
+            let originalAsset = try await self.requestAVAssetAsync(for: crop.video)
+            let videoSize = try await getVideoSize(from: originalAsset)
+            let actualCropRect = self.convertThumbnailRectToVideoRect(
+                thumbnailRect: crop.cropRect,
+                thumbnailSize: crop.thumbnail.size,
+                containerSize: crop.containerSize,
+                videoSize: videoSize
+            )
             
-            for (index, crop) in crops.enumerated() {
-                let originalAsset = try await self.requestAVAssetAsync(for: crop.video)
-                let videoSize = try await getVideoSize(from: originalAsset)
-                let actualCropRect = self.convertThumbnailRectToVideoRect(
-                    thumbnailRect: crop.cropRect,
-                    thumbnailSize: crop.thumbnail.size,
-                    containerSize: crop.containerSize,
-                    videoSize: videoSize
-                )
-                
-                // 크롭 composition 생성
-                let composition = try await self.makeCroppedVideoComposition(crop: actualCropRect, asset: originalAsset)
-                
-                // 실제로 렌더링해서 새로운 asset 생성
-                let exportedAsset = try await exportToNewAsset(asset: originalAsset, composition: composition, index: index)
-                exportedAssets.append(exportedAsset)
-            }
+            // 크롭 composition 생성
+            let composition = try await self.makeCroppedVideoComposition(crop: actualCropRect, asset: originalAsset)
             
-            return exportedAssets
+            // 실제로 렌더링해서 새로운 asset 생성
+            let exportedAsset = try await exportToNewAsset(asset: originalAsset, composition: composition, index: index)
+            exportedAssets.append(exportedAsset)
         }
         
-        /// AVAsset과 composition을 실제로 렌더링해서 새로운 파일로 저장합니다.
+        return exportedAssets
+    }
+    
+    /// AVAsset과 composition을 실제로 렌더링해서 새로운 파일로 저장합니다.
     private func exportToNewAsset(asset: AVAsset, composition: AVVideoComposition, index: Int) async throws -> AVAsset {
         // 임시 파일 경로 생성
         let tempDirectory = FileManager.default.temporaryDirectory
@@ -218,6 +218,6 @@ extension PHImageManager {
         // 새로운 AVAsset 생성
         return AVURLAsset(url: outputURL)
         
-    
+        
     }
 }
