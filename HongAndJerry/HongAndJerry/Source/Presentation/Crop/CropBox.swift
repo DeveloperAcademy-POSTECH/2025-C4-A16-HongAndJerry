@@ -14,12 +14,12 @@ struct CropBox: View {
     //    public let initialPosition: CGPoint // CropBox의 시작 지점
     
     @State private var initialRect: CGRect? = nil
-    @State private var frameSize: CGSize = .zero
+    @State private var frameSize: CGSize = .init(width: 1, height: 1)
     @State private var draggedCorner: UIRectCorner? = nil
     
     public init(
         rect: Binding<CGRect>,
-        minSize: CGSize = .init(width: 100, height: 100)
+        minSize: CGSize = .init(width: 10, height: 10)
     ) {
         self._rect = rect
         self.minSize = minSize

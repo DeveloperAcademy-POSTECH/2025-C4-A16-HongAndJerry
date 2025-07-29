@@ -9,7 +9,7 @@ import SwiftUI
 import Photos
 
 struct HomeView {
-    @State private var router = Router()
+    @EnvironmentObject var router: Router
     @State private var viewModel = AlbumVideoViewModel()
     @State private var selectedAsset: PHAsset? = nil
     @State private var showPlayer = false
@@ -17,7 +17,6 @@ struct HomeView {
 
 extension HomeView: View {
     var body: some View {
-        NavigationStack(path: $router.route) {
             VStack {
                 Text(ExportNameSpace.AppMain.AppName)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -42,17 +41,14 @@ extension HomeView: View {
                     }
             }
             .background(Color.background)
-            .navigationDestination(for: Screen.self) { screen in
-                RoutingView(navigateDestination: screen)
-                    .environment(router)
-            }
+            
             .sheet(isPresented: $showPlayer) {
                 if let asset = selectedAsset {
-                    VideoPlayer(asset: asset)
+                    HomeVideoPlayer(asset: asset)
                 }
             }
         }
-    }
+    
 }
 
 #Preview(body: {

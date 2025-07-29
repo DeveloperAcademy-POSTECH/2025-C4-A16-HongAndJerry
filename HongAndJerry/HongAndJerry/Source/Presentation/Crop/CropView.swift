@@ -12,9 +12,11 @@ struct CropView: View {
     @EnvironmentObject var router: Router
     @Bindable var viewModel: CropViewModel
     
-    @State var cropArea: CGRect = .init(x: 0, y: 0, width: 100, height: 100)
+    @State var cropArea: CGRect = .init(x: 0, y: 0, width: 10, height: 10)
     @State var imageViewSize: CGSize = .zero
     @State var croppedImage: UIImage?
+    
+    @State var isCropTestViewShown: Bool = false
     
     var body: some View {
         ZStack {
@@ -30,7 +32,12 @@ struct CropView: View {
                     }
                 }
                 CtaButton(buttonType: .next, isDisabled: .constant(false)) {
-                    router.push(screen: .videoEditView([]))
+                    Task {
+                        await viewModel.cropVideos()
+                        let segments = await viewModel.createVideoSegments()
+                        router.push(screen: .videoEditView(segments))
+                    }
+                    //                    self.isCropTestViewShown = true
                 }
             }
             .onAppear {
@@ -84,14 +91,14 @@ struct CropView: View {
                             CropBox(rect: viewModel.bindingForCropRect(at: videoIndex))
                                 .allowsHitTesting(true)
                                 .onAppear {
-                                    self.imageViewSize = geometry.size
-                                    if crop.cropRect == CGRect(x: 0, y: 0, width: 100, height: 100) {
+                                    viewModel.send(.setContainerSize(geometry.size, at: videoIndex))
+                                    if crop.cropRect == CGRect(x: 0, y: 0, width: 10, height: 10) {
                                         let initialRect = viewModel.calculate16x9CropRect(in: geometry.size)
                                         viewModel.updateCropRect(at: videoIndex, rect: initialRect)
                                     }
                                 }
                                 .onChange(of: geometry.size) { oldValue, newValue in
-                                    self.imageViewSize = newValue
+                                    viewModel.send(.setContainerSize(newValue, at: videoIndex))
                                 }
                         }
                     }

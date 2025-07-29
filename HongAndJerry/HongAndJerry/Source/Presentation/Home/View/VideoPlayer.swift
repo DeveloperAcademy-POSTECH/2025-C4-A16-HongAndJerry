@@ -9,7 +9,7 @@ import SwiftUI
 import AVKit
 import Photos
 
-struct VideoPlayer: UIViewControllerRepresentable {
+struct HomeVideoPlayer: UIViewControllerRepresentable {
     let asset: PHAsset
 
     func makeUIViewController(context: Context) -> AVPlayerViewController {

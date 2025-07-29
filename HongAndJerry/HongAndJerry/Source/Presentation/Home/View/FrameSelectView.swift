@@ -32,10 +32,6 @@ extension FrameSelectView: View {
                 router.push(screen: .selectVideo)
             }
         }
-        .navigationDestination(for: Screen.self) { _ in
-            GalleryView()
-                .environment(router)
-        }
         .background(Color.background)
         .foregroundStyle(.font)
         .hjNavigationBar(title: ExportNameSpace.AppMain.frameNavigationTitle)

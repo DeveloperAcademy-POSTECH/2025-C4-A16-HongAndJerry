@@ -22,7 +22,7 @@ final class ExportViewModel {
     
     init(
         albumRepository: AlbumRepository = AlbumManager(),
-        videoSaver: VideoSaver = VideoSaver(),
+        videoSaver: VideoSaver = VideoSaver()
     ) {
         self.albumRepository = albumRepository
         self.videoSaver = videoSaver

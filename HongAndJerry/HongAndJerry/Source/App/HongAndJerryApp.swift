@@ -9,9 +9,19 @@ import SwiftUI
 
 @main
 struct HongAndJerryApp: App {
+    
+    @State private var router = Router()
+    
     var body: some Scene {
         WindowGroup {
-            HomeView()
+            NavigationStack(path: $router.route) {
+                HomeView()
+                    .navigationDestination(for: Screen.self) { screen in
+                        RoutingView(navigateDestination: screen)
+                            
+                    }
+            }
+            .environmentObject(router)
         }
     }
 }
