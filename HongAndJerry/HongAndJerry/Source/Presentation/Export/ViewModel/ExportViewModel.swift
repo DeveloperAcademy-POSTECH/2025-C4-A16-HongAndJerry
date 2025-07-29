@@ -15,9 +15,9 @@ final class ExportViewModel {
     private let videoSaver: VideoSaver
     
     var alertModel: ExportAlertModel = .init(
-        title: "",
-        message: "",
-        buttonTitle: ""
+        title: ExportNameSpace.AlertSuccessMessage.title,
+        message: ExportNameSpace.AlertSuccessMessage.message,
+        buttonTitle: ExportNameSpace.AlertSuccessMessage.buttonTitle
     )
     
     init(
@@ -28,7 +28,7 @@ final class ExportViewModel {
         self.videoSaver = videoSaver
     }
     
-    func saveVideo(_ video: AVAsset) {
+    func saveVideo(_ video: AVAsset, videoComposition: AVVideoComposition?) {
         MediaPermissionUtils.requestPermission { [weak self] permission in
             guard let self else { return }
             
@@ -40,15 +40,15 @@ final class ExportViewModel {
                 )
                 return
             }
-            self.saveToAlbum(video)
+            self.saveToAlbum(video, videoComposition: videoComposition)
         }
     }
     
-    private func saveToAlbum(_ video: AVAsset) {
+    private func saveToAlbum(_ video: AVAsset, videoComposition: AVVideoComposition?) {
         Task {
             do {
                 let album = try albumRepository.checkAlbum(named: albumTitle)
-                try await videoSaver.save(video: video, to: album)
+                try await videoSaver.save(video: video, videoComposition: videoComposition, to: album)
                 alertModel = ExportAlertModel(
                     title: ExportNameSpace.AlertSuccessMessage
                         .title,

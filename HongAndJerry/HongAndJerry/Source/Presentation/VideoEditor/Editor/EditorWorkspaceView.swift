@@ -15,14 +15,17 @@ struct EditorWorkspaceView: View {
     
     /// 뷰 전환 애니메이션을 위한 네임스페이스입니다.
     let namespace: Namespace.ID
-
+    
     var body: some View {
         VStack(spacing: 0) {
-            EditorHeaderView(videoAsset: viewModel.getFinalVideoAsset())
+            EditorHeaderView(
+                videoAsset: viewModel.getFinalVideoAsset(),
+                videoComposition: viewModel.getFinalVideoComposition()
+            )
             
             VideoPlayerView(playerController: viewModel.playerController)
-                // 이 뷰가 "videoPlayer"라는 ID를 가짐을 선언하여
-                // FullScreenPlayerView의 플레이어와 연결합니다.
+            // 이 뷰가 "videoPlayer"라는 ID를 가짐을 선언하여
+            // FullScreenPlayerView의 플레이어와 연결합니다.
                 .matchedGeometryEffect(id: "videoPlayer", in: namespace)
                 .padding(.top, 21)
                 .padding(.bottom, 8)

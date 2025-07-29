@@ -14,6 +14,7 @@ struct EditorHeaderView: View {
     @EnvironmentObject var router: Router
     
     var videoAsset: AVAsset?
+    var videoComposition: AVVideoComposition?
     
     var body: some View {
         HStack {
@@ -27,7 +28,7 @@ struct EditorHeaderView: View {
 
             Spacer()
             
-            ExportButton(video: videoAsset)
+            ExportButton(video: videoAsset, composition: videoComposition)
         }
         .padding(.leading, 8)
         .padding(.trailing, 28)

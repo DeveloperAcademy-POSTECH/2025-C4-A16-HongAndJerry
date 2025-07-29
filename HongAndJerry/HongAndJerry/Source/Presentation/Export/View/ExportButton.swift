@@ -12,13 +12,15 @@ struct ExportButton {
     @State private var viewModel = ExportViewModel()
     @State private var showAlert = false
     let video: AVAsset?
+    let composition: AVVideoComposition?
+    @EnvironmentObject var router: Router
 }
 
 extension ExportButton: View {
     var body: some View {
         Button {
             if let video = video {
-                viewModel.saveVideo(video)
+                viewModel.saveVideo(video, videoComposition: composition)
                 showAlert = true
             } else {
                 /// TODO: video 아직 로드 안되었을 때 로직 추가해야 함.
@@ -33,6 +35,9 @@ extension ExportButton: View {
                 title: Text(viewModel.alertModel.title),
                 message: Text(viewModel.alertModel.message),
                 dismissButton: .default(Text(viewModel.alertModel.buttonTitle)) {
+                    if viewModel.alertModel.buttonTitle == ExportNameSpace.AlertSuccessMessage.buttonTitle {
+                        router.popToRoot()
+                    }
                     goToSettings()
                 }
             )

@@ -197,4 +197,12 @@ final class VideoViewModel {
             return nil
         }
     }
+    
+    func getFinalVideoComposition() -> AVVideoComposition? {
+        if let playerItem = self.playerItem {
+            return playerItem.videoComposition
+        } else {
+            return nil
+        }
+    }
 }

@@ -8,5 +8,5 @@
 import Photos
 
 protocol VideoSaving {
-    func save(video: AVAsset, to album: PHAssetCollection) async throws
+    func save(video asset: AVAsset, videoComposition: AVVideoComposition?, to album: PHAssetCollection) async throws
 }
