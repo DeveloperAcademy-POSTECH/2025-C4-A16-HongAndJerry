@@ -40,12 +40,11 @@ extension HomeView: View {
                     isDisabled: .constant(false)) {
                         router.push(screen: .selectFrame)
                     }
-                    .padding(.horizontal)
             }
             .background(Color.background)
             .navigationDestination(for: Screen.self) { screen in
                 RoutingView(navigateDestination: screen)
-                .environment(router)
+                    .environment(router)
             }
             .sheet(isPresented: $showPlayer) {
                 if let asset = selectedAsset {

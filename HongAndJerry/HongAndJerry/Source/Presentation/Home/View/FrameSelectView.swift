@@ -31,25 +31,14 @@ extension FrameSelectView: View {
             ) {
                 router.push(screen: .selectVideo)
             }
-            .padding()
         }
         .navigationDestination(for: Screen.self) { _ in
             GalleryView()
                 .environment(router)
         }
         .background(Color.background)
-        .navigationTitle(ExportNameSpace.AppMain.frameNavigationTitle)
         .foregroundStyle(.font)
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    router.pop()
-                } label: {
-                    Image(systemName: Icon.SFsymbol.chevronLeft)
-                }
-            }
-        }
+        .hjNavigationBar(title: ExportNameSpace.AppMain.frameNavigationTitle)
     }
 }
 
