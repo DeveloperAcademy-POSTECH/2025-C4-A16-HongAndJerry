@@ -45,7 +45,6 @@ extension PHImageManager {
             let composition = try await self.makeCroppedVideoComposition(crop: actualCropRect, asset: video)
             array.append((video, composition))
         }
-        print(array)
         return array
     }
     
@@ -90,7 +89,7 @@ extension PHImageManager {
         containerSize: CGSize,
         videoSize: CGSize
     ) -> CGRect {
-        print("containerSize: \(containerSize)")
+
         // 1. .fit 모드에서 실제 썸네일 이미지가 표시되는 영역을 계산합니다. (레터박스 제외)
         let fittedRect = calculateFittedRect(from: containerSize, imageSize: thumbnailSize)
         
