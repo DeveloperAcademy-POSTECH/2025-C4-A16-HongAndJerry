@@ -30,7 +30,7 @@ final class VideoViewModel {
     
     init() {
         Task {
-            await loadInitialSegments()
+//            await loadInitialSegments()
             setHandleOffsets()
             if let firstSegment = segments.first {
                 selectSegment(firstSegment.id)
@@ -46,9 +46,9 @@ final class VideoViewModel {
         }
     }
     
-    private func loadInitialSegments() async {
-        self.segments = await VideoSegment.mockList()
-    }
+//    private func loadInitialSegments() async {
+//        self.segments =
+//    }
     
     private func rebuildPlayerItem() async {
         do {
