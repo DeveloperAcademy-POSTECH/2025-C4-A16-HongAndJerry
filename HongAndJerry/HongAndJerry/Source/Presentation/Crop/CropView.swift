@@ -12,7 +12,7 @@ struct CropView: View {
     @EnvironmentObject var router: Router
     @Bindable var viewModel: CropViewModel
     
-    @State var cropArea: CGRect = .init(x: 0, y: 0, width: 100, height: 100)
+    @State var cropArea: CGRect = .init(x: 0, y: 0, width: 10, height: 10)
     @State var imageViewSize: CGSize = .zero
     @State var croppedImage: UIImage?
     
@@ -32,15 +32,16 @@ struct CropView: View {
                     }
                 }
                 CtaButton(buttonType: .next, isDisabled: .constant(false)) {
-//                    router.push(screen: .videoEditView([]))
-                    self.isCropTestViewShown = true
+                    Task {
+                        await viewModel.cropVideos()
+                        let segments = await viewModel.createVideoSegments()
+                        router.push(screen: .videoEditView(segments))
+                    }
+//                    self.isCropTestViewShown = true
                 }
             }
             .onAppear {
                 viewModel.send(.loadThumbnail)
-            }
-            .fullScreenCover(isPresented: $isCropTestViewShown) {
-                CropTestView(viewModel: viewModel)
             }
         }
         .hjNavigationBar(title: ExportNameSpace.AppMain.cropVideoTitle)
@@ -91,7 +92,7 @@ struct CropView: View {
                                 .allowsHitTesting(true)
                                 .onAppear {
                                     viewModel.send(.setContainerSize(geometry.size, at: videoIndex))
-                                    if crop.cropRect == .zero {
+                                    if crop.cropRect == CGRect(x: 0, y: 0, width: 10, height: 10) {
                                         let initialRect = viewModel.calculate16x9CropRect(in: geometry.size)
                                         viewModel.updateCropRect(at: videoIndex, rect: initialRect)
                                     }

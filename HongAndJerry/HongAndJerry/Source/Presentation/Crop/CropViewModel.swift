@@ -65,7 +65,7 @@ extension CropViewModel {
             let thumbnail = await loadSingleThumbnail(for: video)
             if let thumbnail = thumbnail {
                 thumbnails[video.localIdentifier] = thumbnail
-                crops.append(Crop(video: video, localIdentifier: video.localIdentifier, cropRect: .zero, thumbnail: thumbnail))
+                crops.append(Crop(video: video, localIdentifier: video.localIdentifier, cropRect: .init(x: 0, y: 0, width: 10, height: 10), thumbnail: thumbnail))
             }
         }
         
@@ -147,11 +147,28 @@ extension CropViewModel {
     
     @MainActor
     func cropVideos() async {
-
-        do {
-            croppedVideos = try await PHImageManager.default().cropVideos(crops: crops)
-        } catch {
-            print("eee")
+        print("🔍 crops 배열 확인:")
+        for (index, crop) in crops.enumerated() {
+            print("  [\(index)] cropRect: \(crop.cropRect)")
+            print("  [\(index)] containerSize: \(crop.containerSize)")
+            print("  [\(index)] thumbnailSize: \(crop.thumbnail.size)")
         }
+        
+        do {
+            // 새로운 방법: 실제로 렌더링된 AVAsset들을 받아옴
+            let exportedAssets = try await PHImageManager.default().exportCroppedVideos(crops: crops)
+            print("✅ exportCroppedVideos 성공: \(exportedAssets.count)개 생성")
+            
+            // croppedVideos를 새로운 방식으로 저장 (composition은 더 이상 필요 없음)
+            croppedVideos = exportedAssets.map { ($0, AVMutableVideoComposition()) }
+            
+        } catch {
+            print("❌ exportCroppedVideos 에러: \(error)")
+            print("에러 타입: \(type(of: error))")
+            if let assetError = error as? AssetError {
+                print("AssetError: \(assetError)")
+            }
+        }
+    }
     }
 }
