@@ -37,14 +37,14 @@ struct EditorWorkspaceView: View {
             ZStack(alignment: .topLeading) {
                 EditorTimelineView()
                 
-                // 중앙 플레이헤드
+                // TODO: 분리
                 Rectangle()
                     .fill(.white)
                     .frame(width: 2)
                     .padding(.vertical, EditConstants.rulerHeight) // 상하 여백
                     .frame(maxWidth: .infinity) // ZStack 중앙 정렬을 위해
                 
-                // 시간 표시 텍스트
+                // TODO: 분리
                 Text("\(viewModel.playerController.currentTime.formattedString) / \(viewModel.playerController.totalDuration.formattedString)")
                     .font(.SUITTimer)
                     .foregroundColor(.white)
