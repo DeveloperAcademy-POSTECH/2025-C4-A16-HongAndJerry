@@ -13,6 +13,7 @@ final class ExportViewModel {
     private let albumTitle = ExportNameSpace.AppMain.AppName
     private let albumRepository: AlbumRepository
     private let videoSaver: VideoSaver
+    var isExported: Bool = false
     let video: AVAsset?
     let avvideoComposition: AVVideoComposition?
     

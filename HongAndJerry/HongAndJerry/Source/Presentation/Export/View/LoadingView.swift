@@ -6,13 +6,23 @@
 //
 
 import SwiftUI
+import AVFoundation
 
 struct LoadingView {
-    
+    @State var viewModel: ExportViewModel
+    @EnvironmentObject var router: Router
+    @State private var isFinished: Bool = false
 }
 
 extension LoadingView: View {
     var body: some View {
-        
+        VStack {
+            LottieView(fileName: "loadingLottie", loopMode: .loop)
+                .onAppear {
+                    viewModel.saveVideo {
+                        router.popToRoot()
+                    }
+                }
+        }        
     }
 }
