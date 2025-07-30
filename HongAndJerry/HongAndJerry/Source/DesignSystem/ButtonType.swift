@@ -8,6 +8,7 @@
 enum ButtonType {
     case next
     case plus
+    case export
 
     var title: String? {
         switch self {
@@ -15,6 +16,8 @@ enum ButtonType {
             return "다음"
         case .plus:
             return nil
+        case .export:
+            return "내보내기"
         }
     }
 
@@ -24,6 +27,8 @@ enum ButtonType {
             return nil
         case .plus:
             return "plus"
+        case .export:
+            return nil
         }
     }
 }
