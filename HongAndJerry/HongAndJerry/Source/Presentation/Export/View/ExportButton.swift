@@ -17,6 +17,13 @@ struct ExportButton {
 extension ExportButton: View {
     var body: some View {
         Button {
+            MediaPermissionUtils.requestPermission { permission in
+                if permission == false {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }
+            }
             router.push(screen: .exportView(video, composition))
         } label: {
             Text(ExportNameSpace.ExportView.export)
@@ -25,14 +32,3 @@ extension ExportButton: View {
         }
     }
 }
-
-//private extension ExportButton {
-//    func goToSettings() {
-//        if viewModel.alertModel.buttonTitle == ExportNameSpace.AlertRejectMessage.buttonTitle {
-//            if let url = URL(string: UIApplication.openSettingsURLString) {
-//                UIApplication.shared.open(url)
-//            }
-//        }
-//    }
-//}
-

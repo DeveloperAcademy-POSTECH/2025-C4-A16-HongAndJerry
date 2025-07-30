@@ -17,7 +17,7 @@ struct LoadingView {
 extension LoadingView: View {
     var body: some View {
         VStack {
-            LottieView(fileName: "loadingLottie", loopMode: .loop)
+            LottieView(fileName: "Loading50lottie1", loopMode: .loop)
                 .onAppear {
                     viewModel.saveVideo {
                         router.popToRoot()
