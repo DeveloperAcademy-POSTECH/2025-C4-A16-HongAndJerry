@@ -31,7 +31,7 @@ struct CropView: View {
                         tabView
                     }
                 }
-                CtaButton(buttonType: .next, isDisabled: .constant(false)) {
+                CtaButton(buttonType: .next, isDisabled: .constant(viewModel.currentIndex != 2)) {
                     Task {
                         await viewModel.cropVideos()
                         let segments = await viewModel.createVideoSegments()

@@ -50,7 +50,7 @@ extension CtaButton: View {
         }
         .disabled(isDisabled)
         .padding(.horizontal, 16)
-        .padding(.bottom, 48)
+        .padding(.bottom, 36)
     }
 }
 

@@ -6,11 +6,15 @@
 //
 
 import SwiftUI
+import AVFoundation
 
 /// 에디터 화면 상단에 표시될 헤더 뷰입니다.
 /// 뒤로가기 버튼과 내보내기 버튼을 포함합니다.
 struct EditorHeaderView: View {
     @EnvironmentObject var router: Router
+    
+    var videoAsset: AVAsset?
+    var videoComposition: AVVideoComposition?
     
     var body: some View {
         HStack {
@@ -24,13 +28,7 @@ struct EditorHeaderView: View {
 
             Spacer()
             
-            Button {
-                // TODO: 내보내기 기능 구현
-            } label: {
-                Text("내보내기")
-                    .font(.SUITHeader)
-                    .foregroundColor(.accent)
-            }
+            ExportButton(video: videoAsset, composition: videoComposition)
         }
         .padding(.leading, 8)
         .padding(.trailing, 28)
