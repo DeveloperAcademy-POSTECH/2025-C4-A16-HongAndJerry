@@ -19,7 +19,8 @@ final class VideoSaver: VideoSaving {
     func save(
         video asset: AVAsset,
         videoComposition: AVVideoComposition?,
-        to album: PHAssetCollection
+        to album: PHAssetCollection,
+        progressHandler: @escaping (Double) -> Void
     ) async throws {
         guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {
             throw ExportError.exportSessionCreationFailed
@@ -31,6 +32,12 @@ final class VideoSaver: VideoSaving {
         exportSession.outputURL = outputURL
         exportSession.outputFileType = .mov
         exportSession.videoComposition = videoComposition
+        
+        let _ = Timer.scheduledTimer(
+            withTimeInterval: 0.1,
+            repeats: true) { timer in
+                progressHandler(Double(exportSession.progress))
+            }
         
         await exportSession.export()
         
