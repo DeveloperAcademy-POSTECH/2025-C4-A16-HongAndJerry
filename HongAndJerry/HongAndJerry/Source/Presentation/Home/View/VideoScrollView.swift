@@ -19,7 +19,7 @@ extension VideoScrollView: View {
     var body: some View {
         ScrollView {
             LazyVGrid(columns: columns) {
-                ForEach(viewModel.videos, id: \.asset.localIdentifier) { video in
+                ForEach(viewModel.videos) { video in
                     VStack(alignment: .leading) {
                         Image(uiImage: video.thumbnail)
                             .resizable()
@@ -39,7 +39,7 @@ extension VideoScrollView: View {
                         showPlayer = true
                     }
                 }
-            }
+            } 
             .padding()
         }
     }

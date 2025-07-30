@@ -26,6 +26,13 @@ extension RoutingView: View {
             CropView(viewModel: .init(selectedVideos: assets))
         case .videoEditView(let segments):
             VideoEditorView(segments: segments)
+        case .exportView(let asset, let composition):
+            ExportView(
+                viewModel: .init(
+                    video: asset,
+                    avvideoComposition: composition
+                )
+            )
         }
     }
 }

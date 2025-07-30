@@ -25,7 +25,8 @@ final class AlbumVideoViewModel {
         }
     }
     
-    private func loadVideos(albumName: String) {
+    func loadVideos(albumName: String) {
+        self.videos = []
         let collections = PHAssetCollection.fetchAssetCollections(
             with: .album,
             subtype: .any,
@@ -84,7 +85,9 @@ final class AlbumVideoViewModel {
         
         Task { @MainActor [weak self] in
             guard let self else { return }
-            self.videos.append(video)
+            if !self.videos.contains(where: { $0.asset.localIdentifier == asset.localIdentifier }) {
+                self.videos.append(video)
+            }
         }
     }
 }

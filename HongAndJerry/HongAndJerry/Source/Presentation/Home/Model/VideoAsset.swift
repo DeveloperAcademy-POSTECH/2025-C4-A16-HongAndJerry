@@ -8,7 +8,8 @@
 import Photos
 import UIKit
 
-struct VideoAsset {
+struct VideoAsset: Identifiable {
+    var id: String { asset.localIdentifier }
     let asset: PHAsset
     let thumbnail: UIImage
     let duration: TimeInterval
