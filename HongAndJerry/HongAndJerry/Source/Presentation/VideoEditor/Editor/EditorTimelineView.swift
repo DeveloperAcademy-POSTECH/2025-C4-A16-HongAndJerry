@@ -61,7 +61,8 @@ struct EditorTimelineView: View {
             .onChange(of: viewModel.playerController.currentTime) {
                 // 사용자가 드래그하고 있지 않을 때만, 재생 시간에 맞춰 타임라인을 자동으로 스크롤합니다.
                 if !isTimelineDragging {
-                    self.currentOffset = -(viewModel.playerController.currentTime.seconds * EditConstants.pixelsPerSecond)
+                    let clampedOffset = clampOffset(self.currentOffset)
+                    self.currentOffset = clampedOffset
                 }
             }
             .onAppear() {

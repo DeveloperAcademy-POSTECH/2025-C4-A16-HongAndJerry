@@ -30,9 +30,10 @@ final class VideoViewModel {
     private let trimController = TrimController()
     private let compositionBuilder = CompositionBuilder()
     
+    /// TODO: 테스트 용도, 추후 삭제
     init() {
         Task {
-            await loadInitialSegments()
+            await self.loadInitialSegments()
             setHandleOffsets()
             if let firstSegment = segments.first {
                 selectSegment(firstSegment.id)
@@ -44,6 +45,10 @@ final class VideoViewModel {
     init(segments: [VideoSegment]) {
         Task {
             self.segments = segments
+            setHandleOffsets()
+            if let firstSegment = segments.first {
+                selectSegment(firstSegment.id)
+            }
             await rebuildPlayerItem()
         }
     }
