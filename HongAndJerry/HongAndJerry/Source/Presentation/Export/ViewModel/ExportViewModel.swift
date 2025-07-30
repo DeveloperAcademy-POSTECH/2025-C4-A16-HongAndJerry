@@ -10,9 +10,14 @@ import UIKit
 
 @Observable
 final class ExportViewModel {
-    private let albumTitle = "WVDO"
+    private let albumTitle = ExportNameSpace.AppMain.AppName
     private let albumRepository: AlbumRepository
     private let videoSaver: VideoSaver
+    let video: AVAsset?
+    let avvideoComposition: AVVideoComposition?
+    
+    var isLoading = false
+    var progress: Double = 0.0
     
     var alertModel: ExportAlertModel = .init(
         title: ExportNameSpace.AlertSuccessMessage.title,
@@ -22,13 +27,17 @@ final class ExportViewModel {
     
     init(
         albumRepository: AlbumRepository = AlbumManager(),
-        videoSaver: VideoSaver = VideoSaver()
+        videoSaver: VideoSaver = VideoSaver(),
+        video: AVAsset?,
+        avvideoComposition: AVVideoComposition?
     ) {
         self.albumRepository = albumRepository
         self.videoSaver = videoSaver
+        self.video = video
+        self.avvideoComposition = avvideoComposition
     }
     
-    func saveVideo(_ video: AVAsset, videoComposition: AVVideoComposition?) {
+    func saveVideo(completion: @escaping () -> Void) {
         MediaPermissionUtils.requestPermission { [weak self] permission in
             guard let self else { return }
             
@@ -38,32 +47,48 @@ final class ExportViewModel {
                     message: ExportNameSpace.AlertRejectMessage.message,
                     buttonTitle: ExportNameSpace.AlertRejectMessage.buttonTitle
                 )
+                completion()
                 return
             }
-            self.saveToAlbum(video, videoComposition: videoComposition)
+            
+            Task {
+                await self.saveToAlbum(self.video!, videoComposition: self.avvideoComposition!)
+                completion()
+            }
         }
     }
     
-    private func saveToAlbum(_ video: AVAsset, videoComposition: AVVideoComposition?) {
-        Task {
-            do {
-                let album = try albumRepository.checkAlbum(named: albumTitle)
-                try await videoSaver.save(video: video, videoComposition: videoComposition, to: album)
-                alertModel = ExportAlertModel(
-                    title: ExportNameSpace.AlertSuccessMessage
-                        .title,
-                    message: ExportNameSpace.AlertSuccessMessage
-                        .message,
-                    buttonTitle: ExportNameSpace.AlertSuccessMessage
-                        .buttonTitle
-                )
-            } catch {
-                alertModel = ExportAlertModel(
-                    title: ExportNameSpace.AlertFailMessage.title,
-                    message: ExportNameSpace.AlertFailMessage.message,
-                    buttonTitle: ExportNameSpace.AlertFailMessage.buttonTitle
-                )
+    @MainActor
+    private func saveToAlbum(_ video: AVAsset, videoComposition: AVVideoComposition?) async {
+        isLoading = true
+        
+        do {
+            let album = try albumRepository.checkAlbum(named: albumTitle)
+            try await videoSaver.save(
+                video: video,
+                videoComposition: videoComposition,
+                to: album
+            ) { [weak self] value in
+                Task { @MainActor in
+                    print(value)
+                    self?.progress = value
+                }
             }
+            alertModel = ExportAlertModel(
+                title: ExportNameSpace.AlertSuccessMessage
+                    .title,
+                message: ExportNameSpace.AlertSuccessMessage
+                    .message,
+                buttonTitle: ExportNameSpace.AlertSuccessMessage
+                    .buttonTitle
+            )
+        } catch {
+            alertModel = ExportAlertModel(
+                title: ExportNameSpace.AlertFailMessage.title,
+                message: ExportNameSpace.AlertFailMessage.message,
+                buttonTitle: ExportNameSpace.AlertFailMessage.buttonTitle
+            )
         }
+        isLoading = false
     }
 }
