@@ -25,6 +25,9 @@ extension HomeView: View {
             if viewModel.videos.isEmpty {
                 Spacer()
                 Text("프로젝트 생성 해주세요!")
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .font(.SUITBodyTitle)
+                    .foregroundStyle(.inactive)
                 Spacer()
             } else {
                 VideoScrollView(
@@ -46,8 +49,10 @@ extension HomeView: View {
                 HomeVideoPlayer(asset: asset)
             }
         }
+        .onAppear {
+            viewModel.loadVideos(albumName: "WVDO")
+        }
     }
-    
 }
 
 #Preview(body: {
