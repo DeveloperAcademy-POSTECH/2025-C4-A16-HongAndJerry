@@ -8,6 +8,29 @@
 import Foundation
 import AVFoundation
 
+enum CompositionBuildError: Error {
+    case failedToCreateVerticalVideoComposition
+    case failedToAddTrack
+    case noValidTracks
+}
+
+enum TrackTypes {
+    struct VideoTrackInfo {
+        let trackID: CMPersistentTrackID
+        let duration: CMTime
+    }
+    
+    struct AudioTrackInfo {
+        let trackID: CMPersistentTrackID
+    }
+}
+
+typealias AddTracksResult = (
+    video: [TrackTypes.VideoTrackInfo],
+    audio: [TrackTypes.AudioTrackInfo]
+)
+
+
 @MainActor
 struct CompositionBuilder {
     
@@ -24,11 +47,11 @@ struct CompositionBuilder {
         let composition = AVMutableComposition()
         var totalDuration: CMTime = .zero
         
-        let trackIDs = try await addTracks(to: composition, from: segments, totalDuration: &totalDuration)
+        let (video, _) = try await addTracks(to: composition, from: segments, totalDuration: &totalDuration)
         
-        let videoComposition = createVerticalVideoComposition(
+        let videoComposition = try await createVerticalVideoComposition(
             composition: composition,
-            trackIDs: trackIDs.video,
+            trackInfos: video,
             totalDuration: totalDuration
         )
         
@@ -45,22 +68,30 @@ struct CompositionBuilder {
         to composition: AVMutableComposition,
         from segments: [VideoSegment],
         totalDuration: inout CMTime
-    ) async throws -> (video: [CMPersistentTrackID], audio: [CMPersistentTrackID]) {
-        var videoTrackIDs: [CMPersistentTrackID] = []
-        var audioTrackIDs: [CMPersistentTrackID] = []
+    ) async throws -> AddTracksResult {
+        var videoTrackInfos: [TrackTypes.VideoTrackInfo] = []
+        var audioTrackInfos: [TrackTypes.AudioTrackInfo] = []
 
         for segment in segments {
             let asset = segment.source.asset
             
-            let timeRange = CMTimeRange(start: segment.startTime, duration: segment.trimmedDuration)
-
+            let timeRange = CMTimeRange(
+                start: segment.startTime,
+                duration: segment.trimmedDuration
+            )
+            
             if let videoTrack = try await asset.loadTracks(withMediaType: .video).first {
                 if let compositionTrack = composition.addMutableTrack(
                     withMediaType: .video,
                     preferredTrackID: kCMPersistentTrackID_Invalid
                 ) {
                     try compositionTrack.insertTimeRange(timeRange, of: videoTrack, at: .zero)
-                    videoTrackIDs.append(compositionTrack.trackID)
+                    videoTrackInfos.append(
+                        TrackTypes.VideoTrackInfo(
+                            trackID: compositionTrack.trackID,
+                            duration: timeRange.duration
+                        )
+                    )
                 }
             }
 
@@ -72,7 +103,11 @@ struct CompositionBuilder {
                         preferredTrackID: kCMPersistentTrackID_Invalid
                     ) {
                         try compositionTrack.insertTimeRange(timeRange, of: audioTrack, at: .zero)
-                        audioTrackIDs.append(compositionTrack.trackID)
+                        audioTrackInfos.append(
+                            TrackTypes.AudioTrackInfo(
+                                trackID: compositionTrack.trackID,
+                            )
+                        )
                     }
                 }
             }
@@ -80,15 +115,20 @@ struct CompositionBuilder {
             // 가장 긴 길이를 totalDuration으로 설정
             totalDuration = max(totalDuration, timeRange.duration)
         }
-        return (videoTrackIDs, audioTrackIDs)
+        
+        guard !videoTrackInfos.isEmpty else {
+            throw CompositionBuildError.noValidTracks
+        }
+        
+        return (video: videoTrackInfos, audio: audioTrackInfos)
     }
     
     /// 트랙을 수직으로 배열하기 위한 비디오 컴포지션을 생성합니다.
     private func createVerticalVideoComposition(
         composition: AVMutableComposition,
-        trackIDs: [CMPersistentTrackID],
+        trackInfos: [TrackTypes.VideoTrackInfo],
         totalDuration: CMTime
-    ) -> AVMutableVideoComposition {
+    ) async throws -> AVMutableVideoComposition {
         let renderSize = CGSize(width: 1080, height: 1821)
         let videoComposition = AVMutableVideoComposition()
         videoComposition.renderSize = renderSize
@@ -98,9 +138,13 @@ struct CompositionBuilder {
         mainInstruction.timeRange = CMTimeRange(start: .zero, duration: totalDuration)
         
         var layerInstructions: [AVMutableVideoCompositionLayerInstruction] = []
-        let videoHeight = renderSize.height / CGFloat(trackIDs.count)
+        let videoHeight = renderSize.height / CGFloat(trackInfos.count)
         
-        for (index, trackID) in trackIDs.enumerated() {
+        for (index, trackInfo) in trackInfos.enumerated() {
+            
+            let trackID = trackInfo.trackID
+            let duration = trackInfo.duration
+            
             guard let track = composition.track(withTrackID: trackID) else { continue }
             
             let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: track)
@@ -123,6 +167,8 @@ struct CompositionBuilder {
             // 4. 변환 결합
             let finalTransform = scaleTransform.concatenating(moveTransform)
             // --- 변환 계산 종료 ---
+
+            layerInstruction.setOpacity(0.0, at: duration)
             
             layerInstruction.setTransform(finalTransform, at: .zero)
             layerInstructions.append(layerInstruction)
