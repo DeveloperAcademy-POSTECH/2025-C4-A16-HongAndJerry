@@ -8,16 +8,6 @@
 import Foundation
 import AVFoundation
 
-/// 여러 비디오 세그먼트로부터 AVPlayerItem을 만드는 역할을 전담하는 상태 없는 빌더입니다.
-///
-/// 이 빌더는 다음과 같은 모든 AVFoundation 관련 로직을 캡슐화합니다:
-/// 1. AVMutableComposition 생성
-/// 2. 여러 VideoSegment 객체로부터 비디오 및 오디오 트랙 추가
-/// 3. AVMutableVideoComposition을 사용하여 비디오 트랙을 수직으로 배열
-/// 4. 모든 것을 최종 AVPlayerItem으로 결합
-///
-/// 이 로직을 중앙에서 관리함으로써 VideoViewModel을 AVFoundation의 복잡성에서 분리하고,
-/// 상태 관리에만 집중할 수 있도록 합니다.
 @MainActor
 struct CompositionBuilder {
     
@@ -30,34 +20,27 @@ struct CompositionBuilder {
     /// - Returns: `AVPlayerItem`과 총 길이를 담은 `CompositionBuildResult`.
     /// - Throws: 내부 AVFoundation 작업 중 하나라도 실패할 경우 에러를 던집니다.
     func build(from segments: [VideoSegment]) async throws -> CompositionBuildResult {
-        // 1. 기본 컴포지션 생성
+        
         let composition = AVMutableComposition()
         var totalDuration: CMTime = .zero
         
-        // 2. 트랙을 추가하고 전체 길이를 계산합니다.
-        // (private addTracks 메서드 호출)
         let trackIDs = try await addTracks(to: composition, from: segments, totalDuration: &totalDuration)
         
-        // 3. 비디오 레이아웃을 위한 비디오 컴포지션 생성
-        // (private createVerticalVideoComposition 메서드 호출)
         let videoComposition = createVerticalVideoComposition(
             composition: composition,
             trackIDs: trackIDs.video,
             totalDuration: totalDuration
         )
         
-        // 4. 최종 플레이어 아이템 생성
         let playerItem = AVPlayerItem(asset: composition)
         playerItem.videoComposition = videoComposition
         
-        // 5. 결과 반환
         return CompositionBuildResult(
             playerItem: playerItem,
             totalDuration: totalDuration
         )
     }
     
-    /// 세그먼트의 비디오/오디오 트랙을 컴포지션에 추가합니다.
     private func addTracks(
         to composition: AVMutableComposition,
         from segments: [VideoSegment],
@@ -68,15 +51,15 @@ struct CompositionBuilder {
 
         for segment in segments {
             let asset = segment.source.asset
-            // 중요: 트림된 시간 범위(시작 시간, 지속 시간)를 정확히 사용합니다.
+            
             let timeRange = CMTimeRange(start: segment.startTime, duration: segment.trimmedDuration)
 
-            // 비디오 트랙 추가
             if let videoTrack = try await asset.loadTracks(withMediaType: .video).first {
-                // AVFoundation이 자동으로 트랙 ID를 할당하도록 합니다.
-                if let compositionTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid) {
+                if let compositionTrack = composition.addMutableTrack(
+                    withMediaType: .video,
+                    preferredTrackID: kCMPersistentTrackID_Invalid
+                ) {
                     try compositionTrack.insertTimeRange(timeRange, of: videoTrack, at: .zero)
-                    // 할당된 실제 ID를 배열에 추가합니다.
                     videoTrackIDs.append(compositionTrack.trackID)
                 }
             }
@@ -84,10 +67,11 @@ struct CompositionBuilder {
             // 오디오 트랙 추가
             if(!segment.isMuted) {
                 if let audioTrack = try await asset.loadTracks(withMediaType: .audio).first {
-                    // AVFoundation이 자동으로 트랙 ID를 할당하도록 합니다.
-                    if let compositionTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) {
+                    if let compositionTrack = composition.addMutableTrack(
+                        withMediaType: .audio,
+                        preferredTrackID: kCMPersistentTrackID_Invalid
+                    ) {
                         try compositionTrack.insertTimeRange(timeRange, of: audioTrack, at: .zero)
-                        // 할당된 실제 ID를 배열에 추가합니다.
                         audioTrackIDs.append(compositionTrack.trackID)
                     }
                 }
@@ -132,7 +116,8 @@ struct CompositionBuilder {
             let yOffset = (videoHeight - scaledAssetHeight) / 2
             
             // 3. 위에서부터 슬롯 위치 지정
-            let yPosition = renderSize.height - (CGFloat(index + 1) * videoHeight) + yOffset
+            let yPosition = ((CGFloat(index + 1) * videoHeight) + yOffset) - (renderSize.height / 3)
+            
             let moveTransform = CGAffineTransform(translationX: 0, y: yPosition)
             
             // 4. 변환 결합
