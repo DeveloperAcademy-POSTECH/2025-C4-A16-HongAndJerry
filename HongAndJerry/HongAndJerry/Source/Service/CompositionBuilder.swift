@@ -47,7 +47,13 @@ struct CompositionBuilder {
         let composition = AVMutableComposition()
         var totalDuration: CMTime = .zero
         
-        let (video, _) = try await addTracks(to: composition, from: segments, totalDuration: &totalDuration)
+        let (
+            video, _
+        ) = try await addTracks(
+            to: composition,
+            from: segments,
+            totalDuration: &totalDuration
+        )
         
         let videoComposition = try await createVerticalVideoComposition(
             composition: composition,
