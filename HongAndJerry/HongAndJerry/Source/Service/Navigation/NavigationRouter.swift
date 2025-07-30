@@ -14,6 +14,8 @@ enum Screen: Hashable {
     case selectVideo
     case editVideoRatio([PHAsset])
     case videoEditView([VideoSegment])
+    case exportView(AVAsset?, AVVideoComposition?)
+    case loadingView
 }
 
 @Observable
