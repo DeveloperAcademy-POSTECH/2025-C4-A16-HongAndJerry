@@ -72,28 +72,12 @@ struct EditorTimelineView: View {
         .gesture(
             DragGesture()
                 .onChanged { value in
-                    // 진행 중인 관성 애니메이션 중단
-                    if isAnimatingScroll {
-                        isAnimatingScroll = false
-                        self.currentOffset = self.currentOffset
-                    }
-                    
                     // 드래그 시작 처리
                     if !isTimelineDragging {
+                        viewModel.playerController.pause()
                         isTimelineDragging = true
                         startDragOffset = currentOffset
-                        lastDragEvent = (time: value.time, translation: value.translation)
                     }
-                    
-                    // 속도 계산
-                    if let last = lastDragEvent {
-                        let timeInterval = value.time.timeIntervalSince(last.time)
-                        if timeInterval > 0 {
-                            let distance = value.translation.width - last.translation.width
-                            self.gestureVelocity = distance / timeInterval // 단위: points/sec
-                        }
-                    }
-                    self.lastDragEvent = (time: value.time, translation: value.translation)
                     
                     // 오프셋 업데이트
                     let newOffset = startDragOffset + value.translation.width
@@ -102,36 +86,9 @@ struct EditorTimelineView: View {
                 .onEnded { value in
                     isTimelineDragging = false
                     
-                    // 손가락을 떼기 전 잠시 멈췄는지 확인
-                    let timeSinceLastDrag = value.time.timeIntervalSince(lastDragEvent?.time ?? value.time)
-                    if timeSinceLastDrag > 0.05 { // 50ms 이상 움직임이 없으면 속도 0으로 처리
-                        self.gestureVelocity = 0
-                    }
-                    self.lastDragEvent = nil // 상태 초기화
-                    
-                    // 계산된 속도를 기반으로 관성 적용
-                    let projectedOffset = self.currentOffset + self.gestureVelocity * 0.4 // 관성 강도 조절
-                    let clampedProjectedOffset = clampOffset(projectedOffset)
-                    
-                    // 속도에 기반해 애니메이션 시간 동적 조절
-                    // 최소 0.5초, 최대 7초로 변경하여 관성 효과를 더 길게 유지
-                    let animationDuration = min(max(abs(self.gestureVelocity) / 1000, 0.5), 7.0)
-                    
-                    // 관성 스크롤 애니메이션 시작
-                    isAnimatingScroll = true
-                    withAnimation(.easeOut(duration: animationDuration)) {
-                        self.currentOffset = clampedProjectedOffset
-                    }
+                    let clampedProjectedOffset = clampOffset(self.currentOffset)
                     
                     seekToOffset(clampedProjectedOffset)
-                    
-                    // 애니메이션이 끝나는 시점에 상태를 재설정합니다.
-                    DispatchQueue.main.asyncAfter(deadline: .now() + animationDuration) {
-                        // 애니메이션이 끝난 후에도 사용자가 드래그를 시작하지 않았을 경우에만 상태를 변경합니다.
-                        if !isTimelineDragging {
-                            isAnimatingScroll = false
-                        }
-                    }
                 }
         )
         .clipped()
