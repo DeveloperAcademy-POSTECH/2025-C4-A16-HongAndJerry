@@ -166,11 +166,6 @@ extension CropViewModel {
     
     func createVideoSegments() async -> [VideoSegment] {
         
-        if croppedVideos.isEmpty {
-            print("croppedVideos.isEmpty")
-            return await VideoSegment.mockList()
-        }
-        
         var segments: [VideoSegment] = []
         
         for crop in croppedVideos {
