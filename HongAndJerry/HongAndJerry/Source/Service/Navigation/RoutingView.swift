@@ -33,8 +33,6 @@ extension RoutingView: View {
                     avvideoComposition: composition
                 )
             )
-        case .loadingView
-            
         }
     }
 }
