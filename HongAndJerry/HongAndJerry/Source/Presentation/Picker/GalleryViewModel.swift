@@ -56,12 +56,14 @@ extension GalleryViewModel {
     
     /// 갤러리 접근 권한 확인 후, 전체 비디오 가져오기
     func loadVideos() async {
-        let hasPermission = await requestPhotoLibraryPermission()
-        
-        guard hasPermission else {
-            print("❌ 갤러리 접근 권한이 없습니다")
-            return
+        MediaPermissionUtils.requestPermission { permission in
+            if permission == false {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
         }
+
         
         await self.fetchVideos()
     }
