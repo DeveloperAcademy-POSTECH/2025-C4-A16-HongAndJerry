@@ -116,7 +116,8 @@ struct CompositionBuilder {
             let yOffset = (videoHeight - scaledAssetHeight) / 2
             
             // 3. 위에서부터 슬롯 위치 지정
-            let yPosition = renderSize.height - (CGFloat(index + 1) * videoHeight) + yOffset
+            let yPosition = ((CGFloat(index + 1) * videoHeight) + yOffset) - (renderSize.height / 3)
+            
             let moveTransform = CGAffineTransform(translationX: 0, y: yPosition)
             
             // 4. 변환 결합
