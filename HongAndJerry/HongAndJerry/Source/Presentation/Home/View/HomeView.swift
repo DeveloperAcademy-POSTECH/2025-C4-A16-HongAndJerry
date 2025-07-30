@@ -17,15 +17,14 @@ struct HomeView {
 
 extension HomeView: View {
     var body: some View {
-        VStack {
-            Text(ExportNameSpace.AppMain.AppName)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(alignment: .leading) {
+            Image(.homeViewLogo)
+                .resizable()
+                .frame(width: 75, height: 18)
                 .padding(.leading)
-                .font(.SUITTitle)
-                .foregroundStyle(.font)
             if viewModel.videos.isEmpty {
                 Spacer()
-                Image(.logo)
+                Text("프로젝트 생성 해주세요!")
                 Spacer()
             } else {
                 VideoScrollView(
