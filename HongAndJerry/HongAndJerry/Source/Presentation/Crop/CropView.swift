@@ -58,23 +58,23 @@ struct CropView: View {
             .indexViewStyle(.page(backgroundDisplayMode: .never))
             .tabViewStyle(.page(indexDisplayMode: .never))    // 탭뷰 좌우 스크롤 설정
             
-            HStack {
-                if viewModel.currentIndex > 0 {
-                    previousButton
-                }
-                
-                Spacer()
-                
-                pageIndicator
-                
-                Spacer()
-                
-                if viewModel.currentIndex < 2 {
-                    nextButton
-                }
-            }
-            .padding(.vertical, 16)
-            .padding(.horizontal, 16)
+//            HStack {
+//                if viewModel.currentIndex > 0 {
+//                    previousButton
+//                }
+//                
+//                Spacer()
+//                
+//                pageIndicator
+//                
+//                Spacer()
+//                
+//                if viewModel.currentIndex < 2 {
+//                    nextButton
+//                }
+//            }
+//            .padding(.vertical, 16)
+//            .padding(.horizontal, 16)
             
             CtaButton(buttonType: .next, isDisabled: .constant(viewModel.currentIndex != 2)) {
                 Task {
