@@ -24,21 +24,21 @@ struct CropView: View {
             Color.background.ignoresSafeArea()
             VStack {
                 Group {
-                    if viewModel.isLoading {
+                    switch viewModel.state {
+                    case .thumbnailLoading:
                         ProgressView("로딩 중...")
                             .frame(width: 300, height: 300)
-                    } else {
+                    case .thumbnailLoaded:
                         tabView
+                    case .cropping:
+                        ProgressView("자른 영상 로딩 중...")
+                            .frame(width: 300, height: 300)
+                            .navigationBarBackButtonHidden()
+                    case .completedConvertToAsset:
+                        Text("Complete")
                     }
                 }
-                CtaButton(buttonType: .next, isDisabled: .constant(viewModel.currentIndex != 2)) {
-                    Task {
-                        await viewModel.cropVideos()
-                        let segments = await viewModel.createVideoSegments()
-                        router.push(screen: .videoEditView(segments))
-                    }
-                    //                    self.isCropTestViewShown = true
-                }
+                
             }
             .onAppear {
                 viewModel.send(.loadThumbnail)
@@ -75,7 +75,17 @@ struct CropView: View {
             }
             .padding(.vertical, 16)
             .padding(.horizontal, 16)
+            
+            CtaButton(buttonType: .next, isDisabled: .constant(viewModel.currentIndex != 2)) {
+                Task {
+                    await viewModel.cropVideos()
+                    let segments = await viewModel.createVideoSegments()
+                    
+                    router.push(screen: .videoEditView(segments))
+                }
+            }
         }
+        
     }
     
     func thumbnailCell(videoIndex: Int) -> some View {
