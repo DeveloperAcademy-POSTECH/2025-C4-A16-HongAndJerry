@@ -142,7 +142,12 @@ HongAndJerry/
 - **Persona**: The Film Editor.
 - **Primary Responsibility**: To translate the `[VideoSegment]` array into a playable `AVPlayerItem` by handling all complex `AVFoundation` logic.
 - **Implementation Rationale**: MUST be a `struct` (value type) because it is a stateless worker. It takes input, produces output, and retains no memory of past operations, ensuring thread safety and predictability.
-- **Core Behaviors & API**: `build(from: [VideoSegment]) -> CompositionBuildResult`.
+- **Core Behaviors & API**:
+    - **`build(from: [VideoSegment]) -> CompositionBuildResult`**: The public entry point. It orchestrates the entire build process by calling internal helper methods.
+    - **`addTracks(...)` (private helper)**: Extracts video and audio tracks from each `VideoSegment`, adds them to the main `AVMutableComposition`, and returns a crucial `AddTracksResult` tuple. This tuple contains arrays of `VideoTrackInfo` and `AudioTrackInfo`. The `VideoTrackInfo` struct is vital as it bundles a track's `trackID` with its precise `duration`.
+    - **`createVerticalVideoComposition(...)` (private helper)**: Performs two critical functions based on the `VideoTrackInfo` array:
+        1.  **Layout & Transformation**: Calculates the correct `CGAffineTransform` for each video track to position it in the 1x3 vertical stack.
+        2.  **Fade-to-Black Effect**: For each track, it applies a `setOpacity(0.0, at: trackInfo.duration)` instruction. This core logic makes the video track transparent the moment its content ends, preventing the last frame from freezing on screen and instead revealing the black background.
 
 #### c. `PlayerController` (class)
 - **Persona**: The Playback Operator.
@@ -161,7 +166,7 @@ HongAndJerry/
 - **Persona**: The Executive Producer.
 - **Primary Responsibility**: To act as the central coordinator, orchestrating all interactions between the UI and the system's specialist components. It owns the application's high-level state.
 - **Implementation Rationale**: MUST be a `class` as it owns the application's core state (`segments`) and must persist throughout the app's lifecycle.
-- **Core State & Data**: `segments` (Source of Truth), `playerController` (dependency), `isScrubbing`.
+- **Core State & Data**: `segments` (Source of Truth), `playerController` (dependency).
 - **Core Behaviors & API**:
     - `perform(operation: EditOperation)`: The single, unified entry point for all state-mutating requests from the UI.
     - `rebuildPlayerItem()`: A private method to coordinate the `CompositionBuilder` and `PlayerController` after a state change.

@@ -14,15 +14,18 @@ struct EditorRulerView: View {
     
     var body: some View {
         HStack(alignment: .bottom, spacing: 0) {
-            // totalDuration이 0보다 클 때만 눈금을 그립니다.
             if viewModel.playerController.totalDuration.seconds > 0 {
-                let totalSeconds = Int(viewModel.playerController.totalDuration.seconds.rounded(.up))
+                let totalSeconds = Int(
+                    viewModel
+                        .playerController
+                        .totalDuration
+                        .seconds
+                        .rounded(.up)
+                )
                 
-                // 1초 단위로 순회하며 2초, 10초 간격에 맞춰 그립니다.
                 ForEach(0..<totalSeconds, id: \.self) { second in
                     VStack {
-                        // 10초 간격의 레이블
-                        if second % 10 == 0
+                        if second % 5 == 0
                             || second == totalSeconds
                         {
                             Text("\(second)s")
