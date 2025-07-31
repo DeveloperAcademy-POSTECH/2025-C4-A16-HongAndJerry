@@ -69,9 +69,24 @@ class PlayerController {
     
     /// 지정된 시간으로 플레이헤드를 이동시킵니다.
     ///
-    /// - Parameter time: 이동할 대상 시간.
-    func seek(to time: CMTime) {
-        player.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero)
+    /// - Parameters:
+    ///   - time: 이동할 대상 시간.
+    ///   - isDragging: 사용자가 타임라인을 드래그하는 중인지 여부.
+    ///                 `true`일 경우, 성능 최적화를 위해 탐색 허용 오차를 사용합니다.
+    func seek(to time: CMTime, direction: DragDirection = .none) {
+        // 역방향 드래그일 때만 tolerance를 적용하고, 그 외에는 정확한 위치로 이동
+        let tolerance = (
+            direction == .backward
+        ) ? CMTime(
+            seconds: 0.5,
+            preferredTimescale: 600
+        ) : .zero
+        
+        player.seek(
+            to: time,
+            toleranceBefore: tolerance,
+            toleranceAfter: tolerance
+        )
     }
     
     // MARK: - Private Methods

@@ -10,6 +10,8 @@ struct EditorTimelineView: View {
     @State private var isTimelineDragging = false
     @State private var startDragOffset: CGFloat = 0
     @State private var currentOffset: CGFloat = 0
+    @State private var dragDirection: DragDirection = .none
+    @State private var lastDragTranslation: CGFloat = 0
     
     // 햅틱 피드백 생성기 및 상태 변수 추가
     @State private var feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
@@ -79,19 +81,36 @@ struct EditorTimelineView: View {
                         viewModel.playerController.pause()
                         isTimelineDragging = true
                         startDragOffset = currentOffset
+                        lastDragTranslation = 0 // 새 드래그 시작 시 초기화
                     }
                     
+                    // 방향 감지 (사용자 제안 방식)
+                    let currentTranslation = value.translation.width
+                    let delta = currentTranslation - lastDragTranslation
+                    
+                    if delta > 0 {
+                        self.dragDirection = .backward
+                    } else if delta < 0 {
+                        self.dragDirection = .forward
+                    } else {
+                        self.dragDirection = .none
+                    }
+                    
+                    // 다음 이벤트를 위해 현재 위치 저장
+                    self.lastDragTranslation = currentTranslation
+                    
                     // 오프셋 업데이트
-                    let newOffset = startDragOffset + value.translation.width
-                    updateOffset(newOffset, isDragging: true)
+                    let newOffset = startDragOffset + currentTranslation
+                    updateOffset(newOffset, isDragging: true, direction: self.dragDirection)
                 }
                 .onEnded { value in
                     isTimelineDragging = false
                     lastHapticSecond = -1
+                    lastDragTranslation = 0 // 드래그 종료 시 초기화
                     
                     let clampedProjectedOffset = clampOffset(self.currentOffset)
                     
-                    seekToOffset(clampedProjectedOffset)
+                    seekToOffset(clampedProjectedOffset, direction: .none)
                 }
         )
         .clipped()
@@ -108,17 +127,17 @@ struct EditorTimelineView: View {
     }
     
     /// 오프셋을 업데이트하고, 필요한 경우 플레이어 시간을 업데이트하는 함수
-    private func updateOffset(_ newOffset: CGFloat, isDragging: Bool) {
+    private func updateOffset(_ newOffset: CGFloat, isDragging: Bool, direction: DragDirection) {
         let clampedOffset = clampOffset(newOffset)
         self.currentOffset = clampedOffset
         
         if isDragging {
-            seekToOffset(clampedOffset)
+            seekToOffset(clampedOffset, direction: direction)
         }
     }
     
     /// 주어진 오프셋에 해당하는 시간으로 플레이어를 이동시키는 함수
-    private func seekToOffset(_ offset: CGFloat) {
+    private func seekToOffset(_ offset: CGFloat, direction: DragDirection) {
         let newTimeInSeconds = -offset / EditConstants.pixelsPerSecond
         let clampedTime = max(0, newTimeInSeconds)
         
@@ -128,6 +147,6 @@ struct EditorTimelineView: View {
             lastHapticSecond = currentSecond
         }
         
-        viewModel.playerController.seek(to: CMTime(seconds: clampedTime, preferredTimescale: 600))
+        viewModel.playerController.seek(to: CMTime(seconds: clampedTime, preferredTimescale: 600), direction: direction)
     }
 }
