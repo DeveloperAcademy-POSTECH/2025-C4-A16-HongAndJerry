@@ -8,7 +8,6 @@ struct EditorTimelineView: View {
     
     // 제스처 상태 관리
     @State private var isTimelineDragging = false
-    @State private var isAnimatingScroll = false
     @State private var startDragOffset: CGFloat = 0
     @State private var currentOffset: CGFloat = 0
     
@@ -60,10 +59,8 @@ struct EditorTimelineView: View {
             .offset(x: currentOffset)
             .onChange(of: viewModel.playerController.currentTime) {
                 // 사용자가 드래그하고 있지 않을 때만, 재생 시간에 맞춰 타임라인을 자동으로 스크롤합니다.
-                if !isTimelineDragging {
-                    let clampedOffset = clampOffset(self.currentOffset)
-                    self.currentOffset = clampedOffset
-                }
+                if !isTimelineDragging && viewModel.playerController.isPlaying {
+                    self.currentOffset = -(viewModel.playerController.currentTime.seconds * EditConstants.pixelsPerSecond)                }
             }
             .onAppear() {
                 viewModel.updateScreenWidth(geometry.size.width)

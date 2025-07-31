@@ -19,7 +19,9 @@ final class VideoViewModel {
     var selectedSegmentID: UUID?
     var scrollOffset: CGFloat = 0
     var screenWidth: CGFloat = 0
+    
     var isFullScreen: Bool = false
+    
     var segmentHandleOffsets: [UUID: (left: CGFloat, right: CGFloat)] = [:]
     
     private var initialLeftHandleOffset: CGFloat = 0
@@ -28,6 +30,7 @@ final class VideoViewModel {
     let playerController = PlayerController()
     
     private let trimController = TrimController()
+    
     private let compositionBuilder = CompositionBuilder()
     
     /// TODO: 테스트 용도, 추후 삭제
@@ -152,6 +155,7 @@ final class VideoViewModel {
             
             if case .segmentsUpdated(let updatedSegments) = result {
                 segments = updatedSegments
+            
                 await rebuildPlayerItem()
             }
         } catch {

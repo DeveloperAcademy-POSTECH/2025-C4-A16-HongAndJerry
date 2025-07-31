@@ -41,6 +41,7 @@ class PlayerController {
         removeTimeObserver()
         player.replaceCurrentItem(with: item)
         
+        let prevCurrentTime = currentTime
         guard let item = item else {
             totalDuration = .zero
             currentTime = .zero
@@ -49,6 +50,9 @@ class PlayerController {
         
         totalDuration = item.duration
         addTimeObserver()
+        
+        currentTime = min(prevCurrentTime, totalDuration)
+        seek(to: currentTime)
     }
     
     /// 재생을 시작합니다.
