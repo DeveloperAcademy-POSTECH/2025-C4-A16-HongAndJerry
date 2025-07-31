@@ -24,8 +24,6 @@ struct EditorWorkspaceView: View {
             )
             
             VideoPlayerView(playerController: viewModel.playerController)
-            // 이 뷰가 "videoPlayer"라는 ID를 가짐을 선언하여
-            // FullScreenPlayerView의 플레이어와 연결합니다.
                 .matchedGeometryEffect(id: "videoPlayer", in: namespace)
                 .padding(.top, 21)
                 .padding(.bottom, 8)
@@ -37,6 +35,7 @@ struct EditorWorkspaceView: View {
             ZStack(alignment: .topLeading) {
                 EditorTimelineView()
                 
+                // 중앙 헤드
                 // TODO: 분리
                 Rectangle()
                     .fill(.white)
@@ -44,6 +43,7 @@ struct EditorWorkspaceView: View {
                     .padding(.vertical, EditConstants.rulerHeight) // 상하 여백
                     .frame(maxWidth: .infinity) // ZStack 중앙 정렬을 위해
                 
+                // 왼쪽 상단에 있는 타이머
                 // TODO: 분리
                 Text("\(viewModel.playerController.currentTime.formattedString) / \(viewModel.playerController.totalDuration.formattedString)")
                     .font(.SUITTimer)

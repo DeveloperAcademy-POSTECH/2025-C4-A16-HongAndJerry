@@ -11,6 +11,10 @@ struct EditorTimelineView: View {
     @State private var startDragOffset: CGFloat = 0
     @State private var currentOffset: CGFloat = 0
     
+    // 햅틱 피드백 생성기 및 상태 변수 추가
+    @State private var feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+    @State private var lastHapticSecond: Int = -1
+    
     // 수동 속도 계산을 위한 상태
     @State private var gestureVelocity: CGFloat = 0
     @State private var lastDragEvent: (time: Date, translation: CGSize)? = nil
@@ -83,6 +87,7 @@ struct EditorTimelineView: View {
                 }
                 .onEnded { value in
                     isTimelineDragging = false
+                    lastHapticSecond = -1
                     
                     let clampedProjectedOffset = clampOffset(self.currentOffset)
                     
@@ -116,6 +121,13 @@ struct EditorTimelineView: View {
     private func seekToOffset(_ offset: CGFloat) {
         let newTimeInSeconds = -offset / EditConstants.pixelsPerSecond
         let clampedTime = max(0, newTimeInSeconds)
+        
+        let currentSecond = Int(clampedTime)
+        if currentSecond != lastHapticSecond {
+            feedbackGenerator.impactOccurred()
+            lastHapticSecond = currentSecond
+        }
+        
         viewModel.playerController.seek(to: CMTime(seconds: clampedTime, preferredTimescale: 600))
     }
 }
