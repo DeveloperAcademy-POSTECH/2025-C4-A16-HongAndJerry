@@ -57,13 +57,13 @@ class PlayerController {
     
     /// 재생을 시작합니다.
     func play() {
-        player.play()
+        player.rate = 1
         isPlaying = true
     }
     
     /// 재생을 일시정지합니다.
     func pause() {
-        player.pause()
+        player.rate = 0
         isPlaying = false
     }
     
