@@ -65,8 +65,9 @@ struct CropView: View {
 //                
 //                Spacer()
 //                
-//                pageIndicator
-//                
+                pageIndicator
+                .padding(.vertical, 8)
+//
 //                Spacer()
 //                
 //                if viewModel.currentIndex < 2 {

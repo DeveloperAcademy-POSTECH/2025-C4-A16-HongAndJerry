@@ -36,7 +36,7 @@ extension VideoScrollView: View {
                     }
                     .onTapGesture {
                         selectedAsset = video.asset
-                        showPlayer = true
+//                        showPlayer = true
                     }
                 }
             } 
