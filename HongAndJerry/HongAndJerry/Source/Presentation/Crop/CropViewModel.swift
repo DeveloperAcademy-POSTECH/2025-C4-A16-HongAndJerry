@@ -18,10 +18,18 @@ final class CropViewModel {
         case setContainerSize(CGSize, at: Int)
     }
     
+    enum VideoState {
+        case thumbnailLoading
+        case thumbnailLoaded
+        case cropping
+        case completedConvertToAsset
+    }
+    
     var selectedVideos: [PHAsset]
     var currentIndex = 0
     var thumbnails: [String: UIImage] = [:]
     var isLoading = true
+    var state: VideoState = .thumbnailLoaded
     
     var crops: [Crop] = []
     
@@ -69,7 +77,8 @@ extension CropViewModel {
             }
         }
         
-        isLoading = false   // 로딩이 끝나면 TabView에 이미지 띄움
+//        isLoading = false   // 로딩이 끝나면 TabView에 이미지 띄움
+        state = .thumbnailLoaded
     }
     
     private func loadSingleThumbnail(for video: PHAsset) async -> UIImage? {
@@ -147,6 +156,7 @@ extension CropViewModel {
     
     @MainActor
     func cropVideos() async {
+        state = .cropping
         do {
             // 새로운 방법: 실제로 렌더링된 AVAsset들을 받아옴
             let exportedAssets = try await PHImageManager.default().exportCroppedVideos(crops: crops)
@@ -179,7 +189,7 @@ extension CropViewModel {
                 )
             )
         }
-        
+        state = .completedConvertToAsset
         return segments
     }
 }
