@@ -38,7 +38,7 @@ extension VideoSegment {
         let videoResources = [
             ("video1", "MOV"),
             ("video2", "MOV"),
-            ("video3", "MOV")
+            ("video3", "MP4")
         ]
         
         var segments: [VideoSegment] = []
