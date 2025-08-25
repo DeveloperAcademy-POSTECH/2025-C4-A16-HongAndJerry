@@ -149,7 +149,3 @@ struct CropView: View {
         .buttonStyle(.plain)
     }
 }
-
-#Preview {
-    CropView(viewModel: CropViewModel(selectedVideos: []))
-}
