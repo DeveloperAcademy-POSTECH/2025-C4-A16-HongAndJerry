@@ -38,9 +38,6 @@ final class CropViewModel {
     init(selectedVideos: [PHAsset]) {
         self.selectedVideos = selectedVideos
     }
-}
-
-extension CropViewModel {
     
     func send(_ action: Action) {
         
