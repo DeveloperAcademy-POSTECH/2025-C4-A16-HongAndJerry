@@ -33,7 +33,7 @@ final class VideoViewModel {
     
     private let compositionBuilder = CompositionBuilder()
     
-    /// TODO: 테스트 용도, 추후 삭제
+    // pray TODO: 테스트 용도, 추후 삭제
     init() {
         Task {
             await self.loadInitialSegments()
