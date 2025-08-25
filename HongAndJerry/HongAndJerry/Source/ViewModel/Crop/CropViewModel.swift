@@ -10,26 +10,12 @@ import SwiftUI
 
 @Observable
 final class CropViewModel {
-    
-    enum Action {
-        case loadThumbnail
-        case goToNextPhoto
-        case goToPreviousPhoto
-        case setContainerSize(CGSize, at: Int)
-    }
-    
-    enum VideoState {
-        case thumbnailLoading
-        case thumbnailLoaded
-        case cropping
-        case completedConvertToAsset
-    }
+    var state: CropState = .thumbnailLoaded
     
     var selectedVideos: [PHAsset]
     var currentIndex = 0
     var thumbnails: [String: UIImage] = [:]
     var isLoading = true
-    var state: VideoState = .thumbnailLoaded
     
     var crops: [Crop] = []
     
@@ -39,20 +25,20 @@ final class CropViewModel {
         self.selectedVideos = selectedVideos
     }
     
-    func send(_ action: Action) {
+    func send(_ action: CropAction) {
         
         switch action {
-        case .loadThumbnail:
+        case .onAppear:
             loadThumbnails()
             
-        case .goToNextPhoto:
+        case .nextButtonTapped:
             if currentIndex < 2 { currentIndex += 1 }
             
-        case .goToPreviousPhoto:
+        case .prevButtonTapped:
             if currentIndex > 0 { currentIndex -= 1 }
             
-        case .setContainerSize(let size, let index):
-            setContainerSize(size, at: index)
+        case .containerDidChangeSize(let size, let at):
+            setContainerSize(size, at: at)
         }
     }
     
