@@ -10,19 +10,57 @@ import SwiftUI
 struct CropBox: View {
     @Binding public var rect: CGRect    // 부모에게 크롭할 영역의 좌표와 영역 알림
     public let minSize: CGSize          // CropBox의 최소 사이즈 설정
-    //    public let maxSize: CGSize
-    //    public let initialPosition: CGPoint // CropBox의 시작 지점
     
     @State private var initialRect: CGRect? = nil
     @State private var frameSize: CGSize = .init(width: 1, height: 1)
     @State private var draggedCorner: UIRectCorner? = nil
     
-    public init(
-        rect: Binding<CGRect>,
-        minSize: CGSize = .init(width: 10, height: 10)
+    init(
+        rect: Binding<CGRect>
     ) {
         self._rect = rect
-        self.minSize = minSize
+        self.minSize = .init(width: 10, height: 10)
+    }
+}
+
+extension CropBox {
+    public var body: some View {
+        ZStack(alignment: .topLeading) {
+            blur
+            box
+        }
+        .background {
+            GeometryReader { geometry in
+                Color.clear
+                    .onAppear {
+                        self.frameSize = geometry.size
+                    }
+            }
+        }
+    }
+    
+    private var blur: some View {
+        Color.black.opacity(0.5)
+            .overlay(alignment: .topLeading) {
+                Color.white
+                    .frame(width: rect.width - 1, height: rect.height - 1)
+                    .offset(x: rect.origin.x, y: rect.origin.y)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .drawingGroup()
+            .blendMode(.multiply)
+    }
+    
+    private var box: some View {
+        ZStack {
+            grid
+            pins
+        }
+        .border(Color.accent, width: 1)
+        .background(Color.white.opacity(0.001))
+        .frame(width: rect.width, height: rect.height)
+        .offset(x: rect.origin.x, y: rect.origin.y)
+        .gesture(rectDrag)
     }
     
     private var rectDrag: some Gesture {
@@ -52,44 +90,6 @@ struct CropBox: View {
                 initialRect = nil
                 draggedCorner = nil
             }
-    }
-    
-    public var body: some View {
-        ZStack(alignment: .topLeading) {
-            blur
-            box
-        }
-        .background {
-            GeometryReader { geometry in
-                Color.clear
-                    .onAppear { self.frameSize = geometry.size }
-                    .onChange(of: geometry.size) { self.frameSize = $0 }
-            }
-        }
-    }
-    
-    private var blur: some View {
-        Color.black.opacity(0.5)
-            .overlay(alignment: .topLeading) {
-                Color.white
-                    .frame(width: rect.width - 1, height: rect.height - 1)
-                    .offset(x: rect.origin.x, y: rect.origin.y)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .drawingGroup()
-            .blendMode(.multiply)
-    }
-    
-    private var box: some View {
-        ZStack {
-            grid
-            pins
-        }
-        .border(Color.accent, width: 1)
-        .background(Color.white.opacity(0.001))
-        .frame(width: rect.width, height: rect.height)
-        .offset(x: rect.origin.x, y: rect.origin.y)
-        .gesture(rectDrag)
     }
     
     private var pins: some View {
@@ -222,7 +222,3 @@ struct CropBox: View {
         return .init(origin: .init(x: newX, y: newY), size: initialRect.size)
     }
 }
-//
-//#Preview {
-//    CropBox()
-//}
