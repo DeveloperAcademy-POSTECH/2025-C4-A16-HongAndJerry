@@ -43,7 +43,7 @@ extension CropView {
                 
             }
             .onAppear {
-                viewModel.send(.loadThumbnail)
+                viewModel.send(.onAppear)
             }
         }
         .hjNavigationBar(title: ExportNameSpace.AppMain.cropVideoTitle)
@@ -52,7 +52,10 @@ extension CropView {
     var tabView: some View {
         VStack {
             TabView(selection: $viewModel.currentIndex) {
-                ForEach(Array(viewModel.selectedVideos.enumerated()), id: \.1.localIdentifier) { index, video in
+                ForEach(
+                    Array(viewModel.selectedVideos.enumerated())
+                    , id: \.1.localIdentifier
+                ) { index, _ in
                     thumbnailCell(videoIndex: index)
                         .tag(index)
                 }
@@ -88,14 +91,14 @@ extension CropView {
                             CropBox(rect: viewModel.bindingForCropRect(at: videoIndex))
                                 .allowsHitTesting(true)
                                 .onAppear {
-                                    viewModel.send(.setContainerSize(geometry.size, at: videoIndex))
+                                    viewModel.send(.containerDidChangeSize(size: geometry.size, at: videoIndex))
                                     if crop.cropRect == CGRect(x: 0, y: 0, width: 10, height: 10) {
                                         let initialRect = viewModel.calculate16x9CropRect(in: geometry.size)
                                         viewModel.updateCropRect(at: videoIndex, rect: initialRect)
                                     }
                                 }
                                 .onChange(of: geometry.size) { oldValue, newValue in
-                                    viewModel.send(.setContainerSize(newValue, at: videoIndex))
+                                    viewModel.send(.containerDidChangeSize(size: newValue, at: videoIndex))
                                 }
                         }
                     }
@@ -117,7 +120,7 @@ extension CropView {
     
     var previousButton: some View {
         Button {
-            viewModel.send(.goToPreviousPhoto)
+            viewModel.send(.prevButtonTapped)
         } label: {
             Image(systemName: "chevron.left")
                 .foregroundStyle(.font)
@@ -127,7 +130,7 @@ extension CropView {
     
     var nextButton: some View {
         Button {
-            viewModel.send(.goToNextPhoto)
+            viewModel.send(.nextButtonTapped)
         } label: {
             Image(systemName: "chevron.right")
                 .foregroundStyle(.font)

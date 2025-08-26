@@ -14,8 +14,6 @@ final class CropViewModel {
     
     var selectedVideos: [PHAsset]
     var currentIndex = 0
-    var thumbnails: [String: UIImage] = [:]
-    var isLoading = true
     
     var crops: [Crop] = []
     
@@ -29,8 +27,9 @@ final class CropViewModel {
         
         switch action {
         case .onAppear:
-            loadThumbnails()
-            
+            Task {
+                await loadCrops()
+            }
         case .nextButtonTapped:
             if currentIndex < 2 { currentIndex += 1 }
             
@@ -42,49 +41,54 @@ final class CropViewModel {
         }
     }
     
-    private func loadThumbnails() {
-        Task {
-            await loadThumbnailsAsync()
-        }
-    }
-    
-    @MainActor
-    private func loadThumbnailsAsync() async {
-        isLoading = true
-        
-        for video in selectedVideos {
-            let thumbnail = await loadSingleThumbnail(for: video)
-            if let thumbnail = thumbnail {
-                thumbnails[video.localIdentifier] = thumbnail
-                crops.append(Crop(video: video, localIdentifier: video.localIdentifier, cropRect: .init(x: 0, y: 0, width: 10, height: 10), thumbnail: thumbnail))
-            }
+    private func loadCrops() async {
+        await MainActor.run {
+            state = .thumbnailLoading
         }
         
-//        isLoading = false   // 로딩이 끝나면 TabView에 이미지 띄움
-        state = .thumbnailLoaded
-    }
-    
-    private func loadSingleThumbnail(for video: PHAsset) async -> UIImage? {
-        return await withCheckedContinuation { continuation in
-            let manager = PHImageManager.default()
-            let options = PHImageRequestOptions()
-            options.deliveryMode = .highQualityFormat
-            options.isNetworkAccessAllowed = true
-            options.isSynchronous = false
+        let loadedCrops: [Crop] = await withTaskGroup(of: Crop?.self, returning: [Crop].self) { group in
+            var newCrops: [Crop] = []
             
-            let targetSize = PHImageManagerMaximumSize // 원본 해상도
-            
-            manager.requestImage(
-                for: video,
-                targetSize: targetSize,
-                contentMode: .aspectFill,
-                options: options
-            ) { image, info in
-                let isDegraded = info?[PHImageResultIsDegradedKey] as? Bool ?? false
-                if !isDegraded {
-                    continuation.resume(returning: image)
+            for video in selectedVideos {
+                group.addTask {
+                    guard
+                        let thumbnail = await video.fetchThumbnail()
+                    else {
+                        return nil
+                    }
+                    
+                    return Crop(
+                        video: video
+                        , localIdentifier: video.localIdentifier
+                        , cropRect: .init(x: 0, y: 0, width: 10, height: 10)
+                        , thumbnail: thumbnail
+                    )
                 }
             }
+            
+            for await result in group {
+                if let crop = result {
+                    newCrops.append(crop)
+                }
+            }
+            
+            return newCrops
+        }
+        
+        await MainActor.run {
+            let identifiers = selectedVideos.map { $0.localIdentifier }
+            let sortedCrops = loadedCrops.sorted {
+                guard
+                    let firstIndex = identifiers.firstIndex(of: $0.localIdentifier)
+                    , let secondIndex = identifiers.firstIndex(of: $1.localIdentifier)
+                else {
+                    return false
+                }
+                      
+                return firstIndex < secondIndex
+            }
+            crops.append(contentsOf: sortedCrops)
+            state = .thumbnailLoaded
         }
     }
     
@@ -99,6 +103,7 @@ final class CropViewModel {
         Binding(
             get: {
                 guard index < self.crops.count else { return .zero }
+                
                 return self.crops[index].cropRect
             },
             set: { newRect in
@@ -149,7 +154,7 @@ final class CropViewModel {
             croppedVideos = exportedAssets.map { ($0, AVMutableVideoComposition()) }
             
         } catch {
-            print("❌ exportCroppedVideos 에러: \(error)")
+            print("❌ tnwj 에러: \(error)")
             print("에러 타입: \(type(of: error))")
             if let assetError = error as? AssetError {
                 print("AssetError: \(assetError)")
