@@ -80,28 +80,30 @@ extension CropView {
     
     func thumbnailCell(videoIndex: Int) -> some View {
         Group {
-            let crop = viewModel.crops[videoIndex]
-            
-            Image(uiImage: crop.thumbnail)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .overlay(alignment: .topLeading) {
-                    GeometryReader { geometry in
-                        CropBox(rect: viewModel.bindingForCropRect(at: videoIndex))
-                            .allowsHitTesting(true)
-                            .onAppear {
-                                viewModel.send(.containerDidChangeSize(size: geometry.size, at: videoIndex))
-                                if crop.cropRect == CGRect(x: 0, y: 0, width: 10, height: 10) {
-                                    let initialRect = viewModel.calculate16x9CropRect(in: geometry.size)
-                                    viewModel.updateCropRect(at: videoIndex, rect: initialRect)
+            if videoIndex < viewModel.crops.count {
+                let crop = viewModel.crops[videoIndex]
+                
+                Image(uiImage: crop.thumbnail)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .overlay(alignment: .topLeading) {
+                        GeometryReader { geometry in
+                            CropBox(rect: viewModel.bindingForCropRect(at: videoIndex))
+                                .allowsHitTesting(true)
+                                .onAppear {
+                                    viewModel.send(.containerDidChangeSize(size: geometry.size, at: videoIndex))
+                                    if crop.cropRect == CGRect(x: 0, y: 0, width: 10, height: 10) {
+                                        let initialRect = viewModel.calculate16x9CropRect(in: geometry.size)
+                                        viewModel.updateCropRect(at: videoIndex, rect: initialRect)
+                                    }
                                 }
-                            }
-                            .onChange(of: geometry.size) { oldValue, newValue in
-                                viewModel.send(.containerDidChangeSize(size: newValue, at: videoIndex))
-                            }
+                                .onChange(of: geometry.size) { oldValue, newValue in
+                                    viewModel.send(.containerDidChangeSize(size: newValue, at: videoIndex))
+                                }
+                        }
                     }
-                }
-                .clipped() // 이미지 영역을 벗어나지 않도록
+                    .clipped() // 이미지 영역을 벗어나지 않도록
+            }
         }
     }
     
