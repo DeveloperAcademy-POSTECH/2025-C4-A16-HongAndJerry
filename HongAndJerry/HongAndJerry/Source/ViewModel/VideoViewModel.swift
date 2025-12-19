@@ -14,6 +14,7 @@ final class VideoViewModel {
     var segments: [VideoSegment] = []
     private var playerItem: AVPlayerItem?
     var isLoading: Bool = true
+    var isTrimming: Bool = false
     
     var draggingHandleType: HandleType = .none
     var handleDragTranslation: CGFloat = .zero
@@ -211,5 +212,22 @@ final class VideoViewModel {
         } else {
             return nil
         }
+    }
+    
+    func activateTrimming(segmentID: UUID) async{
+        selectedSegmentID = segmentID
+        isTrimming = true
+        
+        if let segment = segments.first(where: { $0.id == segmentID }) {
+            let singlePlayerItem = AVPlayerItem(asset: segment.source.asset)
+            playerController.replaceCurrentItem(with: singlePlayerItem)
+        }
+    }
+    
+    func confirmTrimming() async {
+        await onHandleDragEnd()
+        isTrimming = false
+        
+        await rebuildPlayerItem()
     }
 }
