@@ -16,7 +16,6 @@ struct VideoTrackView: View {
     var body: some View {
         ZStack(alignment: .leading) {
             ThumbnailView(segment: segment)
-            HandlesView(segment: segment)
         }
         .frame(
             width: EditConstants.convertTimeToOffset(segment.source.duration),
@@ -24,7 +23,7 @@ struct VideoTrackView: View {
         )
         .clipped()
         .onTapGesture {
-            viewModel.selectSegment(segment.id)
+            awiat viewModel.activateTrimming(segmentID: segment.id)
         }
         .background(Color.black)
         .contentShape(Rectangle())

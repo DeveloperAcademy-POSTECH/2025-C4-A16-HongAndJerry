@@ -83,17 +83,17 @@ final class VideoViewModel {
         scrollOffset = offset - (screenWidth / 2)
     }
     
-    func selectSegment(_ segmentID: UUID) {
-        selectedSegmentID = segmentID
-        guard let offsets = segmentHandleOffsets[segmentID] else {
-            initialLeftHandleOffset = 0
-            initialRightHandleOffset = 0
-            return
-        }
-        
-        initialLeftHandleOffset = offsets.left
-        initialRightHandleOffset = offsets.right
-    }
+//    func selectSegment(_ segmentID: UUID) {
+//        selectedSegmentID = segmentID
+//        guard let offsets = segmentHandleOffsets[segmentID] else {
+//            initialLeftHandleOffset = 0
+//            initialRightHandleOffset = 0
+//            return
+//        }
+//        
+//        initialLeftHandleOffset = offsets.left
+//        initialRightHandleOffset = offsets.right
+//    }
     
     private func setHandleOffsets() {
         for segment in segments {
