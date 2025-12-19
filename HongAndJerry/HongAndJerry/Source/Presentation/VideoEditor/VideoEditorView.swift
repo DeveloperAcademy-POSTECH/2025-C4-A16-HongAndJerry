@@ -16,11 +16,7 @@ struct VideoEditorView: View {
     @Namespace private var videoAnimation
 
     init(segments: [VideoSegment]) {
-        if segments.isEmpty {
-            _viewModel = State(initialValue: VideoViewModel())
-        } else {
-            _viewModel = State(initialValue: VideoViewModel(segments: segments))
-        }
+        _viewModel = State(initialValue: VideoViewModel(segments: segments))
     }
 
     var body: some View {

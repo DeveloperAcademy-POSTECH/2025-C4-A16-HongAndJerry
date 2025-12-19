@@ -13,6 +13,7 @@ import Observation
 final class VideoViewModel {
     var segments: [VideoSegment] = []
     private var playerItem: AVPlayerItem?
+    var isLoading: Bool = true
     
     var draggingHandleType: HandleType = .none
     var handleDragTranslation: CGFloat = .zero
@@ -33,31 +34,28 @@ final class VideoViewModel {
     
     private let compositionBuilder = CompositionBuilder()
     
-    /// TODO: 테스트 용도, 추후 삭제
-    init() {
-        Task {
-            await self.loadInitialSegments()
-            setHandleOffsets()
-            if let firstSegment = segments.first {
-                selectSegment(firstSegment.id)
-            }
-            await rebuildPlayerItem()
-        }
-    }
-    
     init(segments: [VideoSegment]) {
         Task {
             self.segments = segments
-            setHandleOffsets()
-            if let firstSegment = segments.first {
-                selectSegment(firstSegment.id)
-            }
-            await rebuildPlayerItem()
+            await initializePlayer()
         }
     }
     
-    private func loadInitialSegments() async {
-        self.segments = await VideoSegment.mockList()
+    private func initializePlayer() async {
+        isLoading = true
+        
+        guard !segments.isEmpty else {
+            isLoading = false
+            return
+        }
+        
+        setHandleOffsets()
+        if let firstSegment = segments.first {
+            selectSegment(firstSegment.id)
+        }
+        
+        await rebuildPlayerItem()
+        isLoading = false
     }
     
     private func rebuildPlayerItem() async {
