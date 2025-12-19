@@ -30,27 +30,16 @@ struct CropBox: View {
             .onChanged { gesture in
                 if initialRect == nil {
                     initialRect = rect
-                    draggedCorner = closestCorner(point: gesture.startLocation, rect: rect)
                 }
 
-                if let draggedCorner {
-                    self.rect = dragResize(
-                        initialRect: initialRect!,
-                        draggedCorner: draggedCorner,
-                        frameSize: frameSize,
-                        translation: gesture.translation
-                    )
-                } else {
-                    self.rect = drag(
-                        initialRect: initialRect!,
-                        frameSize: frameSize,
-                        translation: gesture.translation
-                    )
-                }
+                self.rect = drag(
+                    initialRect: initialRect!,
+                    frameSize: frameSize,
+                    translation: gesture.translation
+                )
             }
             .onEnded { gesture in
                 initialRect = nil
-                draggedCorner = nil
             }
     }
     
@@ -83,7 +72,6 @@ struct CropBox: View {
     private var box: some View {
         ZStack {
             grid
-            pins
         }
         .border(Color.accent, width: 1)
         .background(Color.white.opacity(0.001))
