@@ -24,6 +24,9 @@ final class VideoViewModel {
     
     var isFullScreen: Bool = false
     
+    var isDraggingPlayhead: Bool = false
+    var playheadDragTranslation: CGFloat = 0
+    
     var segmentHandleOffsets: [UUID: (left: CGFloat, right: CGFloat)] = [:]
     
     private var initialLeftHandleOffset: CGFloat = 0
@@ -51,6 +54,7 @@ final class VideoViewModel {
         }
         
         setHandleOffsets()
+        
         if let firstSegment = segments.first {
             selectSegment(firstSegment.id)
         }
@@ -83,17 +87,17 @@ final class VideoViewModel {
         scrollOffset = offset - (screenWidth / 2)
     }
     
-//    func selectSegment(_ segmentID: UUID) {
-//        selectedSegmentID = segmentID
-//        guard let offsets = segmentHandleOffsets[segmentID] else {
-//            initialLeftHandleOffset = 0
-//            initialRightHandleOffset = 0
-//            return
-//        }
-//        
-//        initialLeftHandleOffset = offsets.left
-//        initialRightHandleOffset = offsets.right
-//    }
+    func selectSegment(_ segmentID: UUID) {
+        selectedSegmentID = segmentID
+        guard let offsets = segmentHandleOffsets[segmentID] else {
+            initialLeftHandleOffset = 0
+            initialRightHandleOffset = 0
+            return
+        }
+        
+        initialLeftHandleOffset = offsets.left
+        initialRightHandleOffset = offsets.right
+    }
     
     private func setHandleOffsets() {
         for segment in segments {
@@ -214,7 +218,7 @@ final class VideoViewModel {
         }
     }
     
-    func activateTrimming(segmentID: UUID) async{
+    func activateTrimming(segmentID: UUID) async {
         selectedSegmentID = segmentID
         isTrimming = true
         
@@ -229,5 +233,33 @@ final class VideoViewModel {
         isTrimming = false
         
         await rebuildPlayerItem()
+    }
+    
+    func onPlayheadDrag(translation: CGFloat, trackWidth: CGFloat) {
+        isDraggingPlayhead = true
+        playheadDragTranslation = translation
+        
+        guard let selectedID = selectedSegmentID,
+              let segment = segments.first(where: { $0.id == selectedID }) else {
+            return
+        }
+        
+        // 현재 재생 위치를 기준으로 새로운 시간 계산
+        let currentOffset = (playerController.currentTime.seconds / segment.source.duration.seconds) * trackWidth
+        let newOffset = currentOffset + translation
+        
+        // offset을 시간으로 변환
+        let newTime = (newOffset / trackWidth) * segment.source.duration.seconds
+        
+        // 트리밍된 범위 내로 제한
+        let clampedTime = max(segment.startTime.seconds, min(newTime, segment.endTime.seconds))
+        
+        // 플레이어 시간 업데이트
+        playerController.seek(to: CMTime(seconds: clampedTime, preferredTimescale: 600))
+    }
+
+    func onPlayheadDragEnd() {
+        isDraggingPlayhead = false
+        playheadDragTranslation = 0
     }
 }

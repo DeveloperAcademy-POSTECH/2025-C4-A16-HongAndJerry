@@ -34,62 +34,13 @@ extension PHImageManager {
         }
     }
     
-    func cropVideos(crops: [Crop]) async throws -> [(AVAsset, AVVideoComposition)] {
-        var array: [(AVAsset, AVVideoComposition)] = []
-        
-        for crop in crops {
-            let video  = try await self.requestAVAssetAsync(for: crop.video)        // AVAsset 타입의 비디오
-            let videoSize = try await getVideoSize(from: video)                     // 비디오의 실제 사이즈
-            let actualCropRect = self.convertThumbnailRectToVideoRect(thumbnailRect: crop.cropRect, thumbnailSize: crop.thumbnail.size, containerSize: crop.containerSize, videoSize: videoSize)                           // 실제 크롭 영역
-            
-            let composition = try await self.makeCroppedVideoComposition(crop: actualCropRect, asset: video)
-            array.append((video, composition))
-        }
-        return array
-    }
-    
-    func getVideoSize(from asset: AVAsset) async throws -> CGSize {
-        guard let track = try? await asset.loadTracks(withMediaType: .video).first else {
-            throw AssetError.assetNotFound
-        }
-        
-        let size = try await track.load(.naturalSize).applying(track.load(.preferredTransform))
-        
-        return CGSize(width: abs(size.width), height: abs(size.height))
-    }
-    
-    /// .aspectRatio(contentMode: .fit) 로 인해 생긴 레터박스를 계산하여,
-    /// 썸네일 이미지 뷰 안에 실제 썸네일이 그려지는 영역(CGRect)을 반환합니다.
-    private func calculateFittedRect(from containerSize: CGSize, imageSize: CGSize) -> CGRect {
-        let containerAspectRatio = containerSize.width / containerSize.height
-        let imageAspectRatio = imageSize.width / imageSize.height
-        
-        var finalSize: CGSize = .zero
-        var origin: CGPoint = .zero
-        
-        // 컨테이너가 이미지보다 넓은 경우 (세로에 맞춰짐, 좌우에 레터박스)
-        if containerAspectRatio > imageAspectRatio {
-            finalSize.height = containerSize.height
-            finalSize.width = imageSize.width * (containerSize.height / imageSize.height)
-            origin.x = (containerSize.width - finalSize.width) / 2
-            origin.y = 0
-        } else { // 컨테이너가 이미지보다 좁거나 같은 경우 (가로에 맞춰짐, 상하에 레터박스)
-            finalSize.width = containerSize.width
-            finalSize.height = imageSize.height * (containerSize.width / imageSize.width)
-            origin.x = 0
-            origin.y = (containerSize.height - finalSize.height) / 2
-        }
-        
-        return CGRect(origin: origin, size: finalSize)
-    }
-    
     func convertThumbnailRectToVideoRect(
         thumbnailRect: CGRect,
         thumbnailSize: CGSize,
         containerSize: CGSize,
         videoSize: CGSize
     ) -> CGRect {
-
+        
         // 1. .fit 모드에서 실제 썸네일 이미지가 표시되는 영역을 계산합니다. (레터박스 제외)
         let fittedRect = calculateFittedRect(from: containerSize, imageSize: thumbnailSize)
         
@@ -151,13 +102,21 @@ extension PHImageManager {
         return composition
     }
     
-    /// 크롭이 적용된 비디오를 실제로 렌더링해서 새로운 AVAsset으로 변환합니다.
     func exportCroppedVideos(crops: [Crop]) async throws -> [AVAsset] {
         var exportedAssets: [AVAsset] = []
         
+        let options = PHVideoRequestOptions()
+            options.isNetworkAccessAllowed = true
+            options.deliveryMode = .highQualityFormat
+        
         for (index, crop) in crops.enumerated() {
-            let originalAsset = try await self.requestAVAssetAsync(for: crop.video)
-            let videoSize = try await getVideoSize(from: originalAsset)
+            print("🎬 처리 시작 idx:\(index)")
+            
+            let originalAsset = try await self.requestAVAssetAsync(
+                for: crop.video,
+                options: options
+            )
+            let videoSize = try await self.getVideoSize(from: originalAsset)
             let actualCropRect = self.convertThumbnailRectToVideoRect(
                 thumbnailRect: crop.cropRect,
                 thumbnailSize: crop.thumbnail.size,
@@ -165,15 +124,57 @@ extension PHImageManager {
                 videoSize: videoSize
             )
             
-            // 크롭 composition 생성
-            let composition = try await self.makeCroppedVideoComposition(crop: actualCropRect, asset: originalAsset)
+            let composition = try await self.makeCroppedVideoComposition(
+                crop: actualCropRect,
+                asset: originalAsset
+            )
             
-            // 실제로 렌더링해서 새로운 asset 생성
-            let exportedAsset = try await exportToNewAsset(asset: originalAsset, composition: composition, index: index)
+            let exportedAsset = try await self.exportToNewAsset(
+                asset: originalAsset,
+                composition: composition,
+                index: index
+            )
+            
             exportedAssets.append(exportedAsset)
+            print("✅ 처리 완료 idx:\(index)")
         }
         
         return exportedAssets
+    }
+    
+    /// .aspectRatio(contentMode: .fit) 로 인해 생긴 레터박스를 계산하여,
+    /// 썸네일 이미지 뷰 안에 실제 썸네일이 그려지는 영역(CGRect)을 반환합니다.
+    private func calculateFittedRect(from containerSize: CGSize, imageSize: CGSize) -> CGRect {
+        let containerAspectRatio = containerSize.width / containerSize.height
+        let imageAspectRatio = imageSize.width / imageSize.height
+        
+        var finalSize: CGSize = .zero
+        var origin: CGPoint = .zero
+        
+        // 컨테이너가 이미지보다 넓은 경우 (세로에 맞춰짐, 좌우에 레터박스)
+        if containerAspectRatio > imageAspectRatio {
+            finalSize.height = containerSize.height
+            finalSize.width = imageSize.width * (containerSize.height / imageSize.height)
+            origin.x = (containerSize.width - finalSize.width) / 2
+            origin.y = 0
+        } else { // 컨테이너가 이미지보다 좁거나 같은 경우 (가로에 맞춰짐, 상하에 레터박스)
+            finalSize.width = containerSize.width
+            finalSize.height = imageSize.height * (containerSize.width / imageSize.width)
+            origin.x = 0
+            origin.y = (containerSize.height - finalSize.height) / 2
+        }
+        
+        return CGRect(origin: origin, size: finalSize)
+    }
+    
+    private func getVideoSize(from asset: AVAsset) async throws -> CGSize {
+        guard let track = try? await asset.loadTracks(withMediaType: .video).first else {
+            throw AssetError.assetNotFound
+        }
+        
+        let size = try await track.load(.naturalSize).applying(track.load(.preferredTransform))
+        
+        return CGSize(width: abs(size.width), height: abs(size.height))
     }
     
     /// AVAsset과 composition을 실제로 렌더링해서 새로운 파일로 저장합니다.
@@ -181,24 +182,23 @@ extension PHImageManager {
         // 임시 파일 경로 생성
         let tempDirectory = FileManager.default.temporaryDirectory
         let outputURL = tempDirectory.appendingPathComponent("croppedVideo_\(index)_\(UUID().uuidString).mov")
-        
         // 기존 파일이 있다면 삭제
         if FileManager.default.fileExists(atPath: outputURL.path) {
             try FileManager.default.removeItem(at: outputURL)
         }
-        
         // Export session 생성
-        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {
+        guard let exportSession = AVAssetExportSession(
+            asset: asset,
+            presetName: AVAssetExportPresetHighestQuality
+        ) else {
             throw AssetError.assetNotFound
         }
-        
-        // Export 설정
-        exportSession.outputURL = outputURL
-        exportSession.outputFileType = .mov
         exportSession.videoComposition = composition
         
-        // Export 실행
-        await exportSession.export()
+        try await exportSession.export(
+            to: outputURL,
+            as: .mov
+        )
         
         // 에러 체크
         if let error = exportSession.error {
@@ -211,7 +211,5 @@ extension PHImageManager {
         
         // 새로운 AVAsset 생성
         return AVURLAsset(url: outputURL)
-        
-        
     }
 }

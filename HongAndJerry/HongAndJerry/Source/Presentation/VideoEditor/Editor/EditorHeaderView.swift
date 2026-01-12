@@ -8,8 +8,6 @@
 import SwiftUI
 import AVFoundation
 
-/// 에디터 화면 상단에 표시될 헤더 뷰입니다.
-/// 뒤로가기 버튼과 내보내기 버튼을 포함합니다.
 struct EditorHeaderView: View {
     @EnvironmentObject var router: Router
     
@@ -28,10 +26,31 @@ struct EditorHeaderView: View {
 
             Spacer()
             
-            ExportButton(video: videoAsset, composition: videoComposition)
+            exportButton(video: videoAsset, composition: videoComposition)
         }
         .padding(.leading, 8)
         .padding(.trailing, 28)
         .padding(.vertical, 16)
+    }
+    
+    func exportButton(
+        video: AVAsset?,
+        composition: AVVideoComposition?
+    ) -> some View {
+        Button {
+            MediaPermissionUtils.requestPermission { permission in
+                if permission == false {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }
+            }
+            
+            router.push(screen: .exportView(video, composition))
+        } label: {
+            Text(ExportNameSpace.ExportView.export)
+                .font(.SUITHeader)
+                .foregroundStyle(.accent)
+        }
     }
 }

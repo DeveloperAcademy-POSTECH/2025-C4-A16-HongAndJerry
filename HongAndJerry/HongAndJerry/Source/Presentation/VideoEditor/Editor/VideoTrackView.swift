@@ -23,7 +23,9 @@ struct VideoTrackView: View {
         )
         .clipped()
         .onTapGesture {
-            awiat viewModel.activateTrimming(segmentID: segment.id)
+            Task {
+                await viewModel.activateTrimming(segmentID: segment.id)
+            }
         }
         .background(Color.black)
         .contentShape(Rectangle())

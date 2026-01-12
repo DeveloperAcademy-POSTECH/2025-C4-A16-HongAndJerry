@@ -34,6 +34,10 @@ class VideoSegment: Identifiable {
     /// 현재 세그먼트의 오디오 on/off 상태를 나타냅니다.
     var isMuted: Bool
     
+    var endTime: CMTime {
+        startTime + trimmedDuration
+    }
+    
     init(source: VideoSource) {
         self.source = source
         self.startTime = .zero

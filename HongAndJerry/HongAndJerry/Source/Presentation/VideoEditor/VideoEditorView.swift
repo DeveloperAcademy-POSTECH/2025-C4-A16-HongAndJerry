@@ -33,5 +33,16 @@ struct VideoEditorView: View {
 }
 
 #Preview {
-    VideoEditorView(segments: [])
+    @Previewable @State var segments: [VideoSegment] = []
+
+    Group {
+        if segments.isEmpty {
+            ProgressView("Mock 데이터 로딩 중...")
+        } else {
+            VideoEditorView(segments: segments)
+        }
+    }
+    .task {
+        segments = await VideoSegment.mockList()
+    }
 }

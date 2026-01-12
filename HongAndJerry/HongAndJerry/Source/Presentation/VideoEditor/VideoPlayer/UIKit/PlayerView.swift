@@ -10,7 +10,6 @@ import AVFoundation
 import Foundation
 
 struct PlayerView: UIViewRepresentable {
-    
     let player: AVPlayer
     
     func makeUIView(context: Context) -> PlayerUIView {

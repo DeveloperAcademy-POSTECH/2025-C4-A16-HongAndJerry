@@ -20,7 +20,6 @@ struct CropView: View {
     
     var body: some View {
         ZStack {
-            // soop TODO: 다들 배경 어떻게 하나 물어보고 변경하깅~
             Color.background.ignoresSafeArea()
             VStack {
                 Group {
@@ -58,24 +57,8 @@ struct CropView: View {
             .indexViewStyle(.page(backgroundDisplayMode: .never))
             .tabViewStyle(.page(indexDisplayMode: .never))    // 탭뷰 좌우 스크롤 설정
             
-//            HStack {
-//                if viewModel.currentIndex > 0 {
-//                    previousButton
-//                }
-//                
-//                Spacer()
-//                
-                pageIndicator
+            pageIndicator
                 .padding(.vertical, 8)
-//
-//                Spacer()
-//                
-//                if viewModel.currentIndex < 2 {
-//                    nextButton
-//                }
-//            }
-//            .padding(.vertical, 16)
-//            .padding(.horizontal, 16)
             
             CtaButton(buttonType: .next, isDisabled: .constant(viewModel.currentIndex != 2)) {
                 Task {

@@ -59,12 +59,11 @@ struct EditorTimelineView: View {
                     }
                 }
                 
-                // 오른쪽 Spacer: 마지막 부분이 중앙에 올 수 있도록 스크롤 여유 공간을 확보합니다.
                 Spacer().frame(width: halfViewWidth)
             }
             .offset(x: currentOffset)
             .onChange(of: viewModel.playerController.currentTime) {
-                // 사용자가 드래그하고 있지 않을 때만, 재생 시간에 맞춰 타임라인을 자동으로 스크롤합니다.
+                // 사용자가 드래그하고 있지 않을 때만, 재생 시간에 맞춰 타임라인을 자동으로 스크롤
                 if !isTimelineDragging && viewModel.playerController.isPlaying {
                     self.currentOffset = -(viewModel.playerController.currentTime.seconds * EditConstants.pixelsPerSecond)                }
             }
@@ -84,7 +83,6 @@ struct EditorTimelineView: View {
                         lastDragTranslation = 0 // 새 드래그 시작 시 초기화
                     }
                     
-                    // 방향 감지 (사용자 제안 방식)
                     let currentTranslation = value.translation.width
                     let delta = currentTranslation - lastDragTranslation
                     
