@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		218DBEC22F2109E40020B5DA /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 218DBEC12F2109E40020B5DA /* SnapKit */; };
+		218DBEC72F210EAC0020B5DA /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 218DBEC62F210EAC0020B5DA /* Then */; };
 		F1CE62502E39E8270092E16C /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = F1CE624F2E39E8270092E16C /* Lottie */; };
 /* End PBXBuildFile section */
 
@@ -41,6 +43,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				F1CE62502E39E8270092E16C /* Lottie in Frameworks */,
+				218DBEC72F210EAC0020B5DA /* Then in Frameworks */,
+				218DBEC22F2109E40020B5DA /* SnapKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -92,6 +96,8 @@
 			name = HongAndJerry;
 			packageProductDependencies = (
 				F1CE624F2E39E8270092E16C /* Lottie */,
+				218DBEC12F2109E40020B5DA /* SnapKit */,
+				218DBEC62F210EAC0020B5DA /* Then */,
 			);
 			productName = HongAndJerry;
 			productReference = 217467852E1CED01008E0045 /* HongAndJerry.app */;
@@ -123,6 +129,8 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				F1CE624E2E39E8270092E16C /* XCRemoteSwiftPackageReference "lottie-ios" */,
+				218DBEC02F2109E40020B5DA /* XCRemoteSwiftPackageReference "SnapKit" */,
+				218DBEC52F210EAC0020B5DA /* XCRemoteSwiftPackageReference "Then" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 217467862E1CED01008E0045 /* Products */;
@@ -368,6 +376,22 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		218DBEC02F2109E40020B5DA /* XCRemoteSwiftPackageReference "SnapKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SnapKit/SnapKit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.7.1;
+			};
+		};
+		218DBEC52F210EAC0020B5DA /* XCRemoteSwiftPackageReference "Then" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/devxoul/Then";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
 		F1CE624E2E39E8270092E16C /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/airbnb/lottie-ios";
@@ -379,6 +403,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		218DBEC12F2109E40020B5DA /* SnapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 218DBEC02F2109E40020B5DA /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = SnapKit;
+		};
+		218DBEC62F210EAC0020B5DA /* Then */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 218DBEC52F210EAC0020B5DA /* XCRemoteSwiftPackageReference "Then" */;
+			productName = Then;
+		};
 		F1CE624F2E39E8270092E16C /* Lottie */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = F1CE624E2E39E8270092E16C /* XCRemoteSwiftPackageReference "lottie-ios" */;
