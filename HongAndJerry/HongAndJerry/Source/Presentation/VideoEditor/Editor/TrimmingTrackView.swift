@@ -5,115 +5,127 @@
 //  Created by Rama on 12/20/25.
 //
 
-//
-//  TrimmingTrackView.swift
-//  HongAndJerry
-//
-
 import AVFoundation
 import SwiftUI
 import UIKit
 
+import SnapKit
+import Then
+
 // MARK: - Constants
 enum TrimmingConstants {
-    static let confirmButtonWidth: CGFloat = 40
+    static let confirmButtonWidth: CGFloat = 45
     static let trackHeight: CGFloat = 60
     static let handleWidth: CGFloat = 20
     static let borderWidth: CGFloat = 4
     static let cornerRadius: CGFloat = 8
     static let minTrimDuration: Double = 0.5
-    static let handleColor = UIColor(red: 1.0, green: 0.8, blue: 0.2, alpha: 1.0)
+    static let handleColor = UIColor.accent
 }
 
-// MARK: - TrimmingTrackView
 final class TrimmingTrackView: UIView {
     
-    // MARK: - Callbacks
-    var onTrimChanged: ((Double, Double) -> Void)?
+    var onTrimStarted: ((HandlesView.HandleType) -> Void)?
+    var onTrimChanged: ((Double, Double, HandlesView.HandleType) -> Void)?
+    var onTrimEnded: (() -> Void)?
     var onTrimConfirmed: (() -> Void)?
     
-    // MARK: - Data
     private var segment: VideoSegment?
     private var totalDuration: Double = 1.0
     
-    // MARK: - State
     private var trimStartRatio: CGFloat = 0.0
     private var trimEndRatio: CGFloat = 1.0
     
-    // MARK: - Drag State
     private var dragStartRatio: CGFloat = 0.0
     private var dragStartX: CGFloat = 0.0
     
-    // MARK: - UI Components
     private let confirmButton = UIButton(type: .system)
     private let thumbnailContainerView = UIView()
+    private let containerBackgroundView = UIView()
     private let thumbnailStackView = UIStackView()
     private let leftMaskView = UIView()
     private let rightMaskView = UIView()
     private let trimFrameView = UIView()
-    private let leftHandleView = HandleView(type: .left)
-    private let rightHandleView = HandleView(type: .right)
+    private let leftHandleView = HandlesView(type: .left)
+    private let rightHandleView = HandlesView(type: .right)
     private let topBorderView = UIView()
     private let bottomBorderView = UIView()
-    
-    // MARK: - Computed Properties
-    private var thumbnailWidth: CGFloat {
-        bounds.width - TrimmingConstants.confirmButtonWidth - TrimmingConstants.handleWidth * 2
-    }
     
     private var minTrimRatio: CGFloat {
         CGFloat(TrimmingConstants.minTrimDuration / totalDuration)
     }
     
-    // MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
+
         setStyle()
         setUI()
+        setLayout()
         setGestures()
     }
-    
+
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        
+
         setStyle()
         setUI()
+        setLayout()
         setGestures()
     }
-    
-    // MARK: - Layout
+
     override func layoutSubviews() {
         super.layoutSubviews()
-        setLayout()
+        updateTrimFrame()
     }
     
-    // MARK: - Setup Style
     private func setStyle() {
-        backgroundColor = .black
+        confirmButton.do {
+            $0.setImage(UIImage(systemName: "checkmark"), for: .normal)
+            $0.tintColor = .white
+            $0.addTarget(self, action: #selector(confirmTapped), for: .touchUpInside)
+        }
+
+        thumbnailContainerView.do {
+            $0.clipsToBounds = true
+            $0.backgroundColor = .blue
+        }
         
-        confirmButton.setImage(UIImage(systemName: "checkmark"), for: .normal)
-        confirmButton.tintColor = .white
-        confirmButton.addTarget(self, action: #selector(confirmTapped), for: .touchUpInside)
+        containerBackgroundView.do {
+            $0.backgroundColor = .inactive
+            $0.clipsToBounds = true
+            $0.layer.cornerRadius = 8.0
+        }
+
+        thumbnailStackView.do {
+            $0.axis = .horizontal
+            $0.distribution = .fillEqually
+            $0.spacing = 0
+        }
         
-        thumbnailContainerView.clipsToBounds = true
-        
-        thumbnailStackView.axis = .horizontal
-        thumbnailStackView.distribution = .fillEqually
-        thumbnailStackView.spacing = 0
-        
-        leftMaskView.backgroundColor = UIColor.black.withAlphaComponent(0.6)
-        rightMaskView.backgroundColor = UIColor.black.withAlphaComponent(0.6)
-        
-        trimFrameView.backgroundColor = .clear
-        
-        topBorderView.backgroundColor = TrimmingConstants.handleColor
-        bottomBorderView.backgroundColor = TrimmingConstants.handleColor
+        trimFrameView.do {
+            $0.backgroundColor = .clear
+        }
+
+        leftMaskView.do {
+            $0.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+        }
+
+        rightMaskView.do {
+            $0.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+        }
+
+        topBorderView.do {
+            $0.backgroundColor = TrimmingConstants.handleColor
+        }
+
+        bottomBorderView.do {
+            $0.backgroundColor = TrimmingConstants.handleColor
+        }
     }
     
-    // MARK: - Setup UI
     private func setUI() {
         addSubview(confirmButton)
+        addSubview(containerBackgroundView)
         addSubview(thumbnailContainerView)
         addSubview(trimFrameView)
         
@@ -127,172 +139,155 @@ final class TrimmingTrackView: UIView {
         trimFrameView.addSubview(bottomBorderView)
     }
     
-    // MARK: - Setup Layout
     private func setLayout() {
-        let height = bounds.height
+        confirmButton.snp.makeConstraints {
+            $0.leading.top.bottom.equalToSuperview()
+            $0.width.equalTo(TrimmingConstants.confirmButtonWidth)
+        }
         
-        // Confirm Button
-        confirmButton.frame = CGRect(
-            x: 0,
-            y: 0,
-            width: TrimmingConstants.confirmButtonWidth,
-            height: height
-        )
-        
-        // Thumbnail Container
-        thumbnailContainerView.frame = CGRect(
-            x: TrimmingConstants.confirmButtonWidth + TrimmingConstants.handleWidth,
-            y: TrimmingConstants.borderWidth,
-            width: thumbnailWidth,
-            height: height - TrimmingConstants.borderWidth * 2
-        )
-        
-        // Thumbnail Stack
-        thumbnailStackView.frame = thumbnailContainerView.bounds
-        
-        // Trim Frame
+        containerBackgroundView.snp.makeConstraints {
+            $0.leading.equalTo(confirmButton.snp.trailing)
+            $0.trailing.equalToSuperview()
+            $0.top.bottom.equalToSuperview()
+        }
+
+        thumbnailContainerView.snp.makeConstraints {
+            $0.leading.equalTo(confirmButton.snp.trailing).offset(TrimmingConstants.handleWidth)
+            $0.trailing.equalToSuperview().offset(-TrimmingConstants.handleWidth)
+            $0.top.equalToSuperview().offset(TrimmingConstants.borderWidth)
+            $0.bottom.equalToSuperview().offset(-TrimmingConstants.borderWidth)
+        }
+
+        thumbnailStackView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+
         updateTrimFrame()
     }
     
-    // MARK: - Setup Gestures
     private func setGestures() {
-        let leftPan = UIPanGestureRecognizer(
+        let leftDrag = UIPanGestureRecognizer(
             target: self,
-            action: #selector(handleLeftPan(_:))
+            action: #selector(handleLeftDrag(_:))
         )
-        leftHandleView.addGestureRecognizer(leftPan)
-        
-        let rightPan = UIPanGestureRecognizer(
+        leftHandleView.addGestureRecognizer(leftDrag)
+
+        let rightDrag = UIPanGestureRecognizer(
             target: self,
-            action: #selector(handleRightPan(_:))
+            action: #selector(handleRightDrag(_:))
         )
-        rightHandleView.addGestureRecognizer(rightPan)
+        rightHandleView.addGestureRecognizer(rightDrag)
     }
     
-    // MARK: - Update Trim Frame
     private func updateTrimFrame() {
-        let startX = TrimmingConstants.confirmButtonWidth + trimStartRatio * thumbnailWidth
-        let endX = TrimmingConstants.confirmButtonWidth + trimEndRatio * thumbnailWidth + TrimmingConstants.handleWidth * 2
+        let containerWidth = thumbnailContainerView.bounds.width
+        let startX = TrimmingConstants.confirmButtonWidth + trimStartRatio * containerWidth
+        let endX = TrimmingConstants.confirmButtonWidth + trimEndRatio * containerWidth + TrimmingConstants.handleWidth * 2
         let frameWidth = endX - startX
-        let height = bounds.height
-        
-        // Trim Frame
-        trimFrameView.frame = CGRect(
-            x: startX,
-            y: 0,
-            width: frameWidth,
-            height: height
-        )
-        
-        // Left Handle
-        leftHandleView.frame = CGRect(
-            x: 0,
-            y: 0,
-            width: TrimmingConstants.handleWidth,
-            height: height
-        )
-        
-        // Right Handle
-        rightHandleView.frame = CGRect(
-            x: frameWidth - TrimmingConstants.handleWidth,
-            y: 0,
-            width: TrimmingConstants.handleWidth,
-            height: height
-        )
-        
-        // Borders
-        let borderX = TrimmingConstants.handleWidth
-        let innerWidth = frameWidth - TrimmingConstants.handleWidth * 2
-        
-        topBorderView.frame = CGRect(
-            x: borderX,
-            y: 0,
-            width: innerWidth,
-            height: TrimmingConstants.borderWidth
-        )
-        
-        bottomBorderView.frame = CGRect(
-            x: borderX,
-            y: height - TrimmingConstants.borderWidth,
-            width: innerWidth,
-            height: TrimmingConstants.borderWidth
-        )
-        
-        // Masks
-        let maskHeight = thumbnailContainerView.bounds.height
-        
-        leftMaskView.frame = CGRect(
-            x: 0,
-            y: 0,
-            width: trimStartRatio * thumbnailWidth,
-            height: maskHeight
-        )
-        
-        rightMaskView.frame = CGRect(
-            x: trimEndRatio * thumbnailWidth,
-            y: 0,
-            width: (1.0 - trimEndRatio) * thumbnailWidth,
-            height: maskHeight
-        )
+
+        trimFrameView.snp.remakeConstraints {
+            $0.leading.equalToSuperview().offset(startX)
+            $0.width.equalTo(frameWidth)
+            $0.top.bottom.equalToSuperview()
+        }
+
+        leftHandleView.snp.remakeConstraints {
+            $0.leading.top.bottom.equalToSuperview()
+            $0.width.equalTo(TrimmingConstants.handleWidth)
+        }
+
+        rightHandleView.snp.remakeConstraints {
+            $0.trailing.top.bottom.equalToSuperview()
+            $0.width.equalTo(TrimmingConstants.handleWidth)
+        }
+
+
+        topBorderView.snp.remakeConstraints {
+            $0.leading.equalTo(leftHandleView.snp.trailing)
+            $0.trailing.equalTo(rightHandleView.snp.leading)
+            $0.top.equalToSuperview()
+            $0.height.equalTo(TrimmingConstants.borderWidth)
+        }
+
+        bottomBorderView.snp.remakeConstraints {
+            $0.leading.equalTo(leftHandleView.snp.trailing)
+            $0.trailing.equalTo(rightHandleView.snp.leading)
+            $0.bottom.equalToSuperview()
+            $0.height.equalTo(TrimmingConstants.borderWidth)
+        }
+
+        leftMaskView.snp.remakeConstraints {
+            $0.leading.top.bottom.equalToSuperview()
+            $0.width.equalTo(trimStartRatio * containerWidth)
+        }
+
+        rightMaskView.snp.remakeConstraints {
+            $0.trailing.top.bottom.equalToSuperview()
+            $0.width.equalTo((1.0 - trimEndRatio) * containerWidth)
+        }
+
+        layoutIfNeeded()
     }
 }
 
-// MARK: - Gesture Handlers
 extension TrimmingTrackView {
-    
-    @objc private func handleLeftPan(_ gesture: UIPanGestureRecognizer) {
+    @objc private func handleLeftDrag(_ gesture: UIPanGestureRecognizer) {
         switch gesture.state {
         case .began:
+            onTrimStarted?(.left)
             dragStartRatio = trimStartRatio
             dragStartX = gesture.location(in: self).x
-            
+
         case .changed:
             let currentX = gesture.location(in: self).x
             let deltaX = currentX - dragStartX
-            let deltaRatio = deltaX / thumbnailWidth
-            
+            let containerWidth = thumbnailContainerView.bounds.width
+            let deltaRatio = deltaX / containerWidth
+
             var newRatio = dragStartRatio + deltaRatio
             newRatio = max(0, min(newRatio, trimEndRatio - minTrimRatio))
-            
+
             trimStartRatio = newRatio
             updateTrimFrame()
-            
+
             let startTime = Double(trimStartRatio) * totalDuration
             let endTime = Double(trimEndRatio) * totalDuration
-            onTrimChanged?(startTime, endTime)
-            
+            onTrimChanged?(startTime, endTime, .left)
+
         case .ended, .cancelled:
-            break
-            
+            onTrimEnded?()
+
         default:
             break
         }
     }
-    
-    @objc private func handleRightPan(_ gesture: UIPanGestureRecognizer) {
+
+    @objc private func handleRightDrag(_ gesture: UIPanGestureRecognizer) {
         switch gesture.state {
         case .began:
+            onTrimStarted?(.right)
             dragStartRatio = trimEndRatio
             dragStartX = gesture.location(in: self).x
-            
+
         case .changed:
             let currentX = gesture.location(in: self).x
             let deltaX = currentX - dragStartX
-            let deltaRatio = deltaX / thumbnailWidth
-            
+            let containerWidth = thumbnailContainerView.bounds.width
+            let deltaRatio = deltaX / containerWidth
+
             var newRatio = dragStartRatio + deltaRatio
             newRatio = max(trimStartRatio + minTrimRatio, min(newRatio, 1.0))
-            
+
             trimEndRatio = newRatio
             updateTrimFrame()
-            
+
             let startTime = Double(trimStartRatio) * totalDuration
             let endTime = Double(trimEndRatio) * totalDuration
-            onTrimChanged?(startTime, endTime)
-            
+            onTrimChanged?(startTime, endTime, .right)
+
         case .ended, .cancelled:
-            break
-            
+            onTrimEnded?()
+
         default:
             break
         }
@@ -303,9 +298,7 @@ extension TrimmingTrackView {
     }
 }
 
-// MARK: - Public Methods
 extension TrimmingTrackView {
-    
     func configure(with segment: VideoSegment) {
         self.segment = segment
         self.totalDuration = segment.source.duration.seconds
@@ -329,86 +322,22 @@ extension TrimmingTrackView {
     }
 }
 
-// MARK: - HandleView
-final class HandleView: UIView {
-    
-    // MARK: - Types
-    enum HandleType {
-        case left
-        case right
-    }
-    
-    // MARK: - Properties
-    private let type: HandleType
-    private let chevronImageView = UIImageView()
-    
-    // MARK: - Init
-    init(type: HandleType) {
-        self.type = type
-        super.init(frame: .zero)
-        
-        setStyle()
-        setUI()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    // MARK: - Layout
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        setLayout()
-    }
-    
-    // MARK: - Setup Style
-    private func setStyle() {
-        backgroundColor = TrimmingConstants.handleColor
-        isUserInteractionEnabled = true
-        
-        layer.maskedCorners = type == .left
-            ? [.layerMinXMinYCorner, .layerMinXMaxYCorner]
-            : [.layerMaxXMinYCorner, .layerMaxXMaxYCorner]
-        layer.cornerRadius = TrimmingConstants.cornerRadius
-        
-        let imageName = type == .left ? "chevron.left" : "chevron.right"
-        chevronImageView.image = UIImage(systemName: imageName)?
-            .withConfiguration(UIImage.SymbolConfiguration(weight: .black))
-        chevronImageView.tintColor = .black
-        chevronImageView.contentMode = .scaleAspectFit
-    }
-    
-    // MARK: - Setup UI
-    private func setUI() {
-        addSubview(chevronImageView)
-    }
-    
-    // MARK: - Setup Layout
-    private func setLayout() {
-        let chevronSize: CGFloat = 12
-        chevronImageView.frame = CGRect(
-            x: (bounds.width - chevronSize) / 2,
-            y: (bounds.height - chevronSize) / 2,
-            width: chevronSize,
-            height: chevronSize
-        )
-    }
-}
-
-// MARK: - UIViewRepresentable Wrapper
 struct TrimmingTrackViewRepresentable: UIViewRepresentable {
-    
     let segment: VideoSegment?
-    let onTrimChanged: (Double, Double) -> Void
+    let onTrimStarted: (HandlesView.HandleType) -> Void
+    let onTrimChanged: (Double, Double, HandlesView.HandleType) -> Void
+    let onTrimEnded: () -> Void
     let onTrimConfirmed: () -> Void
-    
+
     func makeUIView(context: Context) -> TrimmingTrackView {
         let view = TrimmingTrackView()
+        view.onTrimStarted = onTrimStarted
         view.onTrimChanged = onTrimChanged
+        view.onTrimEnded = onTrimEnded
         view.onTrimConfirmed = onTrimConfirmed
         return view
     }
-    
+
     func updateUIView(_ uiView: TrimmingTrackView, context: Context) {
         if let segment = segment {
             uiView.configure(with: segment)
