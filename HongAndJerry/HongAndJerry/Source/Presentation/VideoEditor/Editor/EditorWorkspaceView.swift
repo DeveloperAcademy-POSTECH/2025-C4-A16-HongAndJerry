@@ -5,12 +5,18 @@
 //  Created by Gemini on 7/19/25.
 //
 
+import AVKit
 import SwiftUI
 
 struct EditorWorkspaceView: View {
     @Environment(VideoViewModel.self) private var viewModel
     
     let namespace: Namespace.ID
+    
+    private var currentSegment: VideoSegment? {
+        guard let selectedID = viewModel.selectedSegmentID else { return nil }
+        return viewModel.segments.first(where: { $0.id == selectedID })
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -47,10 +53,26 @@ struct EditorWorkspaceView: View {
             }
             .frame(height: UIScreen.main.bounds.height / 3)
             
-            TrimmingTrackView()
-                .frame(height: 50)
+            TrimmingTrackViewRepresentable(
+                segment: currentSegment,
+                onTrimChanged: { startTime, endTime in
+                    Task {
+                        await viewModel.updateTrimRange(start: startTime, end: endTime)
+                    }
+                    
+                    viewModel.playerController.seek(
+                        to: CMTime(seconds: startTime, preferredTimescale: 600)
+                    )
+                },
+                onTrimConfirmed: {
+                    Task {
+                        await viewModel.confirmTrimming()
+                    }
+                }
+            )
+            .frame(height: 60)
+            .padding(.horizontal, 16)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.black)
     }
 }

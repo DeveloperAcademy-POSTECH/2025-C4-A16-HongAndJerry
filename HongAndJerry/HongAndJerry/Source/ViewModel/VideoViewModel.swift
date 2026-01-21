@@ -234,32 +234,21 @@ final class VideoViewModel {
         
         await rebuildPlayerItem()
     }
-    
-    func onPlayheadDrag(translation: CGFloat, trackWidth: CGFloat) {
-        isDraggingPlayhead = true
-        playheadDragTranslation = translation
-        
-        guard let selectedID = selectedSegmentID,
-              let segment = segments.first(where: { $0.id == selectedID }) else {
-            return
-        }
-        
-        // 현재 재생 위치를 기준으로 새로운 시간 계산
-        let currentOffset = (playerController.currentTime.seconds / segment.source.duration.seconds) * trackWidth
-        let newOffset = currentOffset + translation
-        
-        // offset을 시간으로 변환
-        let newTime = (newOffset / trackWidth) * segment.source.duration.seconds
-        
-        // 트리밍된 범위 내로 제한
-        let clampedTime = max(segment.startTime.seconds, min(newTime, segment.endTime.seconds))
-        
-        // 플레이어 시간 업데이트
-        playerController.seek(to: CMTime(seconds: clampedTime, preferredTimescale: 600))
-    }
 
     func onPlayheadDragEnd() {
         isDraggingPlayhead = false
         playheadDragTranslation = 0
+    }
+    
+    func updateTrimRange(start: Double, end: Double) async {
+        guard let selectedID = selectedSegmentID,
+              let index = segments.firstIndex(where: { $0.id == selectedID }) else { return }
+        
+        let segment = segments[index]
+        let clampedStart = max(0, min(start, end - TrimmingConstants.minTrimDuration))
+        let clampedEnd = max(clampedStart + TrimmingConstants.minTrimDuration, min(end, segment.source.duration.seconds))
+        
+        segments[index].startTime = CMTime(seconds: clampedStart, preferredTimescale: 600)
+        segments[index].trimmedDuration = CMTime(seconds: clampedEnd - clampedStart, preferredTimescale: 600)
     }
 }
