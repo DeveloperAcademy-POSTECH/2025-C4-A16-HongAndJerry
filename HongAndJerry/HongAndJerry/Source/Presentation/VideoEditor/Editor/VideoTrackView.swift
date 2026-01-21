@@ -23,6 +23,8 @@ struct VideoTrackView: View {
         )
         .clipped()
         .onTapGesture {
+            guard !viewModel.isTrimming else { return }
+            
             Task {
                 await viewModel.activateTrimming(segmentID: segment.id)
             }

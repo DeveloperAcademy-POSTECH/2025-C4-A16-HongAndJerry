@@ -1,23 +1,18 @@
 import SwiftUI
 import AVFoundation
 
-/// 타임라인 전체(눈금자, 비디오 트랙들)를 포함하고,
-/// 중앙 고정 플레이헤드 방식의 스크롤을 관리하는 컨테이너 뷰입니다.
 struct EditorTimelineView: View {
     @Environment(VideoViewModel.self) private var viewModel
     
-    // 제스처 상태 관리
     @State private var isTimelineDragging = false
     @State private var startDragOffset: CGFloat = 0
     @State private var currentOffset: CGFloat = 0
     @State private var dragDirection: DragDirection = .none
     @State private var lastDragTranslation: CGFloat = 0
     
-    // 햅틱 피드백 생성기 및 상태 변수 추가
     @State private var feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
     @State private var lastHapticSecond: Int = -1
     
-    // 수동 속도 계산을 위한 상태
     @State private var gestureVelocity: CGFloat = 0
     @State private var lastDragEvent: (time: Date, translation: CGSize)? = nil
 
@@ -62,10 +57,26 @@ struct EditorTimelineView: View {
                 Spacer().frame(width: halfViewWidth)
             }
             .offset(x: currentOffset)
+            .onReceive(
+                NotificationCenter.default.publisher(for: .timelineScrollToOffset)
+            ) { notification in
+                if let offset = notification.object as? CGFloat {
+                    self.currentOffset = clampOffset(offset)
+                }
+            }
             .onChange(of: viewModel.playerController.currentTime) {
-                // 사용자가 드래그하고 있지 않을 때만, 재생 시간에 맞춰 타임라인을 자동으로 스크롤
-                if !isTimelineDragging && viewModel.playerController.isPlaying {
-                    self.currentOffset = -(viewModel.playerController.currentTime.seconds * EditConstants.pixelsPerSecond)                }
+                if !isTimelineDragging {
+                    let isTrimmingRightHandle = viewModel.isTrimming && viewModel.trimmingHandleType == .right
+                    if isTrimmingRightHandle {
+                        if let selectedID = viewModel.selectedSegmentID,
+                           let segment = viewModel.segments.first(where: { $0.id == selectedID }) {
+                            let visualRightEnd = viewModel.playerController.currentTime.seconds - segment.startTime.seconds
+                            self.currentOffset = -(visualRightEnd * EditConstants.pixelsPerSecond)
+                        }
+                    } else if viewModel.playerController.isPlaying {
+                        self.currentOffset = -(viewModel.playerController.currentTime.seconds * EditConstants.pixelsPerSecond)
+                    }
+                }
             }
             .onAppear() {
                 viewModel.updateScreenWidth(geometry.size.width)
@@ -73,19 +84,18 @@ struct EditorTimelineView: View {
         }
         .contentShape(Rectangle())
         .gesture(
-            DragGesture()
+            DragGesture(minimumDistance: 0)
                 .onChanged { value in
-                    // 드래그 시작 처리
                     if !isTimelineDragging {
                         viewModel.playerController.pause()
                         isTimelineDragging = true
                         startDragOffset = currentOffset
-                        lastDragTranslation = 0 // 새 드래그 시작 시 초기화
+                        lastDragTranslation = 0
                     }
-                    
+
                     let currentTranslation = value.translation.width
                     let delta = currentTranslation - lastDragTranslation
-                    
+
                     if delta > 0 {
                         self.dragDirection = .backward
                     } else if delta < 0 {
@@ -93,38 +103,41 @@ struct EditorTimelineView: View {
                     } else {
                         self.dragDirection = .none
                     }
-                    
-                    // 다음 이벤트를 위해 현재 위치 저장
+
                     self.lastDragTranslation = currentTranslation
-                    
-                    // 오프셋 업데이트
+
                     let newOffset = startDragOffset + currentTranslation
                     updateOffset(newOffset, isDragging: true, direction: self.dragDirection)
                 }
                 .onEnded { value in
                     isTimelineDragging = false
                     lastHapticSecond = -1
-                    lastDragTranslation = 0 // 드래그 종료 시 초기화
-                    
+                    lastDragTranslation = 0
+
                     let clampedProjectedOffset = clampOffset(self.currentOffset)
-                    
+
                     seekToOffset(clampedProjectedOffset, direction: .none)
                 }
         )
         .clipped()
     }
     
-    /// 오프셋을 경계 내로 제한하는 함수
     private func clampOffset(_ offset: CGFloat) -> CGFloat {
-        let totalTimelineWidth = (viewModel.playerController.totalDuration.seconds * EditConstants.pixelsPerSecond)
-        
-        // 스크롤 가능한 최대/최소 오프셋을 계산합니다.
-        let minOffset = -totalTimelineWidth
         let maxOffset: CGFloat = 0
+        let minOffset: CGFloat
+
+        if let selectedID = viewModel.selectedSegmentID,
+           let segment = viewModel.segments.first(where: { $0.id == selectedID }) {
+            let trimmedWidth = segment.trimmedDuration.seconds * EditConstants.pixelsPerSecond
+            minOffset = -trimmedWidth
+        } else {
+            let totalTimelineWidth = viewModel.playerController.totalDuration.seconds * EditConstants.pixelsPerSecond
+            minOffset = -totalTimelineWidth
+        }
+
         return min(maxOffset, max(minOffset, offset))
     }
     
-    /// 오프셋을 업데이트하고, 필요한 경우 플레이어 시간을 업데이트하는 함수
     private func updateOffset(_ newOffset: CGFloat, isDragging: Bool, direction: DragDirection) {
         let clampedOffset = clampOffset(newOffset)
         self.currentOffset = clampedOffset
@@ -134,7 +147,6 @@ struct EditorTimelineView: View {
         }
     }
     
-    /// 주어진 오프셋에 해당하는 시간으로 플레이어를 이동시키는 함수
     private func seekToOffset(_ offset: CGFloat, direction: DragDirection) {
         let newTimeInSeconds = -offset / EditConstants.pixelsPerSecond
         let clampedTime = max(0, newTimeInSeconds)
@@ -147,4 +159,9 @@ struct EditorTimelineView: View {
         
         viewModel.playerController.seek(to: CMTime(seconds: clampedTime, preferredTimescale: 600), direction: direction)
     }
+}
+
+extension Notification.Name {
+    static let timelineScrollToOffset =
+        Notification.Name("timelineScrollToOffset")
 }

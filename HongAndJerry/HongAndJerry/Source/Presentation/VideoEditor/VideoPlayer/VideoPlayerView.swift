@@ -13,9 +13,6 @@ struct VideoPlayerView: View {
 
     var body: some View {
         PlayerView(player: playerController.player)
-            .aspectRatio(1080 / 1821, contentMode: .fit)
-            .background(Color.black)
+            .frame(maxWidth: .infinity)
     }
 }
-
-

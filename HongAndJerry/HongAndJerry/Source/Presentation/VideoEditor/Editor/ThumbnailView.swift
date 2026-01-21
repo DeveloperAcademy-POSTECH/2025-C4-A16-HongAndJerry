@@ -31,13 +31,13 @@ struct ThumbnailView: View {
         )
         .offset(x: -(segment.startTime.seconds * EditConstants.pixelsPerSecond))
         .mask(alignment: .leading) {
-            Rectangle()
+            RoundedRectangle(cornerRadius: 8)
                 .frame(width: EditConstants.convertTimeToOffset(segment.trimmedDuration))
         }
         .overlay(alignment: .leading) {
             if viewModel.selectedSegmentID == segment.id {
-                Rectangle()
-                    .stroke(.accent, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(.accent, lineWidth: 2)
                     .frame(width: EditConstants.convertTimeToOffset(segment.trimmedDuration))
             }
         }

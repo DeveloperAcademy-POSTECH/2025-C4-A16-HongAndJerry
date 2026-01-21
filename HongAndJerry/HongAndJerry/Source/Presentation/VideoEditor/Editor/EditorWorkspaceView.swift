@@ -27,9 +27,8 @@ struct EditorWorkspaceView: View {
             
             VideoPlayerView(playerController: viewModel.playerController)
                 .matchedGeometryEffect(id: "videoPlayer", in: namespace)
-                .padding(.top, 21)
+                .frame(maxWidth: .infinity)
                 .padding(.bottom, 8)
-                .padding(.horizontal, 80)
             
             PlaybackControlsView()
             
@@ -53,25 +52,43 @@ struct EditorWorkspaceView: View {
             }
             .frame(height: UIScreen.main.bounds.height / 3)
             
-            TrimmingTrackViewRepresentable(
-                segment: currentSegment,
-                onTrimChanged: { startTime, endTime in
-                    Task {
-                        await viewModel.updateTrimRange(start: startTime, end: endTime)
+            if viewModel.selectedSegmentID != nil {
+                TrimmingTrackViewRepresentable(
+                    segment: currentSegment,
+                    onTrimStarted: { handleType in
+                        viewModel.startTrimming(handleType: handleType)
+                        
+                        if let offset = viewModel.scrollOffsetForTrimStart() {
+                            NotificationCenter.default.post(
+                                name: .timelineScrollToOffset,
+                                object: offset
+                            )
+                        }
+                    },
+                    onTrimChanged: { startTime, endTime, handleType in
+                        Task {
+                            await viewModel.updateTrimRange(start: startTime, end: endTime)
+                        }
+
+                        let seekTime = handleType == .left ? startTime : endTime
+                        viewModel.playerController.seek(
+                            to: CMTime(seconds: seekTime, preferredTimescale: 600)
+                        )
+                    },
+                    onTrimEnded: {
+                        viewModel.endTrimming()
+                    },
+                    onTrimConfirmed: {
+                        Task {
+                            await viewModel.confirmTrimming()
+                        }
                     }
-                    
-                    viewModel.playerController.seek(
-                        to: CMTime(seconds: startTime, preferredTimescale: 600)
-                    )
-                },
-                onTrimConfirmed: {
-                    Task {
-                        await viewModel.confirmTrimming()
-                    }
-                }
-            )
-            .frame(height: 60)
-            .padding(.horizontal, 16)
+                )
+                .frame(height: 60)
+                .padding(.leading, 16)
+                .padding(.trailing, 20)
+            }
+
         }
         .background(Color.black)
     }
