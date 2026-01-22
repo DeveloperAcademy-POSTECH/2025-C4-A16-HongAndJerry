@@ -12,7 +12,7 @@ struct EditorTimelineView: View {
     
     @State private var feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
     @State private var lastHapticSecond: Int = -1
-    
+
     @State private var gestureVelocity: CGFloat = 0
     @State private var lastDragEvent: (time: Date, translation: CGSize)? = nil
 
@@ -64,8 +64,16 @@ struct EditorTimelineView: View {
                     self.currentOffset = clampOffset(offset)
                 }
             }
-            .onChange(of: viewModel.playerController.currentTime) {
+            .onChange(of: viewModel.playerController.isPlaying) { _, isPlaying in
+                if isPlaying && !isTimelineDragging {
+                    let currentSeconds = viewModel.playerController.player.currentTime().seconds
+                    self.currentOffset = -(currentSeconds * EditConstants.pixelsPerSecond)
+                }
+            }
+            .onChange(of: viewModel.playerController.currentTime) { oldValue, newValue in
                 if !isTimelineDragging {
+                    checkPlaybackEnd()
+
                     let isTrimmingRightHandle = viewModel.isTrimming && viewModel.trimmingHandleType == .right
                     if isTrimmingRightHandle {
                         if let selectedID = viewModel.selectedSegmentID,
@@ -74,7 +82,8 @@ struct EditorTimelineView: View {
                             self.currentOffset = -(visualRightEnd * EditConstants.pixelsPerSecond)
                         }
                     } else if viewModel.playerController.isPlaying {
-                        self.currentOffset = -(viewModel.playerController.currentTime.seconds * EditConstants.pixelsPerSecond)
+                        let newOffset = -(viewModel.playerController.currentTime.seconds * EditConstants.pixelsPerSecond)
+                        self.currentOffset = newOffset
                     }
                 }
             }
@@ -150,14 +159,35 @@ struct EditorTimelineView: View {
     private func seekToOffset(_ offset: CGFloat, direction: DragDirection) {
         let newTimeInSeconds = -offset / EditConstants.pixelsPerSecond
         let clampedTime = max(0, newTimeInSeconds)
-        
+
         let currentSecond = Int(clampedTime)
         if currentSecond != lastHapticSecond {
             feedbackGenerator.impactOccurred()
             lastHapticSecond = currentSecond
         }
-        
+
         viewModel.playerController.seek(to: CMTime(seconds: clampedTime, preferredTimescale: 600), direction: direction)
+    }
+
+    private func checkPlaybackEnd() {
+        guard viewModel.playerController.isPlaying else { return }
+
+        let currentSeconds = viewModel.playerController.currentTime.seconds
+        let threshold = 0.05
+
+        if let selectedID = viewModel.selectedSegmentID,
+           let segment = viewModel.segments.first(where: { $0.id == selectedID }) {
+            let endTime = segment.startTime.seconds + segment.trimmedDuration.seconds
+            if abs(currentSeconds - endTime) < threshold || currentSeconds >= endTime {
+                viewModel.playerController.pause()
+            }
+        }
+        else {
+            let totalDuration = viewModel.playerController.totalDuration.seconds
+            if abs(currentSeconds - totalDuration) < threshold || currentSeconds >= totalDuration {
+                viewModel.playerController.pause()
+            }
+        }
     }
 }
 

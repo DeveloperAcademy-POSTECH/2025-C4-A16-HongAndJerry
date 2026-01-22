@@ -9,10 +9,14 @@ import SwiftUI
 import AVKit
 
 struct VideoPlayerView: View {
+    @Environment(VideoViewModel.self) private var viewModel
     let playerController: PlayerController
 
     var body: some View {
-        PlayerView(player: playerController.player)
-            .frame(maxWidth: .infinity)
+        ZStack {
+            PlayerView(player: playerController.player)
+                .frame(maxWidth: .infinity)
+                .opacity(viewModel.isLoading ? 0 : 1)
+        }
     }
 }

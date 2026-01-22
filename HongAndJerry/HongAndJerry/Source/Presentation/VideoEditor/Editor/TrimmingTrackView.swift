@@ -20,6 +20,7 @@ enum TrimmingConstants {
     static let borderWidth: CGFloat = 4
     static let cornerRadius: CGFloat = 8
     static let minTrimDuration: Double = 0.5
+    static let snapThreshold: Double = 0.5
     static let handleColor = UIColor.accent
 }
 
@@ -32,6 +33,9 @@ final class TrimmingTrackView: UIView {
     
     private var segment: VideoSegment?
     private var totalDuration: Double = 1.0
+    private var snapEndTimes: [Double] = []
+    private var lastSnappedTime: Double?
+    private let hapticFeedback = UIImpactFeedbackGenerator(style: .medium)
     
     private var trimStartRatio: CGFloat = 0.0
     private var trimEndRatio: CGFloat = 1.0
@@ -87,7 +91,6 @@ final class TrimmingTrackView: UIView {
 
         thumbnailContainerView.do {
             $0.clipsToBounds = true
-            $0.backgroundColor = .blue
         }
         
         containerBackgroundView.do {
@@ -242,7 +245,7 @@ extension TrimmingTrackView {
             let currentX = gesture.location(in: self).x
             let deltaX = currentX - dragStartX
             let containerWidth = thumbnailContainerView.bounds.width
-            let deltaRatio = deltaX / containerWidth
+            let deltaRatio = deltaX / containerWidth * 0.9
 
             var newRatio = dragStartRatio + deltaRatio
             newRatio = max(0, min(newRatio, trimEndRatio - minTrimRatio))
@@ -255,6 +258,7 @@ extension TrimmingTrackView {
             onTrimChanged?(startTime, endTime, .left)
 
         case .ended, .cancelled:
+            lastSnappedTime = nil
             onTrimEnded?()
 
         default:
@@ -273,19 +277,24 @@ extension TrimmingTrackView {
             let currentX = gesture.location(in: self).x
             let deltaX = currentX - dragStartX
             let containerWidth = thumbnailContainerView.bounds.width
-            let deltaRatio = deltaX / containerWidth
+            let deltaRatio = deltaX / containerWidth * 0.9
 
             var newRatio = dragStartRatio + deltaRatio
             newRatio = max(trimStartRatio + minTrimRatio, min(newRatio, 1.0))
 
-            trimEndRatio = newRatio
+            let startTime = Double(trimStartRatio) * totalDuration
+            let endTime = Double(newRatio) * totalDuration
+            let trimmedDuration = endTime - startTime
+            let snappedTrimmedDuration = applySnap(to: trimmedDuration)
+            let snappedEndTime = startTime + snappedTrimmedDuration
+
+            trimEndRatio = CGFloat(snappedEndTime / totalDuration)
             updateTrimFrame()
 
-            let startTime = Double(trimStartRatio) * totalDuration
-            let endTime = Double(trimEndRatio) * totalDuration
-            onTrimChanged?(startTime, endTime, .right)
+            onTrimChanged?(startTime, snappedEndTime, .right)
 
         case .ended, .cancelled:
+            lastSnappedTime = nil
             onTrimEnded?()
 
         default:
@@ -299,20 +308,32 @@ extension TrimmingTrackView {
 }
 
 extension TrimmingTrackView {
-    func configure(with segment: VideoSegment) {
+    func configure(with segment: VideoSegment, updateRatios: Bool = true) {
         self.segment = segment
         self.totalDuration = segment.source.duration.seconds
-        
-        trimStartRatio = CGFloat(segment.startTime.seconds / totalDuration)
-        trimEndRatio = CGFloat(segment.endTime.seconds / totalDuration)
-        
+
+        if updateRatios {
+            trimStartRatio = CGFloat(segment.startTime.seconds / totalDuration)
+            trimEndRatio = CGFloat(segment.endTime.seconds / totalDuration)
+        }
+
         updateThumbnails(segment.thumbnails)
         setNeedsLayout()
+    }
+
+    func shakeConfirmButton() {
+        let animation = CAKeyframeAnimation(keyPath: "transform.translation.y")
+        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        animation.duration = 0.4
+        animation.values = [0, -12, 0]
+        animation.keyTimes = [0, 0.5, 1.0]
+
+        confirmButton.layer.add(animation, forKey: "bounce")
     }
     
     private func updateThumbnails(_ thumbnails: [UIImage]) {
         thumbnailStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
-        
+
         for image in thumbnails {
             let imageView = UIImageView(image: image)
             imageView.contentMode = .scaleAspectFill
@@ -320,10 +341,31 @@ extension TrimmingTrackView {
             thumbnailStackView.addArrangedSubview(imageView)
         }
     }
+
+    func updateSnapEndTimes(_ times: [Double]) {
+        self.snapEndTimes = times
+    }
+
+    private func applySnap(to endTime: Double) -> Double {
+        for snapTime in snapEndTimes {
+            if abs(endTime - snapTime) <= TrimmingConstants.snapThreshold {
+                if lastSnappedTime != snapTime {
+                    lastSnappedTime = snapTime
+                    hapticFeedback.impactOccurred()
+                }
+                return snapTime
+            }
+        }
+        lastSnappedTime = nil
+        return endTime
+    }
 }
 
 struct TrimmingTrackViewRepresentable: UIViewRepresentable {
     let segment: VideoSegment?
+    let snapEndTimes: [Double]
+    let shouldShake: Bool
+    let isTrimming: Bool
     let onTrimStarted: (HandlesView.HandleType) -> Void
     let onTrimChanged: (Double, Double, HandlesView.HandleType) -> Void
     let onTrimEnded: () -> Void
@@ -339,8 +381,13 @@ struct TrimmingTrackViewRepresentable: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: TrimmingTrackView, context: Context) {
+        uiView.updateSnapEndTimes(snapEndTimes)
         if let segment = segment {
-            uiView.configure(with: segment)
+            uiView.configure(with: segment, updateRatios: !isTrimming)
+        }
+
+        if shouldShake {
+            uiView.shakeConfirmButton()
         }
     }
 }

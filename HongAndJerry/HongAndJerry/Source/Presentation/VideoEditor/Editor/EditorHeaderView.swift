@@ -16,24 +16,28 @@ struct EditorHeaderView: View {
     
     var body: some View {
         HStack {
-            Button {
-                router.pop()
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 22, weight: .medium))
-                    .foregroundColor(.white)
-            }
-
+            backButton()
+            
             Spacer()
             
-            exportButton(video: videoAsset, composition: videoComposition)
+            exportButton(
+                video: videoAsset,
+                composition: videoComposition
+            )
         }
-        .padding(.leading, 8)
-        .padding(.trailing, 28)
-        .padding(.vertical, 16)
     }
     
-    func exportButton(
+    private func backButton() -> some View {
+        Button {
+            router.pop()
+        } label: {
+            Image(systemName: "chevron.left")
+                .font(.system(size: 22, weight: .medium))
+                .foregroundColor(.white)
+        }
+    }
+    
+    private func exportButton(
         video: AVAsset?,
         composition: AVVideoComposition?
     ) -> some View {

@@ -12,33 +12,42 @@ struct PlaybackControlsView: View {
 
     var body: some View {
         HStack {
-            Spacer().frame(width: 1)
-
-            Button {
-                if viewModel.playerController.isPlaying {
-                    viewModel.playerController.pause()
-                } else {
-                    viewModel.playerController.play()
-                }
-            } label: {
-                Image(systemName: viewModel.playerController.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 17))
-                    .foregroundColor(.white)
-            }
+            Spacer().frame(width: 20)
 
             Spacer()
             
-            Button {
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                    viewModel.isFullScreen = true
-                }
-            } label: {
-                Image(systemName: "arrow.up.left.and.arrow.down.right")
-                    .font(.system(size: 17))
-                    .foregroundColor(.white)
-            }
+            playButton()
+            
+            Spacer()
+            
+            fullScreenButton()
         }
-        .padding(.horizontal, 16)
-        .frame(height: 30)
+        .padding(.horizontal, 20)
+    }
+    
+    func playButton() -> some View {
+        Button {
+            if viewModel.playerController.isPlaying {
+                viewModel.playerController.pause()
+            } else {
+                viewModel.playerController.play()
+            }
+        } label: {
+            Image(systemName: viewModel.playerController.isPlaying ? "pause.fill" : "play.fill")
+                .font(.system(size: 20))
+                .foregroundColor(.white)
+        }
+    }
+    
+    func fullScreenButton() -> some View {
+        Button {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                viewModel.isFullScreen = true
+            }
+        } label: {
+            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                .font(.system(size: 20))
+                .foregroundColor(.white)
+        }
     }
 }

@@ -18,6 +18,7 @@ final class VideoViewModel {
     var trimmingHandleType: HandlesView.HandleType?
     var selectedSegmentID: UUID?
     var screenWidth: CGFloat = 0
+    var shouldShakeCheckButton: Bool = false
 
     var isFullScreen: Bool = false
     
@@ -43,17 +44,17 @@ final class VideoViewModel {
         await rebuildPlayerItem()
         isLoading = false
     }
-    
+
     private func rebuildPlayerItem() async {
         do {
             guard !segments.isEmpty else {
                 playerController.replaceCurrentItem(with: nil)
                 return
             }
-            
+
             let buildResult = try await compositionBuilder.build(from: segments)
             self.playerItem = buildResult.playerItem
-            
+
             playerController.replaceCurrentItem(with: buildResult.playerItem)
         } catch {
             print("Error rebuilding player item: \(error)")
@@ -101,11 +102,29 @@ final class VideoViewModel {
     }
     
     func activateTrimming(segmentID: UUID) async {
+        if isTrimming, let currentSelectedID = selectedSegmentID, currentSelectedID != segmentID {
+            triggerCheckButtonShake()
+            return
+        }
+
         selectedSegmentID = segmentID
 
         if let segment = segments.first(where: { $0.id == segmentID }) {
             let singlePlayerItem = AVPlayerItem(asset: segment.source.asset)
+            let endTime = CMTimeAdd(segment.startTime, segment.trimmedDuration)
+            singlePlayerItem.forwardPlaybackEndTime = endTime
+
             playerController.replaceCurrentItem(with: singlePlayerItem)
+            playerController.pause()
+        }
+    }
+
+    func triggerCheckButtonShake() {
+        shouldShakeCheckButton = true
+
+        Task {
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            shouldShakeCheckButton = false
         }
     }
 
@@ -154,5 +173,11 @@ final class VideoViewModel {
                 segment.startTime.seconds + segment.trimmedDuration.seconds
             return -(visualRightEnd * EditConstants.pixelsPerSecond)
         }
+    }
+
+    func getSegmentEndTimes(excluding segmentID: UUID) -> [Double] {
+        segments
+            .filter { $0.id != segmentID }
+            .map { $0.trimmedDuration.seconds }
     }
 }

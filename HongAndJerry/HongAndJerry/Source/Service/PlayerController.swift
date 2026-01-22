@@ -39,6 +39,7 @@ class PlayerController {
     }
     
     func play() {
+        currentTime = player.currentTime()
         player.rate = 1
         isPlaying = true
     }
@@ -67,14 +68,12 @@ class PlayerController {
     private func addTimeObserver() {
         removeTimeObserver()
         
-        // 1/60초 간격으로 메인 스레드에서 currentTime을 업데이트합니다.
         timeObserverToken = player.addPeriodicTimeObserver(
             forInterval: CMTime(value: 1, timescale: 60)
             , queue: .main
         ) { [weak self] time in
             Task { @MainActor in
                 guard let self else { return }
-                
                 self.currentTime = time
             }
         }
