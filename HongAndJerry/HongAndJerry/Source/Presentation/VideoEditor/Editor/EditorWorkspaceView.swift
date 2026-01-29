@@ -26,10 +26,7 @@ struct EditorWorkspaceView: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(spacing: 0) {
-                EditorHeaderView(
-                    videoAsset: viewModel.getFinalVideoAsset(),
-                    videoComposition: viewModel.getFinalVideoComposition()
-                )
+                EditorHeaderView()
                 .padding(.vertical, 12)
                 .padding(.leading, 28)
                 .padding(.trailing, 20)

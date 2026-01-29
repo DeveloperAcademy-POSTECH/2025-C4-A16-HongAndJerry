@@ -10,20 +10,53 @@ import AVFoundation
 
 struct EditorHeaderView: View {
     @EnvironmentObject var router: Router
-    
-    var videoAsset: AVAsset?
-    var videoComposition: AVVideoComposition?
-    
+    @Environment(VideoViewModel.self) private var viewModel
+
+    @State private var showExportConfirmAlert = false
+    @State private var showResultAlert = false
+
     var body: some View {
         HStack {
             backButton()
             
             Spacer()
             
-            exportButton(
-                video: videoAsset,
-                composition: videoComposition
-            )
+            exportButton()
+        }
+        .alert(
+            ExportNameSpace.AlertConfirmMessage.title,
+            isPresented: $showExportConfirmAlert
+        ) {
+            Button(ExportNameSpace.AlertConfirmMessage.cancelButton, role: .cancel) { }
+            Button(ExportNameSpace.AlertConfirmMessage.confirmButton) {
+                handleExport()
+            }
+        } message: {
+            Text(ExportNameSpace.AlertConfirmMessage.message)
+        }
+        .alert(
+            viewModel.exportController.alertModel.title,
+            isPresented: $showResultAlert
+        ) {
+            Button(viewModel.exportController.alertModel.buttonTitle) {
+                showResultAlert = false
+                handleAlertDismiss()
+            }
+        } message: {
+            Text(viewModel.exportController.alertModel.message)
+        }
+        .overlay {
+            if viewModel.exportController.isLoading {
+                ZStack {
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                    
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(1.5)
+                    
+                }
+            }
         }
     }
     
@@ -37,24 +70,32 @@ struct EditorHeaderView: View {
         }
     }
     
-    private func exportButton(
-        video: AVAsset?,
-        composition: AVVideoComposition?
-    ) -> some View {
+    private func exportButton() -> some View {
         Button {
-            MediaPermissionUtils.requestPermission { permission in
-                if permission == false {
-                    if let url = URL(string: UIApplication.openSettingsURLString) {
-                        UIApplication.shared.open(url)
-                    }
-                }
-            }
-            
-            router.push(screen: .exportView(video, composition))
+            showExportConfirmAlert = true
         } label: {
             Text(ExportNameSpace.ExportView.export)
                 .font(.SUITHeader)
                 .foregroundStyle(.accent)
         }
     }
+
+    private func handleExport() {
+        guard let video = viewModel.getFinalVideoAsset() else { return }
+        let composition = viewModel.getFinalVideoComposition()
+
+        viewModel.exportController.saveVideo(
+            video: video,
+            videoComposition: composition
+        ) {
+            showResultAlert = true
+        }
+    }
+
+    private func handleAlertDismiss() {
+        if viewModel.exportController.alertModel.title == ExportNameSpace.AlertSuccessMessage.title {
+            router.popToRoot()
+        }
+    }
 }
+

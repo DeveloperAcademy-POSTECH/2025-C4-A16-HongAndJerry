@@ -21,9 +21,10 @@ final class VideoViewModel {
     var shouldShakeCheckButton: Bool = false
 
     var isFullScreen: Bool = false
-    
+
     let playerController = PlayerController()
-    
+    let exportController = ExportController()
+
     private let compositionBuilder = CompositionBuilder()
 
     init(segments: [VideoSegment]) {
