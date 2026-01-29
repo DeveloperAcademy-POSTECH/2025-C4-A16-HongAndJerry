@@ -8,11 +8,8 @@
 import SwiftUI
 
 struct AllVideoGridScrollView: View {
-    
     var viewModel: GalleryViewModel
-    
     var body: some View {
-        
         VStack {
             ScrollView {
                 LazyVGrid(
@@ -41,7 +38,3 @@ struct AllVideoGridScrollView: View {
         }
     }
 }
-
-//#Preview {
-//    HJAllVideoGridScrollView()
-//}

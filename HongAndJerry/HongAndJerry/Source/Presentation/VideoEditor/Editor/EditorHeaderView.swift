@@ -18,9 +18,7 @@ struct EditorHeaderView: View {
     var body: some View {
         HStack {
             backButton()
-            
             Spacer()
-            
             exportButton()
         }
         .alert(
@@ -50,16 +48,13 @@ struct EditorHeaderView: View {
                 ZStack {
                     Color.black.opacity(0.4)
                         .ignoresSafeArea()
-                    
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         .scaleEffect(1.5)
-                    
                 }
             }
         }
     }
-    
     private func backButton() -> some View {
         Button {
             router.pop()
@@ -69,7 +64,6 @@ struct EditorHeaderView: View {
                 .foregroundColor(.white)
         }
     }
-    
     private func exportButton() -> some View {
         Button {
             showExportConfirmAlert = true

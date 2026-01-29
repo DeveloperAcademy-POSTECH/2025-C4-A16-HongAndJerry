@@ -3,13 +3,11 @@ import AVFoundation
 
 struct EditorTimelineView: View {
     @Environment(VideoViewModel.self) private var viewModel
-    
     @State private var isTimelineDragging = false
     @State private var startDragOffset: CGFloat = 0
     @State private var currentOffset: CGFloat = 0
     @State private var dragDirection: DragDirection = .none
     @State private var lastDragTranslation: CGFloat = 0
-    
     @State private var feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
     @State private var lastHapticSecond: Int = -1
 
@@ -20,20 +18,16 @@ struct EditorTimelineView: View {
         GeometryReader { geometry in
             let viewWidth = geometry.size.width
             let halfViewWidth = viewWidth / 2
-            
             HStack(spacing: 0) {
                 Spacer().frame(width: halfViewWidth)
-                
                 VStack(alignment: .leading, spacing: 4) {
                     EditorRulerView()
                         .frame(height: EditConstants.rulerHeight)
                         .offset(x: -EditConstants.pixelsPerSecond / 2)
-                    
                     ForEach(viewModel.segments) { segment in
                         HStack(spacing: 16) {
                             Button {
                                 let operation = AudioOperation(segmentID: segment.id, isMuted: !segment.isMuted)
-                                
                                 Task {
                                     await viewModel.editVideo(operation: operation)
                                 }
@@ -46,14 +40,12 @@ struct EditorTimelineView: View {
                             }
                             .frame(width: 30, height: 30)
                             .contentShape(Rectangle())
-                            
                             VideoTrackView(segment: segment)
                                 .clipped()
                         }
                         .offset(x: -45)
                     }
                 }
-                
                 Spacer().frame(width: halfViewWidth)
             }
             .offset(x: currentOffset)
@@ -130,7 +122,6 @@ struct EditorTimelineView: View {
         )
         .clipped()
     }
-    
     private func clampOffset(_ offset: CGFloat) -> CGFloat {
         let maxOffset: CGFloat = 0
         let minOffset: CGFloat
@@ -146,16 +137,13 @@ struct EditorTimelineView: View {
 
         return min(maxOffset, max(minOffset, offset))
     }
-    
     private func updateOffset(_ newOffset: CGFloat, isDragging: Bool, direction: DragDirection) {
         let clampedOffset = clampOffset(newOffset)
         self.currentOffset = clampedOffset
-        
         if isDragging {
             seekToOffset(clampedOffset, direction: direction)
         }
     }
-    
     private func seekToOffset(_ offset: CGFloat, direction: DragDirection) {
         let newTimeInSeconds = -offset / EditConstants.pixelsPerSecond
         let clampedTime = max(0, newTimeInSeconds)

@@ -15,16 +15,12 @@ struct PlaybackControlsView: View {
             Spacer().frame(width: 20)
 
             Spacer()
-            
             playButton()
-            
             Spacer()
-            
             fullScreenButton()
         }
         .padding(.horizontal, 20)
     }
-    
     func playButton() -> some View {
         Button {
             if viewModel.playerController.isPlaying {
@@ -38,7 +34,6 @@ struct PlaybackControlsView: View {
                 .foregroundColor(.white)
         }
     }
-    
     func fullScreenButton() -> some View {
         Button {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {

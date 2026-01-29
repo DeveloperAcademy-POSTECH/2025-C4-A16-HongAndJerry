@@ -8,18 +8,13 @@
 import SwiftUI
 import Photos
 
-/// 선택한 비디오의 섬네일
+
 struct SelectedVideoThumbnail: View {
-    
     let video: PHAsset
     let index: Int
     let onRemove: () -> Void
-    
     @State private var thumbnail: UIImage?
-    
     var body: some View {
-        
-        // soop TODO: - 컴포넌트 분리 하기 (섬네일 / 버튼)
         ZStack(alignment: .topTrailing) {
             Rectangle()
                 .fill(Color.gray.opacity(0.3))
@@ -35,7 +30,6 @@ struct SelectedVideoThumbnail: View {
                         }
                     }
                 )
-            
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
                     .foregroundColor(.white)
@@ -48,15 +42,11 @@ struct SelectedVideoThumbnail: View {
             loadThumbnail()
         }
     }
-    
-    // soop TODO: - VideoThumbnail에도 같은 함수가 있어서 수정해야 함...
-    /// 섬네일 로딩 함수
     private func loadThumbnail() {
         let manager = PHImageManager.default()
         let option = PHImageRequestOptions()
         option.deliveryMode = .highQualityFormat
         option.isSynchronous = false
-        
         manager.requestImage(
             for: video,
             targetSize: CGSize(width: 60, height: 60),
@@ -70,6 +60,6 @@ struct SelectedVideoThumbnail: View {
     }
 }
 
-//#Preview {
-//    HJSelectedVideoThumbnail(video: <#T##PHAsset#>, index: <#T##Int#>, onRemove: <#T##() -> Void#>, thumbnail: <#T##UIImage?#>)
-//}
+
+
+

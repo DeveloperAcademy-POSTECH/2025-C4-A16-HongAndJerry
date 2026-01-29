@@ -11,13 +11,10 @@ import Photos
 struct CropView: View {
     @EnvironmentObject var router: Router
     @Bindable var viewModel: CropViewModel
-    
     @State var cropArea: CGRect = .init(x: 0, y: 0, width: 10, height: 10)
     @State var imageViewSize: CGSize = .zero
     @State var croppedImage: UIImage?
-    
     @State var isCropTestViewShown: Bool = false
-    
     var body: some View {
         ZStack {
             Color.background.ignoresSafeArea()
@@ -30,14 +27,13 @@ struct CropView: View {
                     case .thumbnailLoaded:
                         tabView
                     case .cropping:
-                        ProgressView("자른 영상 로딩 중...")
+                        ProgressView("자른 비디오 로딩 중...")
                             .frame(width: 300, height: 300)
                             .navigationBarBackButtonHidden()
                     case .completedConvertToAsset:
                         Text("Complete")
                     }
                 }
-                
             }
             .onAppear {
                 viewModel.send(.loadThumbnail)
@@ -45,7 +41,6 @@ struct CropView: View {
         }
         .hjNavigationBar(title: ExportNameSpace.AppMain.cropVideoTitle)
     }
-    
     var tabView: some View {
         VStack {
             TabView(selection: $viewModel.currentIndex) {
@@ -55,28 +50,22 @@ struct CropView: View {
                 }
             }
             .indexViewStyle(.page(backgroundDisplayMode: .never))
-            .tabViewStyle(.page(indexDisplayMode: .never))    // 탭뷰 좌우 스크롤 설정
-            
+            .tabViewStyle(.page(indexDisplayMode: .never))    
             pageIndicator
                 .padding(.vertical, 8)
-            
             CtaButton(buttonType: .next, isDisabled: .constant(viewModel.currentIndex != 2)) {
                 Task {
                     await viewModel.cropVideos()
                     let segments = await viewModel.createVideoSegments()
-                    
                     router.push(screen: .videoEditView(segments))
                 }
             }
         }
-        
     }
-    
     func thumbnailCell(videoIndex: Int) -> some View {
         Group {
             if videoIndex < viewModel.crops.count {
                 let crop = viewModel.crops[videoIndex]
-                
                 Image(uiImage: crop.thumbnail)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
@@ -96,11 +85,10 @@ struct CropView: View {
                                 }
                         }
                     }
-                    .clipped() // 이미지 영역을 벗어나지 않도록
+                    .clipped() 
             }
         }
     }
-    
     var pageIndicator: some View {
         HStack(spacing: 8) {
             ForEach(0..<viewModel.selectedVideos.count, id: \.self) { index in
@@ -111,7 +99,6 @@ struct CropView: View {
             }
         }
     }
-    
     var previousButton: some View {
         Button {
             viewModel.send(.goToPreviousPhoto)
@@ -121,7 +108,6 @@ struct CropView: View {
         }
         .buttonStyle(.plain)
     }
-    
     var nextButton: some View {
         Button {
             viewModel.send(.goToNextPhoto)

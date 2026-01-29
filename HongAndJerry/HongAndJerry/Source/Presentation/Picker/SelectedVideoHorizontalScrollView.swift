@@ -8,12 +8,10 @@
 import SwiftUI
 import Photos
 
-/// 선택한 비디오 배열의 수평 스크롤 뷰
+
 struct SelectedVideoHorizontalScrollView: View {
-    
     var viewModel: GalleryViewModel
-//    @ObservedObject private var selectedVideos: [PHAsset]
-    
+
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 20) {

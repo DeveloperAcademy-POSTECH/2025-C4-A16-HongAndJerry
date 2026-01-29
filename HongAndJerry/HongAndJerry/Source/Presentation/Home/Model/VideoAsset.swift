@@ -26,18 +26,15 @@ struct VideoAsset: Identifiable {
         guard
             let date = creationDate
         else { return "알 수 없음" }
-        
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
         formatter.dateFormat = "yyyy.M.d"
         return formatter.string(from: date)
     }
-    
     var creationTimeValue: String {
         guard
             let date = creationTime
         else { return "알 수 없음" }
-        
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
         formatter.dateFormat = "a h:mm"

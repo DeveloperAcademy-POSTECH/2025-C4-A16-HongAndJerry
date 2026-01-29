@@ -25,27 +25,21 @@ final class VideoSaver: VideoSaving {
         guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {
             throw ExportError.exportSessionCreationFailed
         }
-        
         let tempDirectory = FileManager.default.temporaryDirectory
         let outputURL = tempDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension("mov")
-        
         exportSession.outputURL = outputURL
         exportSession.outputFileType = .mov
         exportSession.videoComposition = videoComposition
-        
         let _ = Timer.scheduledTimer(
             withTimeInterval: 0.1,
             repeats: true) { timer in
                 progressHandler(Double(exportSession.progress))
             }
-        
         await exportSession.export()
-        
         switch exportSession.status {
         case .completed:
             try await saveVideoFile(at: outputURL, to: album)
             try? FileManager.default.removeItem(at: outputURL)
-            
         case .failed:
             throw ExportError.exportFailed(exportSession.error)
         case .cancelled:

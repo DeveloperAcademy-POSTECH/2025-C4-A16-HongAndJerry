@@ -10,45 +10,41 @@ import Photos
 
 struct HomeView {
     @EnvironmentObject var router: Router
-    @State private var viewModel = AlbumVideoViewModel()
+    @State private var viewModel = HomeViewModel()
     @State private var selectedAsset: PHAsset? = nil
-    @State private var showPlayer = false
 }
 
 extension HomeView: View {
     var body: some View {
         VStack(alignment: .leading) {
-            Image(.homeViewLogo)
-                .resizable()
-                .frame(width: 75, height: 18)
-                .padding(.leading)
             if viewModel.videos.isEmpty {
                 Spacer()
-                Text("프로젝트 생성 해주세요!")
+                Text("아직 생성된 비디오가 없습니다")
                     .frame(maxWidth: .infinity, alignment: .center)
-                    .font(.SUITBodyTitle)
+                    .font(.SUITTitle)
                     .foregroundStyle(.inactive)
                 Spacer()
             } else {
                 VideoScrollView(
                     viewModel: $viewModel,
-                    selectedAsset: $selectedAsset,
-                    showPlayer: $showPlayer
+                    selectedAsset: $selectedAsset
                 )
             }
             CtaButton(
                 buttonType: .plus,
                 isDisabled: .constant(false)) {
-                    router.push(screen: .selectFrame)
+                    router.push(screen: .selectVideo)
                 }
         }
-        .background(Color.background)
-        
-        .sheet(isPresented: $showPlayer) {
+        .sheet(isPresented: Binding(
+            get: { selectedAsset != nil },
+            set: { if !$0 { selectedAsset = nil } }
+        )) {
             if let asset = selectedAsset {
-                HomeVideoPlayer(asset: asset)
+                PHAssetPlayer(asset: asset)
             }
         }
+        .background(Color.background)
         .onAppear {
             viewModel.loadVideos(albumName: "WVDO")
         }

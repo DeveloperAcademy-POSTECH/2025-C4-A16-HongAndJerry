@@ -9,7 +9,6 @@ import SwiftUI
 
 struct TimeDisplayView: View {
     @Environment(VideoViewModel.self) private var viewModel
-    
     var body: some View {
         Text("\(viewModel.playerController.currentTime.formattedString) / \(viewModel.playerController.totalDuration.formattedString)")
             .font(.SUITTimer)

@@ -13,14 +13,11 @@ struct VideoThumbnail: View {
     let isSelected: Bool
     let selectionIndex: Int?
     let onTap: () -> Void
-    
     @State private var thumbnail: UIImage?
-    
     var body: some View {
         GeometryReader { geometry in
             ZStack {
                 thumbnailImage(width: geometry.size.width, height: geometry.size.height)
-                
                 if isSelected {
                     selectedState()
                 }
@@ -36,7 +33,6 @@ struct VideoThumbnail: View {
             loadThumbnail()
         }
     }
-    
     func thumbnailImage(width: CGFloat, height: CGFloat) -> some View {
         Rectangle()
             .fill(Color.gray.opacity(0.3))
@@ -52,12 +48,10 @@ struct VideoThumbnail: View {
                 }
             )
     }
-    
     private func selectedState() -> some View {
         ZStack {
             RoundedRectangle(cornerRadius: 4)
                 .stroke(Color.accent, lineWidth: 2)
-            
             if let index = selectionIndex {
                 Text("\(index)")
                     .font(.SUITTimer)
@@ -74,14 +68,11 @@ struct VideoThumbnail: View {
             }
         }
     }
-    
-    // soop TODO: - SelectedViewThumbnail에도 같은 함수가 있어서 수정해야 함...
     private func loadThumbnail() {
         let manager = PHImageManager.default()
         let option = PHImageRequestOptions()
         option.deliveryMode = .highQualityFormat
         option.isSynchronous = false
-        
         manager.requestImage(
             for: video,
             targetSize: CGSize(width: 130, height: 130),

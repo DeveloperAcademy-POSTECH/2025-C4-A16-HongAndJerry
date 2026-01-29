@@ -7,16 +7,6 @@
 
 import SwiftUI
 
-/// **
-/// 공통 CTA 버튼
-/// ```swift
-/// CtaButton(
-///   buttonType: .next,
-///   isDisabled: false
-/// ) {
-///   print("버튼 액션")
-/// }
-///
 struct CtaButton {
     let buttonType: ButtonType
     @Binding var isDisabled: Bool

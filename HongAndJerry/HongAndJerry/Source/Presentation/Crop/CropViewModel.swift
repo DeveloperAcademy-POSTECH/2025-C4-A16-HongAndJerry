@@ -10,65 +10,51 @@ import SwiftUI
 
 @Observable
 final class CropViewModel {
-    
     enum Action {
         case loadThumbnail
         case goToNextPhoto
         case goToPreviousPhoto
         case setContainerSize(CGSize, at: Int)
     }
-    
     enum VideoState {
         case thumbnailLoading
         case thumbnailLoaded
         case cropping
         case completedConvertToAsset
     }
-    
     var selectedVideos: [PHAsset]
     var currentIndex = 0
     var thumbnails: [String: UIImage] = [:]
     var isLoading = true
     var state: VideoState = .thumbnailLoaded
-    
     var crops: [Crop] = []
-    
     var croppedVideos: [(AVAsset, AVVideoComposition)] = []
-    
     init(selectedVideos: [PHAsset]) {
         self.selectedVideos = selectedVideos
     }
 }
 
 extension CropViewModel {
-    
     func send(_ action: Action) {
-        
         switch action {
         case .loadThumbnail:
             loadThumbnails()
-            
         case .goToNextPhoto:
             if currentIndex < 2 { currentIndex += 1 }
-            
         case .goToPreviousPhoto:
             if currentIndex > 0 { currentIndex -= 1 }
-            
         case .setContainerSize(let size, let index):
             setContainerSize(size, at: index)
         }
     }
-    
     private func loadThumbnails() {
         Task {
             await loadThumbnailsAsync()
         }
     }
-    
     @MainActor
     private func loadThumbnailsAsync() async {
         isLoading = true
-        
         for video in selectedVideos {
             let thumbnail = await loadSingleThumbnail(for: video)
             if let thumbnail = thumbnail {
@@ -76,11 +62,8 @@ extension CropViewModel {
                 crops.append(Crop(video: video, localIdentifier: video.localIdentifier, cropRect: .init(x: 0, y: 0, width: 10, height: 10), thumbnail: thumbnail))
             }
         }
-        
-//        isLoading = false   // 로딩이 끝나면 TabView에 이미지 띄움
         state = .thumbnailLoaded
     }
-    
     private func loadSingleThumbnail(for video: PHAsset) async -> UIImage? {
         return await withCheckedContinuation { continuation in
             let manager = PHImageManager.default()
@@ -88,9 +71,7 @@ extension CropViewModel {
             options.deliveryMode = .highQualityFormat
             options.isNetworkAccessAllowed = true
             options.isSynchronous = false
-            
-            let targetSize = PHImageManagerMaximumSize // 원본 해상도
-            
+            let targetSize = PHImageManagerMaximumSize
             manager.requestImage(
                 for: video,
                 targetSize: targetSize,
@@ -104,14 +85,10 @@ extension CropViewModel {
             }
         }
     }
-    
-    // CropRect 업데이트 메서드 추가
     func updateCropRect(at index: Int, rect: CGRect) {
         guard index < crops.count else { return }
         crops[index].cropRect = rect
     }
-    
-    // 개별 CropRect 바인딩 생성
     func bindingForCropRect(at index: Int) -> Binding<CGRect> {
         Binding(
             get: {
@@ -123,16 +100,12 @@ extension CropViewModel {
             }
         )
     }
-    
-    // CropView에 추가할 헬퍼 함수
     func calculate16x9CropRect(in imageSize: CGSize) -> CGRect {
         let aspectRatio: CGFloat = 16.0 / 9.0
         let maxWidth = imageSize.width
         let maxHeight = imageSize.height
-        
         let widthBasedHeight = maxWidth / aspectRatio
         let heightBasedWidth = maxHeight * aspectRatio
-        
         let (cropWidth, cropHeight): (CGFloat, CGFloat) = {
             if widthBasedHeight <= maxHeight {
                 return (maxWidth, widthBasedHeight)
@@ -140,49 +113,34 @@ extension CropViewModel {
                 return (heightBasedWidth, maxHeight)
             }
         }()
-        
         let x = (imageSize.width - cropWidth) / 2
         let y = (imageSize.height - cropHeight) / 2
-        
         let rect = CGRect(x: x, y: y, width: cropWidth, height: cropHeight)
-        
         return rect
     }
-    
     private func setContainerSize(_ size: CGSize, at index: Int) {
         guard index < crops.count else { return }
         crops[index].containerSize = size
     }
-    
     @MainActor
     func cropVideos() async {
         state = .cropping
         do {
-            // 새로운 방법: 실제로 렌더링된 AVAsset들을 받아옴
             let exportedAssets = try await PHImageManager.default().exportCroppedVideos(crops: crops)
-            print("✅ exportCroppedVideos 성공: \(exportedAssets.count)개 생성")
-            
-            // croppedVideos를 새로운 방식으로 저장 (composition은 더 이상 필요 없음)
             croppedVideos = exportedAssets.map { ($0, AVMutableVideoComposition()) }
-            
         } catch {
-            print("❌ exportCroppedVideos 에러: \(error)")
-            print("에러 타입: \(type(of: error))")
             if let assetError = error as? AssetError {
                 print("AssetError: \(assetError)")
             }
         }
     }
-    
     func createVideoSegments() async -> [VideoSegment] {
-        
         var segments: [VideoSegment] = []
-        
         for crop in croppedVideos {
             segments.append(
                 VideoSegment(
                     source: VideoSource(
-                        asset: crop.0,  // 이미 크롭이 적용된 AVAsset
+                        asset: crop.0,
                         url: "",
                         duration: crop.0.duration
                     )

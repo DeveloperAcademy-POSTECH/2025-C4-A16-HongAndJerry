@@ -7,7 +7,6 @@
 
 import AVKit
 
-// CMTime을 "MM:SS" 형식의 문자열로 변환하는 헬퍼
 extension CMTime {
     var formattedString: String {
         let totalSeconds = seconds

@@ -10,19 +10,15 @@ import SwiftUI
 
 struct EditorWorkspaceView: View {
     @Environment(VideoViewModel.self) private var viewModel
-    
     let namespace: Namespace.ID
-    
     private var currentSegment: VideoSegment? {
         guard let selectedID = viewModel.selectedSegmentID else { return nil }
         return viewModel.segments.first(where: { $0.id == selectedID })
     }
-    
     private var snapEndTimes: [Double] {
         guard let selectedID = viewModel.selectedSegmentID else { return [] }
         return viewModel.getSegmentEndTimes(excluding: selectedID)
     }
-    
     var body: some View {
         VStack(spacing: 0) {
             VStack(spacing: 0) {
