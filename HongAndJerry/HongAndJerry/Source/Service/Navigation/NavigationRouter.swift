@@ -10,7 +10,6 @@ import Photos
 
 enum Screen: Hashable {
     case home
-    case selectFrame
     case selectVideo
     case editVideoRatio([PHAsset])
     case videoEditView([VideoSegment])

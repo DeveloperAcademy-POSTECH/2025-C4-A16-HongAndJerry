@@ -16,8 +16,6 @@ struct RoutingView {
 extension RoutingView: View {
     var body: some View {
         switch navigateDestination {
-        case .selectFrame:
-            FrameSelectView().environment(router)
         case .selectVideo:
             GalleryView().environment(router)
         case .home:
