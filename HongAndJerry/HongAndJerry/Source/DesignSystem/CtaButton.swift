@@ -28,29 +28,28 @@ extension CtaButton: View {
         Button(action: {
             action()
         }) {
-            HStack {
+            HStack(spacing: 8) {
+                if let systemName = buttonType.systemImageName {
+                    Image(systemName: systemName)
+                        .font(.SUITBody)
+                        .foregroundStyle(isDisabled ? .font : .pureBlack)
+                }
+                
                 if let title = buttonType.title {
                     Text(title)
                         .font(.SUITHeader)
                         .foregroundStyle(isDisabled ? .font : .pureBlack)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                } else if let systemName = buttonType.systemImageName {
-                    Image(systemName: systemName)
-                        .resizable()
-                        .frame(width: 12, height: 12)
-                        .foregroundStyle(isDisabled ? .font : .pureBlack)
-                        .fontWeight(.bold)
-                        .frame(maxWidth: .infinity, alignment: .center)
                 }
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 55)
+            .frame(height: 56)
             .background(isDisabled ? .inactive : Color.accent)
-            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
         }
         .disabled(isDisabled)
         .padding(.horizontal, 16)
-        .padding(.bottom, 36)
+        .padding(.bottom, 16)
     }
 }
+
 

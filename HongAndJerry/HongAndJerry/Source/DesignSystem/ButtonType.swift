@@ -15,7 +15,7 @@ enum ButtonType {
         case .next:
             return "다음"
         case .plus:
-            return nil
+            return "영상 만들기"
         case .export:
             return "내보내기"
         }

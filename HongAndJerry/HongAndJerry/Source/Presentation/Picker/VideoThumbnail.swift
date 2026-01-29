@@ -19,17 +19,16 @@ struct VideoThumbnail: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                
                 thumbnailImage(width: geometry.size.width, height: geometry.size.height)
                 
-                // 선택 상태 표시
                 if isSelected {
-                    selectedState
+                    selectedState()
                 }
             }
         }
         .aspectRatio(1, contentMode: .fit)
         .contentShape(Rectangle())
+        .clipShape(RoundedRectangle(cornerRadius: 4))
         .onTapGesture {
             onTap()
         }
@@ -38,8 +37,6 @@ struct VideoThumbnail: View {
         }
     }
     
-    // View
-    // soop TODO: - 컴포넌트 뺼래 말래
     func thumbnailImage(width: CGFloat, height: CGFloat) -> some View {
         Rectangle()
             .fill(Color.gray.opacity(0.3))
@@ -56,22 +53,29 @@ struct VideoThumbnail: View {
             )
     }
     
-    var selectedState: some View {
+    private func selectedState() -> some View {
         ZStack {
-            Rectangle()
-                .strokeBorder(Color.accent, lineWidth: 2)
+            RoundedRectangle(cornerRadius: 4)
+                .stroke(Color.accent, lineWidth: 2)
             
             if let index = selectionIndex {
                 Text("\(index)")
-                    .font(.SUITBody)    // soop TODO: - Font
-                    .foregroundColor(Color.accent)
+                    .font(.SUITTimer)
+                    .foregroundColor(.background)
+                    .frame(width: 20, height: 20)
+                    .background(Color.accent)
+                    .clipShape(Circle())
+                    .padding(12)
+                    .frame(
+                        maxWidth: .infinity,
+                        maxHeight: .infinity,
+                        alignment: .bottomTrailing
+                    )
             }
         }
     }
     
     // soop TODO: - SelectedViewThumbnail에도 같은 함수가 있어서 수정해야 함...
-    // func
-    
     private func loadThumbnail() {
         let manager = PHImageManager.default()
         let option = PHImageRequestOptions()
