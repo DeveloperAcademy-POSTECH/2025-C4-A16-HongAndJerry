@@ -7,6 +7,7 @@
 
 import Photos
 
+// TODO: edit
 protocol AlbumRepository {
-    func checkAlbum(named title: String) throws -> PHAssetCollection
+  func checkAlbum(named title: String) throws -> PHAssetCollection
 }

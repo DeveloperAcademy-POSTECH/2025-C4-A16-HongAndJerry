@@ -6,7 +6,7 @@
 //
 
 protocol EditOperation {
-    func apply(on segments: [VideoSegment]) async throws -> EditResult
+  func apply(on segments: [VideoSegment]) async throws -> EditResult
 }
 
 

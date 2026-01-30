@@ -6,7 +6,7 @@
 //
 
 enum HandleType {
-    case left
-    case right
-    case none
+  case left
+  case right
+  case none
 }

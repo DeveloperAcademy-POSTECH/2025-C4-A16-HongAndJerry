@@ -7,7 +7,8 @@
 
 import Foundation
 
+// TODO: edit
 enum AssetError: Error {
-    case infoNotFound
-    case assetNotFound
+  case infoNotFound
+  case assetNotFound
 }

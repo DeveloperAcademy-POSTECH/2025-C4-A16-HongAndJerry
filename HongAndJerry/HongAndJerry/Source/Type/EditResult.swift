@@ -8,7 +8,7 @@
 import Foundation
 
 enum EditResult {
-    case segmentsUpdated([VideoSegment])
-    case exportCompleted(URL)
-    case noChange
+  case segmentsUpdated([VideoSegment])
+  case exportCompleted(URL)
+  case noChange
 }

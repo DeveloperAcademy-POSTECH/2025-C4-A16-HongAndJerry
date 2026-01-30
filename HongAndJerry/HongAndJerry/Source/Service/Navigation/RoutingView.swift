@@ -16,14 +16,17 @@ struct RoutingView {
 extension RoutingView: View {
     var body: some View {
         switch navigateDestination {
-        case .selectVideo:
-            GalleryView().environment(router)
         case .home:
             EmptyView()
+          
+        case .selectVideo:
+            AssetPickerView().environment(router)
+          
         case .editVideoRatio(let assets):
-            CropView(viewModel: .init(selectedVideos: assets))
+            RatioSettingView(viewModel: .init(selectedVideos: assets))
+          
         case .videoEditView(let segments):
-            VideoEditorView(segments: segments)
+            EditorView(segments: segments)
         }
     }
 }
