@@ -1,10 +1,3 @@
-//
-//  VideoSource++.swift
-//  HongAndJerry
-//
-//  Created by Rama on 7/18/25.
-//
-
 import AVKit
 
 #if DEBUG

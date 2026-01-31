@@ -1,10 +1,3 @@
-//
-//  NavigationRouter.swift
-//  HongAndJerry
-//
-//  Created by Hong on 7/20/25.
-//
-
 import Foundation
 import Photos
 

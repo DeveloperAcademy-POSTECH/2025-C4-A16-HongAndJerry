@@ -1,10 +1,3 @@
-//
-//  HongAndJerryApp.swift
-//  HongAndJerry
-//
-//  Created by Rama on 7/8/25.
-//
-
 import SwiftUI
 
 @main

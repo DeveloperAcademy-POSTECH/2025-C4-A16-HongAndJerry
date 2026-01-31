@@ -1,10 +1,3 @@
-//
-//  Font.swift
-//  HongAndJerry
-//
-//  Created by Hong on 7/17/25.
-//
-
 import SwiftUI
 
 extension Font {

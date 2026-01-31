@@ -1,10 +1,3 @@
-//
-//  RoutingView.swift
-//  HongAndJerry
-//
-//  Created by Hong on 7/21/25.
-//
-
 import SwiftUI
 import Photos
 

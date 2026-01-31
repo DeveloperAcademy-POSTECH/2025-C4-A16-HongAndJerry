@@ -1,10 +1,3 @@
-//
-//  VideoSegment++.swift
-//  HongAndJerry
-//
-//  Created by Rama on 7/18/25.
-//
-
 import AVKit
 
 extension VideoSegment: Hashable {

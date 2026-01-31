@@ -1,11 +1,4 @@
-//
-//  Spacing.swift
-//  HongAndJerry
-//
-//  Created by Hong on 7/17/25.
-//
-
-import SwiftUI
+import Foundation
 
 public enum Spacing {
   public static let small: CGFloat = 8

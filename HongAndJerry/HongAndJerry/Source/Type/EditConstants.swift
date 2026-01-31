@@ -1,10 +1,3 @@
-//
-//  VideoEditingConstantes.swift
-//  HongAndJerry
-//
-//  Created by Rama on 7/22/25.
-//
-
 import AVKit
 
 struct EditConstants {

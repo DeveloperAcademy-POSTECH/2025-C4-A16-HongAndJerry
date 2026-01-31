@@ -1,10 +1,3 @@
-//
-//  CMTime++.swift
-//  HongAndJerry
-//
-//  Created by Gemini on 7/19/25.
-//
-
 import AVKit
 
 extension CMTime {
