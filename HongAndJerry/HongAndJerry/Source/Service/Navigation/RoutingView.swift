@@ -1,10 +1,3 @@
-//
-//  RoutingView.swift
-//  HongAndJerry
-//
-//  Created by Hong on 7/21/25.
-//
-
 import SwiftUI
 import Photos
 
@@ -16,23 +9,17 @@ struct RoutingView {
 extension RoutingView: View {
     var body: some View {
         switch navigateDestination {
-        case .selectFrame:
-            FrameSelectView().environment(router)
-        case .selectVideo:
-            GalleryView().environment(router)
         case .home:
             EmptyView()
+          
+        case .selectVideo:
+            AssetPickerView().environment(router)
+          
         case .editVideoRatio(let assets):
-            CropView(viewModel: .init(selectedVideos: assets))
+            RatioSettingView(viewModel: .init(selectedVideos: assets))
+          
         case .videoEditView(let segments):
-            VideoEditorView(segments: segments)
-        case .exportView(let asset, let composition):
-            ExportView(
-                viewModel: .init(
-                    video: asset,
-                    avvideoComposition: composition
-                )
-            )
+            EditorView(segments: segments)
         }
     }
 }

@@ -1,20 +1,11 @@
-//
-//  NavigationRouter.swift
-//  HongAndJerry
-//
-//  Created by Hong on 7/20/25.
-//
-
 import Foundation
 import Photos
 
 enum Screen: Hashable {
     case home
-    case selectFrame
     case selectVideo
     case editVideoRatio([PHAsset])
     case videoEditView([VideoSegment])
-    case exportView(AVAsset?, AVVideoComposition?)
 }
 
 @Observable

@@ -1,10 +1,3 @@
-//
-//  Icon.swift
-//  HongAndJerry
-//
-//  Created by Hong on 7/24/25.
-//
-
 enum Icon {}
 
 extension Icon {

@@ -1,10 +1,3 @@
-//
-//  HJNavigationBar.swift
-//  HongAndJerry
-//
-//  Created by Rama on 7/28/25.
-//
-
 import SwiftUI
 
 struct HJNavigationBar: ViewModifier {
