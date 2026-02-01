@@ -1,11 +1,13 @@
 import AVKit
 import Observation
+import Photos
 
 @MainActor
 @Observable
 final class EditorViewModel {
   
   var isLoading: Bool = true
+  var isProcessingCrops: Bool = true
   var isTrimming: Bool = false
   var trimmingHandleType: HandlesView.HandleType?
   var selectedSegmentID: UUID?
@@ -72,7 +74,7 @@ final class EditorViewModel {
   }
   
   init(
-    segments: [VideoSegment],
+    crops: [Crop],
     playerUseCase: PlayerUseCase = PlayerUseCase(),
     exportUseCase: ExportUseCase = ExportUseCase(),
     editUseCase: EditUseCase = EditUseCase(
@@ -82,21 +84,51 @@ final class EditorViewModel {
     self.playerUseCase = playerUseCase
     self.exportUseCase = exportUseCase
     self.editUseCase = editUseCase
-    
+
+    Task {
+      await createSegments(from: crops)
+      await initializePlayer()
+    }
+  }
+
+  convenience init(segments: [VideoSegment]) {
+    self.init(
+      crops: [],
+      playerUseCase: PlayerUseCase(),
+      exportUseCase: ExportUseCase(),
+      editUseCase: EditUseCase(
+        compositionRepository: AVMutableCompositionRepository()
+      )
+    )
+
     Task {
       self.editUseCase.initializeSegments(segments)
       await initializePlayer()
     }
   }
   
+  private func createSegments(from crops: [Crop]) async {
+    isProcessingCrops = true
+    isLoading = true
+
+    do {
+      let segments = try await editUseCase.createSegmentsFromCrops(crops)
+      isProcessingCrops = false
+    } catch {
+      print("Error processing crops: \(error)")
+      isProcessingCrops = false
+      isLoading = false
+    }
+  }
+
   private func initializePlayer() async {
     isLoading = true
-    
+
     guard !segments.isEmpty else {
       isLoading = false
       return
     }
-    
+
     await rebuildPlayerItem()
     isLoading = false
   }

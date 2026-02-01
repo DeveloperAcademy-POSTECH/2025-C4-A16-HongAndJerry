@@ -17,9 +17,9 @@ extension RoutingView: View {
           
         case .editVideoRatio(let assets):
             CropView(viewModel: .init(selectedVideos: assets))
-          
-        case .videoEditView(let segments):
-            EditorView(segments: segments)
+
+        case .videoEditView(let crops):
+            EditorView(crops: crops)
         }
     }
 }

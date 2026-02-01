@@ -5,7 +5,7 @@ enum Screen: Hashable {
     case home
     case selectVideo
     case editVideoRatio([PHAsset])
-    case videoEditView([VideoSegment])
+    case videoEditView([Crop])
 }
 
 @Observable

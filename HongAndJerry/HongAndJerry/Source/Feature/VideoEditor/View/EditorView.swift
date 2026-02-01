@@ -1,10 +1,15 @@
 import AVKit
 import SwiftUI
+import Photos
 
 struct EditorView: View {
   @State private var viewModel: EditorViewModel
   @Namespace private var videoAnimation
   
+  init(crops: [Crop]) {
+    _viewModel = State(initialValue: EditorViewModel(crops: crops))
+  }
+
   init(segments: [VideoSegment]) {
     _viewModel = State(initialValue: EditorViewModel(segments: segments))
   }

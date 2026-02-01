@@ -101,10 +101,6 @@ extension CropView {
   }
   
   private func handleNextButtonTap() {
-    Task {
-      await viewModel.cropVideos()
-      let segments = await viewModel.createVideoSegments()
-      router.push(screen: .videoEditView(segments))
-    }
+    router.push(screen: .videoEditView(viewModel.crops))
   }
 }

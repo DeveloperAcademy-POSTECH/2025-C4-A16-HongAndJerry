@@ -24,19 +24,10 @@ final class CropViewModel {
   var isLoading = true
   var state: VideoState = .thumbnailLoaded
   var crops: [Crop] = []
-  var croppedVideos: [AVAsset] = []
   var cropBoxStates: [Int: CropBoxState] = [:]
 
-  private let cropVideoUseCase: CropVideoUseCase
-
-  init(
-    selectedVideos: [PHAsset],
-    cropVideoUseCase: CropVideoUseCase = CropVideoUseCase(
-      repository: PHImageVideoCropRepository()
-    )
-  ) {
+  init(selectedVideos: [PHAsset]) {
     self.selectedVideos = selectedVideos
-    self.cropVideoUseCase = cropVideoUseCase
   }
 }
 
@@ -95,33 +86,6 @@ extension CropViewModel {
     let y = (imageSize.height - cropHeight) / 2
     let rect = CGRect(x: x, y: y, width: cropWidth, height: cropHeight)
     return rect
-  }
-  
-  @MainActor
-  func cropVideos() async {
-    state = .cropping
-    do {
-      croppedVideos = try await cropVideoUseCase.execute(crops: crops)
-    } catch {
-      print("CropError: \(error)")
-    }
-  }
-  
-  func createVideoSegments() async -> [VideoSegment] {
-    var segments: [VideoSegment] = []
-    for asset in croppedVideos {
-      segments.append(
-        VideoSegment(
-          source: VideoSource(
-            asset: asset,
-            url: "",
-            duration: asset.duration
-          )
-        )
-      )
-    }
-    state = .completedConvertToAsset
-    return segments
   }
   
   private func loadThumbnails() {
