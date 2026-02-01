@@ -51,14 +51,31 @@ struct TimelineTracksView: View {
         .frame(height: EditConstants.rulerHeight)
         .offset(x: -EditConstants.pixelsPerSecond / 2)
       
-      ForEach(viewModel.segments) { segment in
-        HStack(spacing: 16) {
-          audioControlButton(segment: segment)
-          
-          TrackView(segment: segment)
-            .clipped()
+      if viewModel.isLoading && viewModel.segments.isEmpty {
+        // Skeleton
+        ForEach(0..<3, id: \.self) { _ in
+          HStack(spacing: 16) {
+            Image(systemName: "speaker.wave.2.fill")
+              .font(.system(size: 16))
+              .foregroundStyle(.white)
+              .frame(width: 30, height: 30)
+            
+            RoundedRectangle(cornerRadius: 8)
+              .fill(Color.gray.opacity(0.3))
+              .frame(width: 300, height: EditConstants.thumbnailHeight)
+          }
+          .offset(x: -45)
         }
-        .offset(x: -45)
+      } else {
+        ForEach(viewModel.segments) { segment in
+          HStack(spacing: 16) {
+            audioControlButton(segment: segment)
+
+            TrackView(segment: segment)
+              .clipped()
+          }
+          .offset(x: -45)
+        }
       }
     }
   }

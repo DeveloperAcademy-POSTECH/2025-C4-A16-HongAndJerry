@@ -7,7 +7,6 @@ import Photos
 final class EditorViewModel {
   
   var isLoading: Bool = true
-  var isProcessingCrops: Bool = true
   var isTrimming: Bool = false
   var trimmingHandleType: HandlesView.HandleType?
   var selectedSegmentID: UUID?
@@ -108,22 +107,17 @@ final class EditorViewModel {
   }
   
   private func createSegments(from crops: [Crop]) async {
-    isProcessingCrops = true
     isLoading = true
 
     do {
       let segments = try await editUseCase.createSegmentsFromCrops(crops)
-      isProcessingCrops = false
     } catch {
       print("Error processing crops: \(error)")
-      isProcessingCrops = false
       isLoading = false
     }
   }
 
   private func initializePlayer() async {
-    isLoading = true
-
     guard !segments.isEmpty else {
       isLoading = false
       return

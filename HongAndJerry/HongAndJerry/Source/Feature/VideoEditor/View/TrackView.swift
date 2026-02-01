@@ -10,21 +10,30 @@ struct TrackView: View {
   }
   
   var body: some View {
-    ZStack(alignment: .leading) {
-      trackThumbnailView()
-    }
-    .frame(
-      width: EditConstants.convertTimeToOffset(segment.source.duration),
-      height: EditConstants.thumbnailHeight
-    )
-    .clipped()
-    .onTapGesture {
-      Task {
-        await viewModel.activateTrimming(segmentID: segment.id)
+    if viewModel.isLoading {
+      RoundedRectangle(cornerRadius: 8)
+        .fill(Color.gray.opacity(0.3))
+        .frame(
+          width: EditConstants.convertTimeToOffset(segment.source.duration),
+          height: EditConstants.thumbnailHeight
+        )
+    } else {
+      ZStack(alignment: .leading) {
+        trackThumbnailView()
       }
+      .frame(
+        width: EditConstants.convertTimeToOffset(segment.source.duration),
+        height: EditConstants.thumbnailHeight
+      )
+      .clipped()
+      .onTapGesture {
+        Task {
+          await viewModel.activateTrimming(segmentID: segment.id)
+        }
+      }
+      .background(Color.black)
+      .contentShape(Rectangle())
     }
-    .background(Color.black)
-    .contentShape(Rectangle())
   }
   
   private func trackThumbnailView() -> some View {
