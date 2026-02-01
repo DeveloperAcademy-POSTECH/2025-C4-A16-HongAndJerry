@@ -16,7 +16,7 @@ extension RoutingView: View {
             AssetPickerView().environment(router)
           
         case .editVideoRatio(let assets):
-            RatioSettingView(viewModel: .init(selectedVideos: assets))
+            CropView(viewModel: .init(selectedVideos: assets))
           
         case .videoEditView(let segments):
             EditorView(segments: segments)

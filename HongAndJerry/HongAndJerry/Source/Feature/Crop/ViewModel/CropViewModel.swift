@@ -1,33 +1,42 @@
 import Photos
 import SwiftUI
+import UIKit
 
 @Observable
-final class RatioSettingViewModel {
+final class CropViewModel {
   enum Action {
     case loadThumbnail
     case goToNextPhoto
     case goToPreviousPhoto
     case setContainerSize(CGSize, at: Int)
   }
-  
+
   enum VideoState {
     case thumbnailLoading
     case thumbnailLoaded
     case cropping
     case completedConvertToAsset
   }
-  
+
   var selectedVideos: [PHAsset]
   var currentIndex = 0
   var thumbnails: [String: UIImage] = [:]
   var isLoading = true
   var state: VideoState = .thumbnailLoaded
   var crops: [Crop] = []
-  var croppedVideos: [(AVAsset, AVVideoComposition)] = []
+  var croppedVideos: [AVAsset] = []
   var cropBoxStates: [Int: CropBoxState] = [:]
-  
-  init(selectedVideos: [PHAsset]) {
+
+  private let cropVideoUseCase: CropVideoUseCase
+
+  init(
+    selectedVideos: [PHAsset],
+    cropVideoUseCase: CropVideoUseCase = CropVideoUseCase(
+      repository: PHImageVideoCropRepository()
+    )
+  ) {
     self.selectedVideos = selectedVideos
+    self.cropVideoUseCase = cropVideoUseCase
   }
 }
 
@@ -36,7 +45,7 @@ struct CropBoxState {
   var frameSize: CGSize = .init(width: 1, height: 1)
 }
 
-extension RatioSettingViewModel {
+extension CropViewModel {
   func send(_ action: Action) {
     switch action {
     case .loadThumbnail:
@@ -92,24 +101,21 @@ extension RatioSettingViewModel {
   func cropVideos() async {
     state = .cropping
     do {
-      let exportedAssets = try await PHImageManager.default().exportCroppedVideos(crops: crops)
-      croppedVideos = exportedAssets.map { ($0, AVMutableVideoComposition()) }
+      croppedVideos = try await cropVideoUseCase.execute(crops: crops)
     } catch {
-      if let assetError = error as? AssetError {
-        print("AssetError: \(assetError)")
-      }
+      print("CropError: \(error)")
     }
   }
   
   func createVideoSegments() async -> [VideoSegment] {
     var segments: [VideoSegment] = []
-    for crop in croppedVideos {
+    for asset in croppedVideos {
       segments.append(
         VideoSegment(
           source: VideoSource(
-            asset: crop.0,
+            asset: asset,
             url: "",
-            duration: crop.0.duration
+            duration: asset.duration
           )
         )
       )

@@ -1,52 +1,30 @@
 import SwiftUI
 import Photos
 
-struct RatioSettingView: View {
+struct CropView: View {
   @EnvironmentObject var router: Router
   
-  @Bindable var viewModel: RatioSettingViewModel
+  @Bindable var viewModel: CropViewModel
   
   var body: some View {
     ZStack {
       Color.background.ignoresSafeArea()
       
       VStack {
-        Group {
-          switch viewModel.state {
-          case .thumbnailLoading:
-            loadingView()
-          case .thumbnailLoaded:
-            tabView()
-          case .cropping:
-            croppingView()
-          case .completedConvertToAsset:
-            Text("Complete")
-          }
-        }
-      }
-      .onAppear {
-        viewModel.send(.loadThumbnail)
+        cropTabView()
+          .onAppear { viewModel.send(.loadThumbnail) }
+        
+        pageIndicator()
+          .padding(.vertical, 8)
+        
+        nextButton()
       }
     }
     .hjNavigationBar(title: ExportNameSpace.AppMain.cropVideoTitle)
   }
-
-  @ViewBuilder
-  private func loadingView() -> some View {
-    ProgressView("로딩 중...")
-      .frame(width: 300, height: 300)
-  }
-
-  @ViewBuilder
-  private func croppingView() -> some View {
-    ProgressView("자른 비디오 로딩 중...")
-      .frame(width: 300, height: 300)
-      .navigationBarBackButtonHidden()
-  }
   
   @ViewBuilder
-  private func tabView() -> some View {
-    VStack {
+  private func cropTabView() -> some View {
       TabView(selection: $viewModel.currentIndex) {
         ForEach(
           Array(viewModel.selectedVideos.enumerated()),
@@ -58,12 +36,6 @@ struct RatioSettingView: View {
       }
       .indexViewStyle(.page(backgroundDisplayMode: .never))
       .tabViewStyle(.page(indexDisplayMode: .never))
-      
-      pageIndicator()
-        .padding(.vertical, 8)
-      
-      nextButton()
-    }
   }
   
   @ViewBuilder
@@ -119,7 +91,7 @@ struct RatioSettingView: View {
 }
 
 
-extension RatioSettingView {
+extension CropView {
   private func handleThumbnailAppear(videoIndex: Int, geometry: GeometryProxy, crop: Crop) {
     viewModel.send(.setContainerSize(geometry.size, at: videoIndex))
     if crop.cropRect == CGRect(x: 0, y: 0, width: 10, height: 10) {
