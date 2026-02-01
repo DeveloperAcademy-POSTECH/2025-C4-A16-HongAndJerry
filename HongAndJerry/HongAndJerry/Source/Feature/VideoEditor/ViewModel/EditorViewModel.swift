@@ -25,8 +25,8 @@ final class EditorViewModel {
   private var _showResultAlert: Bool = false
   
   private let playerUseCase: PlayerUseCase
-  let exportUseCase: ExportUseCase
   private let editUseCase: EditUseCase
+  private let exportUseCase: ExportUseCase
   
   var segments: [VideoSegment] {
     get { editUseCase.segments }

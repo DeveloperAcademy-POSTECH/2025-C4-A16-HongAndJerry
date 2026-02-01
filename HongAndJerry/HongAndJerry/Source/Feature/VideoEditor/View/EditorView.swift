@@ -20,17 +20,34 @@ struct EditorView: View {
   }
   
   var body: some View {
-    VStack {
-      if viewModel.isFullScreen {
-        fullScreenView()
-      } else {
-        EditorHeaderView()
-        previewSection()
-        timelineSection()
+    ZStack {
+      VStack {
+        if viewModel.isFullScreen {
+          fullScreenView()
+        } else {
+          EditorHeaderView()
+          previewSection()
+          timelineSection()
+        }
+      }
+      .environment(viewModel)
+      .navigationBarHidden(true)
+
+      if viewModel.exportIsLoading {
+        exportProgressOverlay()
       }
     }
-    .environment(viewModel)
-    .navigationBarHidden(true)
+  }
+
+  @ViewBuilder
+  private func exportProgressOverlay() -> some View {
+    ZStack {
+      Color.black.opacity(0.6)
+        .ignoresSafeArea()
+
+      HJProgressView(progress: viewModel.exportProgress)
+    }
+    .allowsHitTesting(true)
   }
   
   @ViewBuilder

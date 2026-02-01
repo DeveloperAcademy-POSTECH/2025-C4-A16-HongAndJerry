@@ -30,13 +30,13 @@ struct RatioSettingView: View {
     }
     .hjNavigationBar(title: ExportNameSpace.AppMain.cropVideoTitle)
   }
-  
+
   @ViewBuilder
   private func loadingView() -> some View {
     ProgressView("로딩 중...")
       .frame(width: 300, height: 300)
   }
-  
+
   @ViewBuilder
   private func croppingView() -> some View {
     ProgressView("자른 비디오 로딩 중...")

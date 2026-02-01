@@ -39,13 +39,8 @@ struct EditorHeaderView: View {
     } message: {
       Text(viewModel.exportAlert.message)
     }
-    .overlay {
-      if viewModel.exportIsLoading {
-        loadingOverlay()
-      }
-    }
   }
-  
+
   @ViewBuilder
   private func backButton() -> some View {
     Button {
@@ -65,17 +60,6 @@ struct EditorHeaderView: View {
       Text(ExportNameSpace.ExportView.export)
         .font(.SUITHeader)
         .foregroundStyle(.accent)
-    }
-  }
-  
-  @ViewBuilder
-  private func loadingOverlay() -> some View {
-    ZStack {
-      Color.black.opacity(0.4)
-        .ignoresSafeArea()
-      ProgressView()
-        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-        .scaleEffect(1.5)
     }
   }
 }
