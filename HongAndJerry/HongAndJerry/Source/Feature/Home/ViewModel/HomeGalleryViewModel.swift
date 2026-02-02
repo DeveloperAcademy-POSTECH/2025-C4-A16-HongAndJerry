@@ -27,7 +27,7 @@ final class HomeGalleryViewModel {
   private func requestPermissionAndLoadVideos() {
     PHPhotoLibrary.requestAuthorization { status in
       if status == .authorized || status == .limited {
-        self.loadVideos(albumName: "WVDO")
+        self.loadVideos(albumName: "Visemble")
       }
     }
   }

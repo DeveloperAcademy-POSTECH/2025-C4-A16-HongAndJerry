@@ -31,7 +31,10 @@ struct EditorView: View {
           fullScreenView()
         } else {
           EditorHeaderView()
+            .padding(.horizontal, 16)
+          
           previewSection()
+          
           timelineSection()
         }
       }

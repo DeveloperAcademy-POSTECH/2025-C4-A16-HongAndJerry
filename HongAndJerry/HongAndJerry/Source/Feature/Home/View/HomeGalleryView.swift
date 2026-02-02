@@ -32,7 +32,7 @@ struct HomeGalleryView: View {
       }
     }
     .background(Color.background)
-    .onAppear { viewModel.loadVideos(albumName: "WVDO") }
+    .onAppear { viewModel.loadVideos(albumName: "Visemble") }
   }
   
   @ViewBuilder
