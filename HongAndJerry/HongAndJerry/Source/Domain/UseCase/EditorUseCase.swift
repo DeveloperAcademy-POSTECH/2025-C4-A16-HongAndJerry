@@ -6,41 +6,30 @@ import Photos
 @Observable
 final class EditUseCase {
     private let compositionRepository: CompositionRepository
-    private let cropVideoUseCase: CropVideoUseCase
 
     var segments: [VideoSegment] = []
     private(set) var currentPlayerItem: AVPlayerItem?
 
     nonisolated init(
-        compositionRepository: CompositionRepository,
-        cropVideoUseCase: CropVideoUseCase = CropVideoUseCase(repository: PHImageVideoCropRepository())
+        compositionRepository: CompositionRepository
     ) {
         self.compositionRepository = compositionRepository
-        self.cropVideoUseCase = cropVideoUseCase
     }
-  
+
     func initializeSegments(_ segments: [VideoSegment]) {
         self.segments = segments
     }
 
-    func createSegmentsFromCrops(_ crops: [Crop]) async throws -> [VideoSegment] {
-        let croppedAssets = try await cropVideoUseCase.execute(crops: crops)
-
-        var segments: [VideoSegment] = []
-        for asset in croppedAssets {
-            segments.append(
-                VideoSegment(
-                    source: VideoSource(
-                        asset: asset,
-                        url: "",
-                        duration: asset.duration
-                    )
+    func initializeSegments(from assets: [AVAsset]) {
+        self.segments = assets.map { asset in
+            VideoSegment(
+                source: VideoSource(
+                    asset: asset,
+                    url: "",
+                    duration: asset.duration
                 )
             )
         }
-
-        self.segments = segments
-        return segments
     }
 
     func rebuildPlayerItem() async throws -> AVPlayerItem? {

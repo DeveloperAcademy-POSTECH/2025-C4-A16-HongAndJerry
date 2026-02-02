@@ -30,29 +30,22 @@ final class PHImageVideoCropRepository: VideoCropRepository {
         }
       }
     }
-    let elapsed = Date().timeIntervalSince(startTime)
-    print("⏱️ loadAVAsset: \(String(format: "%.2f", elapsed))s")
     return result
   }
 
   func getVideoSize(from asset: AVAsset) async throws -> CGSize {
-    let startTime = Date()
     guard let track = try? await asset.loadTracks(withMediaType: .video).first else {
       throw AssetError.assetNotFound
     }
 
     let size = try await track.load(.naturalSize).applying(track.load(.preferredTransform))
-    let result = CGSize(width: abs(size.width), height: abs(size.height))
-    let elapsed = Date().timeIntervalSince(startTime)
-    print("⏱️ getVideoSize: \(String(format: "%.2f", elapsed))s")
-    return result
+    return CGSize(width: abs(size.width), height: abs(size.height))
   }
 
   func makeVideoComposition(
     cropRect: CGRect,
     asset: AVAsset
   ) async throws -> AVVideoComposition {
-    let startTime = Date()
     guard cropRect.width > 0, cropRect.height > 0 else {
       return AVVideoComposition()
     }
@@ -83,8 +76,6 @@ final class PHImageVideoCropRepository: VideoCropRepository {
     instruction.layerInstructions = [layerInstruction]
     composition.instructions = [instruction]
 
-    let elapsed = Date().timeIntervalSince(startTime)
-    print("⏱️ makeVideoComposition: \(String(format: "%.2f", elapsed))s")
     return composition
   }
 
@@ -93,7 +84,6 @@ final class PHImageVideoCropRepository: VideoCropRepository {
     composition: AVVideoComposition,
     index: Int
   ) async throws -> AVAsset {
-    let startTime = Date()
     let tempDirectory = FileManager.default.temporaryDirectory
     let outputURL = tempDirectory.appendingPathComponent(
       "croppedVideo_\(index)_\(UUID().uuidString).mov"
@@ -125,8 +115,6 @@ final class PHImageVideoCropRepository: VideoCropRepository {
       throw AssetError.assetNotFound
     }
 
-    let elapsed = Date().timeIntervalSince(startTime)
-    print("⏱️ exportVideo: \(String(format: "%.2f", elapsed))s")
     return AVURLAsset(url: outputURL)
   }
 }

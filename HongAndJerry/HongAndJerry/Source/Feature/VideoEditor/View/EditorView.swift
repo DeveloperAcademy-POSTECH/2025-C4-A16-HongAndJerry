@@ -5,7 +5,7 @@ import Photos
 struct EditorView: View {
   @State private var viewModel: EditorViewModel
   @Namespace private var videoAnimation
-  
+
   init(crops: [Crop]) {
     _viewModel = State(initialValue: EditorViewModel(crops: crops))
   }
@@ -13,17 +13,17 @@ struct EditorView: View {
   init(segments: [VideoSegment]) {
     _viewModel = State(initialValue: EditorViewModel(segments: segments))
   }
-  
+
   private var currentSegment: VideoSegment? {
     guard let selectedID = viewModel.selectedSegmentID else { return nil }
     return viewModel.segments.first(where: { $0.id == selectedID })
   }
-  
+
   private var snapEndTimes: [Double] {
     guard let selectedID = viewModel.selectedSegmentID else { return [] }
     return viewModel.getSegmentEndTimes(excluding: selectedID)
   }
-  
+
   var body: some View {
     ZStack {
       VStack {
@@ -37,6 +37,9 @@ struct EditorView: View {
       }
       .environment(viewModel)
       .navigationBarHidden(true)
+      .onAppear {
+        viewModel.send(.load)
+      }
 
       if viewModel.exportIsLoading {
         exportProgressOverlay()
@@ -54,7 +57,7 @@ struct EditorView: View {
     }
     .allowsHitTesting(true)
   }
-  
+
   @ViewBuilder
   private func fullScreenView() -> some View {
     VStack(spacing: 0) {
@@ -65,7 +68,7 @@ struct EditorView: View {
     }
     .background(Color.black.ignoresSafeArea())
   }
-  
+
   @ViewBuilder
   private func previewSection() -> some View {
     VideoPlayerView()
@@ -75,11 +78,11 @@ struct EditorView: View {
 
     playbackControlSection()
   }
-  
+
   private func playbackControlSection() -> some View {
     HStack {
       Spacer().frame(width: 20)
-      
+
       Spacer()
       playButton()
       Spacer()
@@ -87,13 +90,13 @@ struct EditorView: View {
     }
     .padding(.horizontal, 20)
   }
-  
+
   private func playButton() -> some View {
     Button {
       if viewModel.isPlaying {
-        viewModel.pause()
+        viewModel.send(.pause)
       } else {
-        viewModel.play()
+        viewModel.send(.play)
       }
     } label: {
       Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
@@ -101,11 +104,11 @@ struct EditorView: View {
         .foregroundColor(.white)
     }
   }
-  
+
   private func fullScreenButton() -> some View {
     Button {
       withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-        viewModel.isFullScreen = true
+        viewModel.send(.enterFullScreen)
       }
     } label: {
       Image(systemName: "arrow.up.left.and.arrow.down.right")
@@ -113,7 +116,7 @@ struct EditorView: View {
         .foregroundColor(.white)
     }
   }
-  
+
   @ViewBuilder
   private func timelineSection() -> some View {
     VStack(spacing: 0) {
@@ -123,7 +126,7 @@ struct EditorView: View {
           playheadView()
           timeDisplayView()
         }
-        
+
         ZStack {
           if viewModel.selectedSegmentID != nil {
             TrimmingTrackViewRepresentable(
@@ -132,8 +135,8 @@ struct EditorView: View {
               shouldShake: viewModel.shouldShakeCheckButton,
               isTrimming: viewModel.isTrimming,
               onTrimStarted: { handleType in
-                viewModel.startTrimming(handleType: handleType)
-                
+                viewModel.send(.startTrimming(handleType: handleType))
+
                 if let offset = viewModel.scrollOffsetForTrimStart() {
                   NotificationCenter.default.post(
                     name: .timelineScrollToOffset,
@@ -142,22 +145,18 @@ struct EditorView: View {
                 }
               },
               onTrimChanged: { startTime, endTime, handleType in
-                Task {
-                  await viewModel.updateTrimRange(start: startTime, end: endTime)
-                }
-                
+                viewModel.send(.updateTrimRange(start: startTime, end: endTime))
+
                 let seekTime = handleType == .left ? startTime : endTime
-                viewModel.seek(
-                  to: CMTime(seconds: seekTime, preferredTimescale: 600)
+                viewModel.send(
+                  .seek(to: CMTime(seconds: seekTime, preferredTimescale: 600))
                 )
               },
               onTrimEnded: {
-                viewModel.endTrimming()
+                viewModel.send(.endTrimming)
               },
               onTrimConfirmed: {
-                Task {
-                  await viewModel.confirmTrimming()
-                }
+                viewModel.send(.confirmTrimming)
               }
             )
             .padding(.leading, 12)
@@ -179,13 +178,13 @@ struct EditorView: View {
           value: viewModel.selectedSegmentID
         )
       }
-      
+
       Spacer()
     }
     .frame(maxWidth: .infinity)
     .background(Color.black)
   }
-  
+
   private func timeDisplayView() -> some View {
     Text("\(viewModel.currentTime.formattedString) / \(viewModel.totalDuration.formattedString)")
       .font(.SUITTimer)
@@ -194,7 +193,7 @@ struct EditorView: View {
       .background(Rectangle().fill(.black))
       .padding(.leading, 16)
   }
-  
+
   private func playheadView() -> some View {
     Rectangle()
       .fill(.white)

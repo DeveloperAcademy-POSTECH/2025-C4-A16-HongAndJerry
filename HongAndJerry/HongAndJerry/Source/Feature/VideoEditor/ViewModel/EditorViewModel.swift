@@ -5,15 +5,60 @@ import Photos
 @MainActor
 @Observable
 final class EditorViewModel {
-  
-  var isLoading: Bool = true
-  var isTrimming: Bool = false
+
+  enum EditorState {
+    case loading
+    case editing
+    case trimming
+    case fullScreen
+  }
+
+  enum Action {
+    // Lifecycle
+    case load
+
+    // Playback
+    case play
+    case pause
+    case seek(to: CMTime, direction: DragDirection = .none)
+
+    // Trimming
+    case activateTrimming(segmentID: UUID)
+    case startTrimming(handleType: HandlesView.HandleType)
+    case endTrimming
+    case confirmTrimming
+    case updateTrimRange(start: Double, end: Double)
+
+    // Audio
+    case toggleAudioMute(segmentID: UUID)
+
+    // Timeline
+    case timelineScroll(to: CGFloat)
+    case playingStateChanged(isPlaying: Bool)
+    case currentTimeChanged
+    case updateScreenWidth(CGFloat)
+
+    // Timeline drag
+    case timelineDragStarted
+    case timelineDragChanged(translation: CGFloat)
+    case timelineDragEnded
+
+    // Full screen
+    case enterFullScreen
+    case exitFullScreen
+
+    // Export
+    case requestExport
+    case handleExport(router: Router)
+    case handleAlertDismiss(router: Router)
+  }
+
+  var state: EditorState = .loading
   var trimmingHandleType: HandlesView.HandleType?
   var selectedSegmentID: UUID?
   var screenWidth: CGFloat = 0
   var shouldShakeCheckButton: Bool = false
-  var isFullScreen: Bool = false
-  
+
   var isTimelineDragging: Bool = false
   var currentTimelineOffset: CGFloat = 0
   var dragDirection: DragDirection = .none
@@ -21,188 +66,171 @@ final class EditorViewModel {
   private var lastDragTranslation: CGFloat = 0
   private var feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
   private var lastHapticSecond: Int = -1
-  
+
   private var _showExportConfirmAlert: Bool = false
   private var _showResultAlert: Bool = false
-  
+
   private let playerUseCase: PlayerUseCase
   private let editUseCase: EditUseCase
+  private let cropUseCase: CropUseCase
   private let exportUseCase: ExportUseCase
-  
+
+  // MARK: - Computed Properties
+
+  var isLoading: Bool { state == .loading }
+  var isTrimming: Bool { state == .trimming }
+  var isFullScreen: Bool { state == .fullScreen }
+
   var segments: [VideoSegment] {
     get { editUseCase.segments }
     set { editUseCase.segments = newValue }
   }
-  
+
   var player: AVPlayer {
     playerUseCase.player
   }
-  
+
   var isPlaying: Bool {
     playerUseCase.isPlaying
   }
-  
+
   var currentTime: CMTime {
     playerUseCase.currentTime
   }
-  
+
   var totalDuration: CMTime {
     playerUseCase.totalDuration
   }
-  
+
   var showExportConfirmAlert: Bool {
     get { _showExportConfirmAlert }
     set { _showExportConfirmAlert = newValue }
   }
-  
+
   var showResultAlert: Bool {
     get { _showResultAlert }
     set { _showResultAlert = newValue }
   }
-  
+
   var exportIsLoading: Bool {
     exportUseCase.isLoading
   }
-  
+
   var exportProgress: Double {
     exportUseCase.progress
   }
-  
+
   var exportAlert: ExportAlert {
     exportUseCase.alertModel
   }
-  
+
+  private var crops: [Crop]
+  private var initialSegments: [VideoSegment]?
+
+  // MARK: - Init
+
   init(
     crops: [Crop],
     playerUseCase: PlayerUseCase = PlayerUseCase(),
+    cropUseCase: CropUseCase = CropUseCase(repository: PHImageVideoCropRepository()),
     exportUseCase: ExportUseCase = ExportUseCase(),
     editUseCase: EditUseCase = EditUseCase(
       compositionRepository: AVMutableCompositionRepository()
     )
   ) {
+    self.crops = crops
+    self.initialSegments = nil
     self.playerUseCase = playerUseCase
+    self.cropUseCase = cropUseCase
     self.exportUseCase = exportUseCase
     self.editUseCase = editUseCase
-
-    Task {
-      await createSegments(from: crops)
-      await initializePlayer()
-    }
   }
 
-  convenience init(segments: [VideoSegment]) {
-    self.init(
-      crops: [],
-      playerUseCase: PlayerUseCase(),
-      exportUseCase: ExportUseCase(),
-      editUseCase: EditUseCase(
-        compositionRepository: AVMutableCompositionRepository()
-      )
+  init(
+    segments: [VideoSegment],
+    playerUseCase: PlayerUseCase = PlayerUseCase(),
+    cropUseCase: CropUseCase = CropUseCase(repository: PHImageVideoCropRepository()),
+    exportUseCase: ExportUseCase = ExportUseCase(),
+    editUseCase: EditUseCase = EditUseCase(
+      compositionRepository: AVMutableCompositionRepository()
     )
-
-    Task {
-      self.editUseCase.initializeSegments(segments)
-      await initializePlayer()
-    }
-  }
-  
-  private func createSegments(from crops: [Crop]) async {
-    isLoading = true
-
-    do {
-      let segments = try await editUseCase.createSegmentsFromCrops(crops)
-    } catch {
-      print("Error processing crops: \(error)")
-      isLoading = false
-    }
+  ) {
+    self.crops = []
+    self.initialSegments = segments
+    self.playerUseCase = playerUseCase
+    self.cropUseCase = cropUseCase
+    self.exportUseCase = exportUseCase
+    self.editUseCase = editUseCase
   }
 
-  private func initializePlayer() async {
-    guard !segments.isEmpty else {
-      isLoading = false
-      return
-    }
+  // MARK: - Send
 
-    await rebuildPlayerItem()
-    isLoading = false
-  }
-  
-  private func rebuildPlayerItem() async {
-    do {
-      guard !segments.isEmpty else {
-        playerUseCase.replaceCurrentItem(with: nil)
-        return
-      }
-      
-      let playerItem = try await editUseCase.rebuildPlayerItem()
-      playerUseCase.replaceCurrentItem(with: playerItem)
-      
-    } catch {
-      print("Error rebuilding player item: \(error)")
-    }
-  }
-  
-  func getFinalVideoAsset() -> AVAsset? {
-    editUseCase.getFinalVideoAsset()
-  }
-  
-  func getFinalVideoComposition() -> AVVideoComposition? {
-    editUseCase.getFinalVideoComposition()
-  }
-  
-  func activateTrimming(segmentID: UUID) async {
-    if isTrimming,
-       let currentSelectedID = selectedSegmentID,
-       currentSelectedID != segmentID {
-      triggerCheckButtonShake()
-      return
-    }
-    
-    selectedSegmentID = segmentID
-    
-    if let playerItem = editUseCase.createTrimmingPlayerItem(for: segmentID) {
-      playerUseCase.replaceCurrentItem(with: playerItem)
+  func send(_ action: Action) {
+    switch action {
+    case .load:
+      Task { await load() }
+
+    case .play:
+      playerUseCase.play()
+    case .pause:
       playerUseCase.pause()
+    case .seek(let time, let direction):
+      playerUseCase.seek(to: time, direction: direction)
+
+    case .activateTrimming(let segmentID):
+      Task { await activateTrimming(segmentID: segmentID) }
+    case .startTrimming(let handleType):
+      state = .trimming
+      trimmingHandleType = handleType
+    case .endTrimming:
+      trimmingHandleType = nil
+    case .confirmTrimming:
+      Task { await confirmTrimming() }
+    case .updateTrimRange(let start, let end):
+      Task { await updateTrimRange(start: start, end: end) }
+
+    case .toggleAudioMute(let segmentID):
+      Task { try? await toggleAudioMute(segmentID: segmentID) }
+
+    case .timelineScroll(let offset):
+      handleTimelineScroll(to: offset)
+    case .playingStateChanged(let isPlaying):
+      handlePlayingStateChanged(isPlaying: isPlaying)
+    case .currentTimeChanged:
+      handleCurrentTimeChanged()
+    case .updateScreenWidth(let width):
+      screenWidth = width
+
+    case .timelineDragStarted:
+      handleTimelineDragStarted()
+    case .timelineDragChanged(let translation):
+      handleTimelineDragChanged(translation: translation)
+    case .timelineDragEnded:
+      handleTimelineDragEnded()
+
+    case .enterFullScreen:
+      state = .fullScreen
+    case .exitFullScreen:
+      state = .editing
+
+    case .requestExport:
+      showExportConfirmAlert = true
+    case .handleExport(let router):
+      handleExport(router: router)
+    case .handleAlertDismiss(let router):
+      handleAlertDismiss(router: router)
     }
   }
-  
-  func triggerCheckButtonShake() {
-    shouldShakeCheckButton = true
-    
-    Task {
-      try? await Task.sleep(nanoseconds: 500_000_000)
-      shouldShakeCheckButton = false
-    }
-  }
-  
-  func startTrimming(handleType: HandlesView.HandleType) {
-    isTrimming = true
-    trimmingHandleType = handleType
-  }
-  
-  func endTrimming() {
-    trimmingHandleType = nil
-  }
-  
-  func confirmTrimming() async {
-    isTrimming = false
-    trimmingHandleType = nil
-    selectedSegmentID = nil
-    await rebuildPlayerItem()
-  }
-  
-  func updateTrimRange(start: Double, end: Double) async {
-    guard let selectedID = selectedSegmentID else { return }
-    editUseCase.updateTrimRange(segmentID: selectedID, start: start, end: end)
-  }
-  
+
+  // MARK: - Public Query Methods
+
   func scrollOffsetForTrimStart() -> CGFloat? {
     guard
       let handleType = trimmingHandleType,
       let selectedID = selectedSegmentID,
       let segment = segments.first(where: { $0.id == selectedID })
     else { return nil }
-    
+
     switch handleType {
     case .left:
       return 0
@@ -211,89 +239,168 @@ final class EditorViewModel {
       return -(visualRightEnd * EditConstants.pixelsPerSecond)
     }
   }
-  
+
   func getSegmentEndTimes(excluding segmentID: UUID) -> [Double] {
     editUseCase.getSegmentEndTimes(excluding: segmentID)
   }
-  
-  func toggleAudioMute(segmentID: UUID) async throws {
+
+  // MARK: - Private Methods
+
+  private func load() async {
+    guard segments.isEmpty else { return }
+
+    if let initialSegments {
+      editUseCase.initializeSegments(initialSegments)
+    } else if !crops.isEmpty {
+      await createSegments(from: crops)
+    }
+    await initializePlayer()
+  }
+
+  private func createSegments(from crops: [Crop]) async {
+    state = .loading
+
+    do {
+      let croppedAssets = try await cropUseCase.execute(crops: crops)
+      editUseCase.initializeSegments(from: croppedAssets)
+    } catch {
+      print("Error processing crops: \(error)")
+      state = .editing
+    }
+  }
+
+  private func initializePlayer() async {
+    guard !segments.isEmpty else {
+      state = .editing
+      return
+    }
+
+    await rebuildPlayerItem()
+    state = .editing
+  }
+
+  private func rebuildPlayerItem() async {
+    do {
+      guard !segments.isEmpty else {
+        playerUseCase.replaceCurrentItem(with: nil)
+        return
+      }
+
+      let playerItem = try await editUseCase.rebuildPlayerItem()
+      playerUseCase.replaceCurrentItem(with: playerItem)
+
+    } catch {
+      print("Error rebuilding player item: \(error)")
+    }
+  }
+
+  private func getFinalVideoAsset() -> AVAsset? {
+    editUseCase.getFinalVideoAsset()
+  }
+
+  private func getFinalVideoComposition() -> AVVideoComposition? {
+    editUseCase.getFinalVideoComposition()
+  }
+
+  private func activateTrimming(segmentID: UUID) async {
+    if isTrimming,
+       let currentSelectedID = selectedSegmentID,
+       currentSelectedID != segmentID {
+      triggerCheckButtonShake()
+      return
+    }
+
+    selectedSegmentID = segmentID
+
+    if let playerItem = editUseCase.createTrimmingPlayerItem(for: segmentID) {
+      playerUseCase.replaceCurrentItem(with: playerItem)
+      playerUseCase.pause()
+    }
+  }
+
+  private func triggerCheckButtonShake() {
+    shouldShakeCheckButton = true
+
+    Task {
+      try? await Task.sleep(nanoseconds: 500_000_000)
+      shouldShakeCheckButton = false
+    }
+  }
+
+  private func confirmTrimming() async {
+    state = .editing
+    trimmingHandleType = nil
+    selectedSegmentID = nil
+    await rebuildPlayerItem()
+  }
+
+  private func updateTrimRange(start: Double, end: Double) async {
+    guard let selectedID = selectedSegmentID else { return }
+    editUseCase.updateTrimRange(segmentID: selectedID, start: start, end: end)
+  }
+
+  private func toggleAudioMute(segmentID: UUID) async throws {
     if let playerItem = try await editUseCase.toggleAudioMute(segmentID: segmentID) {
       playerUseCase.replaceCurrentItem(with: playerItem)
     }
   }
-  
-  func play() {
-    playerUseCase.play()
-  }
-  
-  func pause() {
-    playerUseCase.pause()
-  }
-  
-  func seek(to time: CMTime, direction: DragDirection = .none) {
-    playerUseCase.seek(to: time, direction: direction)
-  }
-  
-  func updateScreenWidth(_ width: CGFloat) {
-    screenWidth = width
-  }
-  
-  func handleTimelineDragStarted() {
+
+  private func handleTimelineDragStarted() {
     playerUseCase.pause()
     isTimelineDragging = true
     startDragOffset = currentTimelineOffset
     lastDragTranslation = 0
   }
-  
-  func handleTimelineDragChanged(translation: CGFloat) {
+
+  private func handleTimelineDragChanged(translation: CGFloat) {
     let delta = translation - lastDragTranslation
     dragDirection = calculateDragDirection(delta: delta)
     lastDragTranslation = translation
-    
+
     let newOffset = startDragOffset + translation
     updateTimelineOffset(newOffset, isDragging: true, direction: dragDirection)
   }
-  
-  func handleTimelineDragEnded() {
+
+  private func handleTimelineDragEnded() {
     isTimelineDragging = false
     lastHapticSecond = -1
     lastDragTranslation = 0
-    
+
     let clampedOffset = clampTimelineOffset(currentTimelineOffset)
     seekToTimelineOffset(clampedOffset, direction: .none)
   }
-  
-  func handleTimelineScroll(to offset: CGFloat) {
+
+  private func handleTimelineScroll(to offset: CGFloat) {
     currentTimelineOffset = clampTimelineOffset(offset)
   }
-  
-  func handlePlayingStateChanged(isPlaying: Bool) {
+
+  private func handlePlayingStateChanged(isPlaying: Bool) {
     guard isPlaying, !isTimelineDragging else { return }
-    
+
     let currentSeconds = playerUseCase.player.currentTime().seconds
     currentTimelineOffset = -(currentSeconds * EditConstants.pixelsPerSecond)
   }
-  
-  func handleCurrentTimeChanged() {
+
+  private func handleCurrentTimeChanged() {
     guard !isTimelineDragging else { return }
-    
+
     checkPlaybackEnd()
-    
+
     if isTrimming, trimmingHandleType == .right {
       updateOffsetForTrimmingRightHandle()
     } else if playerUseCase.isPlaying {
       currentTimelineOffset = -(playerUseCase.currentTime.seconds * EditConstants.pixelsPerSecond)
     }
   }
-  
+
   private func calculateDragDirection(delta: CGFloat) -> DragDirection {
     delta > 0 ? .backward : (delta < 0 ? .forward : .none)
   }
-  
+
   private func clampTimelineOffset(_ offset: CGFloat) -> CGFloat {
     let maxOffset: CGFloat = 0
     let minOffset: CGFloat
-    
+
     if let selectedID = selectedSegmentID,
        let segment = segments.first(where: { $0.id == selectedID }) {
       let trimmedWidth = segment.trimmedDuration.seconds * EditConstants.pixelsPerSecond
@@ -302,10 +409,10 @@ final class EditorViewModel {
       let totalTimelineWidth = totalDuration.seconds * EditConstants.pixelsPerSecond
       minOffset = -totalTimelineWidth
     }
-    
+
     return min(maxOffset, max(minOffset, offset))
   }
-  
+
   private func updateTimelineOffset(
     _ newOffset: CGFloat,
     isDragging: Bool,
@@ -313,33 +420,33 @@ final class EditorViewModel {
   ) {
     let clampedOffset = clampTimelineOffset(newOffset)
     currentTimelineOffset = clampedOffset
-    
+
     if isDragging {
       seekToTimelineOffset(clampedOffset, direction: direction)
     }
   }
-  
+
   private func seekToTimelineOffset(_ offset: CGFloat, direction: DragDirection) {
     let newTime = max(0, -offset / EditConstants.pixelsPerSecond)
-    
+
     let currentSecond = Int(newTime)
     if currentSecond != lastHapticSecond {
       feedbackGenerator.impactOccurred()
       lastHapticSecond = currentSecond
     }
-    
+
     playerUseCase.seek(
       to: CMTime(seconds: newTime, preferredTimescale: 600),
       direction: direction
     )
   }
-  
+
   private func checkPlaybackEnd() {
     guard playerUseCase.isPlaying else { return }
-    
+
     let currentSeconds = playerUseCase.currentTime.seconds
     let threshold = 0.05
-    
+
     if let selectedID = selectedSegmentID,
        let segment = segments.first(where: { $0.id == selectedID }) {
       let endTime = segment.startTime.seconds + segment.trimmedDuration.seconds
@@ -351,23 +458,19 @@ final class EditorViewModel {
       playerUseCase.pause()
     }
   }
-  
+
   private func updateOffsetForTrimmingRightHandle() {
     guard let selectedID = selectedSegmentID,
           let segment = segments.first(where: { $0.id == selectedID }) else { return }
-    
+
     let visualRightEnd = playerUseCase.currentTime.seconds - segment.startTime.seconds
     currentTimelineOffset = -(visualRightEnd * EditConstants.pixelsPerSecond)
   }
-  
-  func requestExport() {
-    showExportConfirmAlert = true
-  }
-  
-  func handleExport(router: Router) {
+
+  private func handleExport(router: Router) {
     guard let video = getFinalVideoAsset() else { return }
     let composition = getFinalVideoComposition()
-    
+
     exportUseCase.saveVideo(
       video: video,
       videoComposition: composition
@@ -375,10 +478,11 @@ final class EditorViewModel {
       self?.showResultAlert = true
     }
   }
-  
-  func handleAlertDismiss(router: Router) {
+
+  private func handleAlertDismiss(router: Router) {
     if exportUseCase.alertModel.title == ExportNameSpace.AlertSuccessMessage.title {
       router.popToRoot()
     }
   }
+
 }

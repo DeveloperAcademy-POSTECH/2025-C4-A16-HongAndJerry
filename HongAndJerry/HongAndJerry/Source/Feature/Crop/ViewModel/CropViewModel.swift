@@ -11,7 +11,7 @@ final class CropViewModel {
     case setContainerSize(CGSize, at: Int)
   }
 
-  enum VideoState {
+  enum CropState {
     case thumbnailLoading
     case thumbnailLoaded
     case cropping
@@ -22,7 +22,7 @@ final class CropViewModel {
   var currentIndex = 0
   var thumbnails: [String: UIImage] = [:]
   var isLoading = true
-  var state: VideoState = .thumbnailLoaded
+  var state: CropState = .thumbnailLoaded
   var crops: [Crop] = []
   var cropBoxStates: [Int: CropBoxState] = [:]
 
@@ -40,7 +40,7 @@ extension CropViewModel {
   func send(_ action: Action) {
     switch action {
     case .loadThumbnail:
-      loadThumbnails()
+      Task { await loadThumbnails() }
     case .goToNextPhoto:
       if currentIndex < 2 { currentIndex += 1 }
     case .goToPreviousPhoto:
@@ -88,14 +88,9 @@ extension CropViewModel {
     return rect
   }
   
-  private func loadThumbnails() {
-    Task {
-      await loadThumbnailsAsync()
-    }
-  }
-  
   @MainActor
-  private func loadThumbnailsAsync() async {
+  private func loadThumbnails() async {
+    guard crops.isEmpty else { return }
     isLoading = true
     for video in selectedVideos {
       let thumbnail = await loadSingleThumbnail(for: video)

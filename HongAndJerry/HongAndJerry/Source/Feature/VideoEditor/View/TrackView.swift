@@ -2,13 +2,13 @@ import SwiftUI
 
 struct TrackView: View {
   @Environment(EditorViewModel.self) private var viewModel
-  
+
   let segment: VideoSegment
-  
+
   private var isLoading: Bool {
     segment.thumbnails.isEmpty
   }
-  
+
   var body: some View {
     if viewModel.isLoading {
       RoundedRectangle(cornerRadius: 8)
@@ -27,15 +27,13 @@ struct TrackView: View {
       )
       .clipped()
       .onTapGesture {
-        Task {
-          await viewModel.activateTrimming(segmentID: segment.id)
-        }
+        viewModel.send(.activateTrimming(segmentID: segment.id))
       }
       .background(Color.black)
       .contentShape(Rectangle())
     }
   }
-  
+
   private func trackThumbnailView() -> some View {
     ZStack(alignment: .leading) {
       HStack(spacing: 0) {
@@ -69,5 +67,3 @@ struct TrackView: View {
     }
   }
 }
-
-

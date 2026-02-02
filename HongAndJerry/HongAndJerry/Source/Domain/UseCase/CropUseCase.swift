@@ -3,7 +3,7 @@ import Photos
 
 @MainActor
 @Observable
-final class CropVideoUseCase {
+final class CropUseCase {
   private let repository: VideoCropRepository
 
   nonisolated init(repository: VideoCropRepository) {
@@ -11,7 +11,6 @@ final class CropVideoUseCase {
   }
 
   func execute(crops: [Crop]) async throws -> [AVAsset] {
-    let totalStartTime = Date()
     var exportedAssets: [AVAsset] = []
 
     let options = PHVideoRequestOptions()
@@ -19,8 +18,6 @@ final class CropVideoUseCase {
     options.deliveryMode = .highQualityFormat
 
     for (index, crop) in crops.enumerated() {
-      let videoStartTime = Date()
-      print("🎬 처리 시작 idx:\(index)")
 
       let originalAsset = try await repository.loadAVAsset(
         for: crop.video,
@@ -48,12 +45,8 @@ final class CropVideoUseCase {
       )
 
       exportedAssets.append(exportedAsset)
-      let videoElapsed = Date().timeIntervalSince(videoStartTime)
-      print("✅ 처리 완료 idx:\(index) - 소요시간: \(String(format: "%.2f", videoElapsed))s")
     }
 
-    let totalElapsed = Date().timeIntervalSince(totalStartTime)
-    print("🏁 전체 처리 완료 - 총 소요시간: \(String(format: "%.2f", totalElapsed))s")
     return exportedAssets
   }
 
