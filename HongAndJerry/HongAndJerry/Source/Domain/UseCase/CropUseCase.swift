@@ -16,49 +16,49 @@ final class CropUseCase {
   }
 
   func execute(crops: [Crop]) async throws -> [AVAsset] {
-    let totalStartTime = CFAbsoluteTimeGetCurrent()
-    print("🎬 [CropUseCase] Starting crop execution for \(crops.count) videos")
-
-    var exportedAssets: [AVAsset] = []
-
     let options = PHVideoRequestOptions()
     options.isNetworkAccessAllowed = true
     options.deliveryMode = .highQualityFormat
 
-    for (index, crop) in crops.enumerated() {
-      let videoStartTime = CFAbsoluteTimeGetCurrent()
-      print("  📹 [Video \(index + 1)/\(crops.count)] Starting processing")
+    let loadedAssets = try await withThrowingTaskGroup(of: (Int, AVAsset).self) { group in
+      for (index, crop) in crops.enumerated() {
+        group.addTask {
+          let taskStart = CFAbsoluteTimeGetCurrent()
+          let asset = try await self.assetLoadRepository.loadAVAsset(
+            for: crop.video,
+            options: options
+          )
+          return (index, asset)
+        }
+      }
 
-      let loadStart = CFAbsoluteTimeGetCurrent()
-      let originalAsset = try await assetLoadRepository.loadAVAsset(
-        for: crop.video,
-        options: options
-      )
-      let loadTime = CFAbsoluteTimeGetCurrent() - loadStart
-      print("    ⏱️ Load AVAsset: \(String(format: "%.3f", loadTime))s")
+      var results = [(Int, AVAsset)]()
+      for try await result in group {
+        results.append(result)
+      }
+      return results.sorted { $0.0 < $1.0 }
+    }
+    
+    var exportedAssets: [AVAsset] = []
 
+    for (index, originalAsset) in loadedAssets {
+      let crop = crops[index]
       let sizeStart = CFAbsoluteTimeGetCurrent()
       let videoSize = try await videoEditRepository.getVideoSize(from: originalAsset)
-      let sizeTime = CFAbsoluteTimeGetCurrent() - sizeStart
-      print("    ⏱️ Get video size: \(String(format: "%.3f", sizeTime))s")
-
       let rectStart = CFAbsoluteTimeGetCurrent()
+      
       let actualCropRect = convertThumbnailRectToVideoRect(
         thumbnailRect: crop.cropRect,
         thumbnailSize: crop.thumbnail.size,
         containerSize: crop.containerSize,
         videoSize: videoSize
       )
-      let rectTime = CFAbsoluteTimeGetCurrent() - rectStart
-      print("    ⏱️ Calculate crop rect: \(String(format: "%.3f", rectTime))s")
 
       let compositionStart = CFAbsoluteTimeGetCurrent()
       let composition = try await videoEditRepository.makeVideoComposition(
         cropRect: actualCropRect,
         asset: originalAsset
       )
-      let compositionTime = CFAbsoluteTimeGetCurrent() - compositionStart
-      print("    ⏱️ Make composition: \(String(format: "%.3f", compositionTime))s")
 
       let exportStart = CFAbsoluteTimeGetCurrent()
       let exportedAsset = try await videoEditRepository.exportCroppedVideo(
@@ -66,18 +66,10 @@ final class CropUseCase {
         composition: composition,
         index: index
       )
-      let exportTime = CFAbsoluteTimeGetCurrent() - exportStart
-      print("    ⏱️ Export video: \(String(format: "%.3f", exportTime))s")
 
       exportedAssets.append(exportedAsset)
-
-      let videoTotalTime = CFAbsoluteTimeGetCurrent() - videoStartTime
-      print("  ✅ [Video \(index + 1)/\(crops.count)] Total: \(String(format: "%.3f", videoTotalTime))s")
     }
-
-    let totalTime = CFAbsoluteTimeGetCurrent() - totalStartTime
-    print("🎉 [CropUseCase] Completed all crops in \(String(format: "%.3f", totalTime))s")
-
+    
     return exportedAssets
   }
 
