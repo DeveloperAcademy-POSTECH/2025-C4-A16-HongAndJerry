@@ -7,7 +7,7 @@
 
 import Photos
 
-// TODO: edit
 protocol AlbumRepository {
   func checkAlbum(named title: String) throws -> PHAssetCollection
+  func saveVideoToAlbum(at fileURL: URL, to album: PHAssetCollection) async throws
 }

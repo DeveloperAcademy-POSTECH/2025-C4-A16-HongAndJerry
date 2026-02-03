@@ -25,7 +25,23 @@ struct AlbumAssetThumbnailCell: View {
               }
             }
           )
-        
+
+        if video.duration > 0 {
+          Text(formattedDuration(video.duration))
+            .font(.SUITTimer)
+            .foregroundColor(.white)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(Color.black.opacity(0.6))
+            .cornerRadius(4)
+            .padding(6)
+            .frame(
+              maxWidth: .infinity,
+              maxHeight: .infinity,
+              alignment: .bottomTrailing
+            )
+        }
+
         if isSelected {
           ZStack {
             RoundedRectangle(cornerRadius: 4)
@@ -57,6 +73,13 @@ struct AlbumAssetThumbnailCell: View {
     }
   }
   
+  private func formattedDuration(_ duration: TimeInterval) -> String {
+    let totalSeconds = Int(duration)
+    let minutes = totalSeconds / 60
+    let seconds = totalSeconds % 60
+    return String(format: "%d:%02d", minutes, seconds)
+  }
+
   private func loadThumbnail() {
     let manager = PHImageManager.default()
     let option = PHImageRequestOptions()

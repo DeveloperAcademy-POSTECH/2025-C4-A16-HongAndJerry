@@ -127,13 +127,17 @@ final class EditorViewModel {
   private var crops: [Crop]
   private var initialSegments: [VideoSegment]?
 
-  // MARK: - Init
-
   init(
     crops: [Crop],
     playerUseCase: PlayerUseCase = PlayerUseCase(),
-    cropUseCase: CropUseCase = CropUseCase(repository: PHImageVideoCropRepository()),
-    exportUseCase: ExportUseCase = ExportUseCase(),
+    cropUseCase: CropUseCase = CropUseCase(
+      assetLoadRepository: PHAssetRepository(),
+      videoEditRepository: AVVideoEditRepository()
+    ),
+    exportUseCase: ExportUseCase = ExportUseCase(
+      albumRepository: PHAssetRepository(),
+      videoEditRepository: AVVideoEditRepository()
+    ),
     editUseCase: EditUseCase = EditUseCase(
       compositionRepository: AVMutableCompositionRepository()
     )
@@ -149,8 +153,14 @@ final class EditorViewModel {
   init(
     segments: [VideoSegment],
     playerUseCase: PlayerUseCase = PlayerUseCase(),
-    cropUseCase: CropUseCase = CropUseCase(repository: PHImageVideoCropRepository()),
-    exportUseCase: ExportUseCase = ExportUseCase(),
+    cropUseCase: CropUseCase = CropUseCase(
+      assetLoadRepository: PHAssetRepository(),
+      videoEditRepository: AVVideoEditRepository()
+    ),
+    exportUseCase: ExportUseCase = ExportUseCase(
+      albumRepository: PHAssetRepository(),
+      videoEditRepository: AVVideoEditRepository()
+    ),
     editUseCase: EditUseCase = EditUseCase(
       compositionRepository: AVMutableCompositionRepository()
     )
@@ -162,8 +172,6 @@ final class EditorViewModel {
     self.exportUseCase = exportUseCase
     self.editUseCase = editUseCase
   }
-
-  // MARK: - Send
 
   func send(_ action: Action) {
     switch action {
@@ -222,8 +230,6 @@ final class EditorViewModel {
     }
   }
 
-  // MARK: - Public Query Methods
-
   func scrollOffsetForTrimStart() -> CGFloat? {
     guard
       let handleType = trimmingHandleType,
@@ -244,13 +250,11 @@ final class EditorViewModel {
     editUseCase.getSegmentEndTimes(excluding: segmentID)
   }
 
-  // MARK: - Private Methods
-
   private func load() async {
     guard segments.isEmpty else { return }
 
     if let initialSegments {
-      editUseCase.initializeSegments(initialSegments)
+      editUseCase.setSegments(initialSegments)
     } else if !crops.isEmpty {
       await createSegments(from: crops)
     }
@@ -259,10 +263,11 @@ final class EditorViewModel {
 
   private func createSegments(from crops: [Crop]) async {
     state = .loading
+    
 
     do {
       let croppedAssets = try await cropUseCase.execute(crops: crops)
-      editUseCase.initializeSegments(from: croppedAssets)
+      editUseCase.initializeSegmentsFromAssets(croppedAssets)
     } catch {
       print("Error processing crops: \(error)")
       state = .editing

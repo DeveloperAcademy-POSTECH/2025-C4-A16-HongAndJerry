@@ -16,11 +16,11 @@ final class EditUseCase {
         self.compositionRepository = compositionRepository
     }
 
-    func initializeSegments(_ segments: [VideoSegment]) {
+    func setSegments(_ segments: [VideoSegment]) {
         self.segments = segments
     }
 
-    func initializeSegments(from assets: [AVAsset]) {
+    func initializeSegmentsFromAssets(_ assets: [AVAsset]) {
         self.segments = assets.map { asset in
             VideoSegment(
                 source: VideoSource(

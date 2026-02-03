@@ -1,37 +1,8 @@
-import Photos
 import AVFoundation
 
 @MainActor
-final class PHImageVideoCropRepository: VideoCropRepository {
-  private let imageManager: PHImageManager
-
-  nonisolated init(imageManager: PHImageManager = .default()) {
-    self.imageManager = imageManager
-  }
-
-  func loadAVAsset(
-    for asset: PHAsset,
-    options: PHVideoRequestOptions?
-  ) async throws -> AVAsset {
-    let startTime = Date()
-    let result: AVAsset = try await withCheckedThrowingContinuation { continuation in
-      imageManager.requestAVAsset(
-        forVideo: asset,
-        options: options
-      ) { avAsset, audioMix, info in
-        if let error = info?[PHImageErrorKey] as? Error {
-          continuation.resume(throwing: error)
-          return
-        }
-        if let avAsset = avAsset {
-          continuation.resume(returning: avAsset)
-        } else {
-          continuation.resume(throwing: AssetError.assetNotFound)
-        }
-      }
-    }
-    return result
-  }
+final class AVVideoEditRepository: VideoEditRepository {
+  nonisolated init() {}
 
   func getVideoSize(from asset: AVAsset) async throws -> CGSize {
     guard let track = try? await asset.loadTracks(withMediaType: .video).first else {
@@ -79,7 +50,7 @@ final class PHImageVideoCropRepository: VideoCropRepository {
     return composition
   }
 
-  func exportVideo(
+  func exportCroppedVideo(
     asset: AVAsset,
     composition: AVVideoComposition,
     index: Int
@@ -116,5 +87,52 @@ final class PHImageVideoCropRepository: VideoCropRepository {
     }
 
     return AVURLAsset(url: outputURL)
+  }
+
+  func exportVideoForSave(
+    asset: AVAsset,
+    videoComposition: AVVideoComposition?,
+    progressHandler: @escaping (Double) -> Void
+  ) async throws -> URL {
+    guard
+      let exportSession = AVAssetExportSession(
+        asset: asset,
+        presetName: AVAssetExportPresetHighestQuality
+      )
+    else {
+      throw ExportError.exportSessionCreationFailed
+    }
+
+    let tempDirectory = FileManager.default.temporaryDirectory
+    let outputURL = tempDirectory
+      .appendingPathComponent(UUID().uuidString)
+      .appendingPathExtension("mov")
+
+    exportSession.outputURL = outputURL
+    exportSession.outputFileType = .mov
+    exportSession.videoComposition = videoComposition
+
+    let progressTask = Task { @MainActor in
+      while exportSession.status == .waiting || exportSession.status == .exporting {
+        progressHandler(Double(exportSession.progress))
+        try? await Task.sleep(nanoseconds: 100_000_000)
+      }
+      progressHandler(1.0)
+    }
+
+    await exportSession.export()
+
+    progressTask.cancel()
+
+    switch exportSession.status {
+    case .completed:
+      return outputURL
+    case .failed:
+      throw ExportError.exportFailed(exportSession.error)
+    case .cancelled:
+      throw ExportError.exportCancelled
+    default:
+      throw ExportError.unknown
+    }
   }
 }

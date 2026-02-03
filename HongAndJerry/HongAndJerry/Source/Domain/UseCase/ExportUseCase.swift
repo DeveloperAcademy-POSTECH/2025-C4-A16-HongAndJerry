@@ -16,11 +16,11 @@ import Observation
 class ExportUseCase {
   private let albumTitle = ExportNameSpace.AppMain.AppName
   private let albumRepository: AlbumRepository
-  private let videoRepository: VideoRepository
-  
+  private let videoEditRepository: VideoEditRepository
+
   var isLoading = false
   var progress: Double = 0.0
-  
+
   var alertModel: ExportAlert = .init(
     title: ExportNameSpace.AlertSuccessMessage.title,
     message: ExportNameSpace.AlertSuccessMessage.message,
@@ -28,11 +28,11 @@ class ExportUseCase {
   )
 
   nonisolated init(
-    albumRepository: AlbumRepository = PhotoLibraryAlbumRepository(),
-    videoRepository: VideoRepository = AVAssetExportRepository()
+    albumRepository: AlbumRepository,
+    videoEditRepository: VideoEditRepository
   ) {
     self.albumRepository = albumRepository
-    self.videoRepository = videoRepository
+    self.videoEditRepository = videoEditRepository
   }
   
   func saveVideo(
@@ -62,18 +62,19 @@ class ExportUseCase {
   
   private func saveToAlbum(_ video: AVAsset, videoComposition: AVVideoComposition?) async {
     isLoading = true
-    
+
     do {
       let album = try albumRepository.checkAlbum(named: albumTitle)
-      try await videoRepository.save(
-        video: video,
-        videoComposition: videoComposition,
-        to: album
+      let fileURL = try await videoEditRepository.exportVideoForSave(
+        asset: video,
+        videoComposition: videoComposition
       ) { [weak self] value in
         Task { @MainActor in
           self?.progress = value
         }
       }
+      try await albumRepository.saveVideoToAlbum(at: fileURL, to: album)
+      try? FileManager.default.removeItem(at: fileURL)
       alertModel = ExportAlert(
         title: ExportNameSpace.AlertSuccessMessage.title,
         message: ExportNameSpace.AlertSuccessMessage.message,

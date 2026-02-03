@@ -1,12 +1,6 @@
 import AVFoundation
-import Photos
 
-protocol VideoCropRepository {
-  func loadAVAsset(
-    for asset: PHAsset,
-    options: PHVideoRequestOptions?
-  ) async throws -> AVAsset
-
+protocol VideoEditRepository {
   func getVideoSize(from asset: AVAsset) async throws -> CGSize
 
   func makeVideoComposition(
@@ -14,9 +8,15 @@ protocol VideoCropRepository {
     asset: AVAsset
   ) async throws -> AVVideoComposition
 
-  func exportVideo(
+  func exportCroppedVideo(
     asset: AVAsset,
     composition: AVVideoComposition,
     index: Int
   ) async throws -> AVAsset
+
+  func exportVideoForSave(
+    asset: AVAsset,
+    videoComposition: AVVideoComposition?,
+    progressHandler: @escaping (Double) -> Void
+  ) async throws -> URL
 }
