@@ -21,6 +21,7 @@ struct SelectedAssetThumbnailCell: View {
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(width: 68, height: 68)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
                 .clipped()
             }
           }

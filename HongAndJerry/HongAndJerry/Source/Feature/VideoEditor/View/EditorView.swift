@@ -32,9 +32,9 @@ struct EditorView: View {
         } else {
           EditorHeaderView()
             .padding(.horizontal, 16)
-          
+
           previewSection()
-          
+
           timelineSection()
         }
       }
@@ -43,6 +43,7 @@ struct EditorView: View {
       .onAppear {
         viewModel.send(.load)
       }
+      .allowsHitTesting(!viewModel.isLoading)
 
       if viewModel.exportIsLoading {
         exportProgressOverlay()
