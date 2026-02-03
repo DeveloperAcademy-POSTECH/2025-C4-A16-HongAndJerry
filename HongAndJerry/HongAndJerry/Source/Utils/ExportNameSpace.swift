@@ -43,7 +43,7 @@ extension ExportNameSpace {
 
 extension ExportNameSpace {
   enum AppMain {
-    static let AppName = "V3DO"
+    static let AppName = "Visemble"
     static let frameNavigationTitle = "프레임 선택"
     static let selectVideoTitle = "비디오 선택"
     static let cropVideoTitle = " 비율 조정"

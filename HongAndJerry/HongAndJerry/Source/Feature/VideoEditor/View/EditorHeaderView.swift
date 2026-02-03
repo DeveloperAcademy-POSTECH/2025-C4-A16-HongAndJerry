@@ -4,7 +4,7 @@ import AVFoundation
 struct EditorHeaderView: View {
   @EnvironmentObject var router: Router
   @Environment(EditorViewModel.self) private var viewModel
-  
+
   var body: some View {
     HStack {
       backButton()
@@ -20,7 +20,7 @@ struct EditorHeaderView: View {
     ) {
       Button(ExportNameSpace.AlertConfirmMessage.cancelButton, role: .cancel) { }
       Button(ExportNameSpace.AlertConfirmMessage.confirmButton) {
-        viewModel.handleExport(router: router)
+        viewModel.send(.handleExport(router: router))
       }
     } message: {
       Text(ExportNameSpace.AlertConfirmMessage.message)
@@ -34,18 +34,13 @@ struct EditorHeaderView: View {
     ) {
       Button(viewModel.exportAlert.buttonTitle) {
         viewModel.showResultAlert = false
-        viewModel.handleAlertDismiss(router: router)
+        viewModel.send(.handleAlertDismiss(router: router))
       }
     } message: {
       Text(viewModel.exportAlert.message)
     }
-    .overlay {
-      if viewModel.exportIsLoading {
-        loadingOverlay()
-      }
-    }
   }
-  
+
   @ViewBuilder
   private func backButton() -> some View {
     Button {
@@ -56,26 +51,15 @@ struct EditorHeaderView: View {
         .foregroundColor(.white)
     }
   }
-  
+
   @ViewBuilder
   private func exportButton() -> some View {
     Button {
-      viewModel.requestExport()
+      viewModel.send(.requestExport)
     } label: {
       Text(ExportNameSpace.ExportView.export)
         .font(.SUITHeader)
         .foregroundStyle(.accent)
-    }
-  }
-  
-  @ViewBuilder
-  private func loadingOverlay() -> some View {
-    ZStack {
-      Color.black.opacity(0.4)
-        .ignoresSafeArea()
-      ProgressView()
-        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-        .scaleEffect(1.5)
     }
   }
 }

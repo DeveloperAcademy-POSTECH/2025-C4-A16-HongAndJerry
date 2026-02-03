@@ -32,7 +32,7 @@ final class HandlesView: UIView {
     : [.layerMaxXMinYCorner, .layerMaxXMaxYCorner]
     layer.cornerRadius = TrimmingConstants.cornerRadius
     
-    let imageName = type == .left ? "chevron.left" : "chevron.right"
+    let imageName = type == .left ? "chevron.compact.left" : "chevron.compact.right"
     chevronImageView.image = UIImage(systemName: imageName)?
       .withConfiguration(UIImage.SymbolConfiguration(weight: .black))
     chevronImageView.tintColor = .black

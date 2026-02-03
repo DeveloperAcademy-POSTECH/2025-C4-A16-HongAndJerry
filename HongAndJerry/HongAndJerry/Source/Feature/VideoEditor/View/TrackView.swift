@@ -2,31 +2,38 @@ import SwiftUI
 
 struct TrackView: View {
   @Environment(EditorViewModel.self) private var viewModel
-  
+
   let segment: VideoSegment
-  
+
   private var isLoading: Bool {
     segment.thumbnails.isEmpty
   }
-  
+
   var body: some View {
-    ZStack(alignment: .leading) {
-      trackThumbnailView()
-    }
-    .frame(
-      width: EditConstants.convertTimeToOffset(segment.source.duration),
-      height: EditConstants.thumbnailHeight
-    )
-    .clipped()
-    .onTapGesture {
-      Task {
-        await viewModel.activateTrimming(segmentID: segment.id)
+    if viewModel.isLoading {
+      RoundedRectangle(cornerRadius: 8)
+        .fill(Color.gray.opacity(0.3))
+        .frame(
+          width: EditConstants.convertTimeToOffset(segment.source.duration),
+          height: EditConstants.thumbnailHeight
+        )
+    } else {
+      ZStack(alignment: .leading) {
+        trackThumbnailView()
       }
+      .frame(
+        width: EditConstants.convertTimeToOffset(segment.source.duration),
+        height: EditConstants.thumbnailHeight
+      )
+      .clipped()
+      .onTapGesture {
+        viewModel.send(.activateTrimming(segmentID: segment.id))
+      }
+      .background(Color.black)
+      .contentShape(Rectangle())
     }
-    .background(Color.black)
-    .contentShape(Rectangle())
   }
-  
+
   private func trackThumbnailView() -> some View {
     ZStack(alignment: .leading) {
       HStack(spacing: 0) {
@@ -60,5 +67,3 @@ struct TrackView: View {
     }
   }
 }
-
-

@@ -7,14 +7,14 @@ struct CropBoxView: View {
   
   @Binding public var rect: CGRect
   
-  let viewModel: RatioSettingViewModel
+  let viewModel: CropViewModel
   let index: Int
   
   public let minSize: CGSize
   
   public init(
     rect: Binding<CGRect>,
-    viewModel: RatioSettingViewModel,
+    viewModel: CropViewModel,
     index: Int,
     minSize: CGSize = .init(width: 10, height: 10)
   ) {

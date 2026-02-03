@@ -6,9 +6,14 @@ struct VideoPlayerView: View {
 
   var body: some View {
     ZStack {
-      PlayerView(player: viewModel.player)
-        .frame(maxWidth: .infinity)
-        .opacity(viewModel.isLoading ? 0 : 1)
+      if viewModel.isLoading {
+        Rectangle()
+          .fill(Color.gray.opacity(0.3))
+          .frame(maxWidth: .infinity)
+      } else {
+        PlayerView(player: viewModel.player)
+          .frame(maxWidth: .infinity)
+      }
     }
   }
 }

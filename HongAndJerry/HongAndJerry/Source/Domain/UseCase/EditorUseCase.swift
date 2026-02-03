@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import Photos
 
 @MainActor
 @Observable
@@ -9,12 +10,26 @@ final class EditUseCase {
     var segments: [VideoSegment] = []
     private(set) var currentPlayerItem: AVPlayerItem?
 
-    nonisolated init(compositionRepository: CompositionRepository) {
+    nonisolated init(
+        compositionRepository: CompositionRepository
+    ) {
         self.compositionRepository = compositionRepository
     }
-  
+
     func initializeSegments(_ segments: [VideoSegment]) {
         self.segments = segments
+    }
+
+    func initializeSegments(from assets: [AVAsset]) {
+        self.segments = assets.map { asset in
+            VideoSegment(
+                source: VideoSource(
+                    asset: asset,
+                    url: "",
+                    duration: asset.duration
+                )
+            )
+        }
     }
 
     func rebuildPlayerItem() async throws -> AVPlayerItem? {

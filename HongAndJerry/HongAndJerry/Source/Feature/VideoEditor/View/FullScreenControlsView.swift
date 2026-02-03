@@ -7,16 +7,16 @@ struct FullScreenControlsView: View {
   @State private var isSeeking = false
   @State private var sliderValue: Double = 0
   @State private var lastSeekTime: TimeInterval = 0
-  
+
   private let throttleInterval: TimeInterval = 0.1
-  
+
   var body: some View {
     HStack(spacing: 15) {
       Button {
         if viewModel.isPlaying {
-          viewModel.pause()
+          viewModel.send(.pause)
         } else {
-          viewModel.play()
+          viewModel.send(.play)
         }
       } label: {
         Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
@@ -33,7 +33,7 @@ struct FullScreenControlsView: View {
         isEditing in
         self.isSeeking = isEditing
         if isEditing {
-          viewModel.pause()
+          viewModel.send(.pause)
         }
       }
       Text(viewModel.totalDuration.formattedString)
@@ -41,7 +41,7 @@ struct FullScreenControlsView: View {
         .foregroundColor(.white)
       Button {
         withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-          viewModel.isFullScreen = false
+          viewModel.send(.exitFullScreen)
         }
       } label: {
         Image(systemName: "arrow.down.right.and.arrow.up.left")
@@ -59,7 +59,7 @@ struct FullScreenControlsView: View {
       let now = Date.now.timeIntervalSinceReferenceDate
       if now - lastSeekTime > throttleInterval {
         if isSeeking {
-          viewModel.seek(to: CMTime(seconds: sliderValue, preferredTimescale: 600))
+          viewModel.send(.seek(to: CMTime(seconds: sliderValue, preferredTimescale: 600)))
           lastSeekTime = now
         }
       }

@@ -1,31 +1,31 @@
 import Photos
 import SwiftUI
+import UIKit
 
 @Observable
-final class RatioSettingViewModel {
+final class CropViewModel {
   enum Action {
     case loadThumbnail
     case goToNextPhoto
     case goToPreviousPhoto
     case setContainerSize(CGSize, at: Int)
   }
-  
-  enum VideoState {
+
+  enum CropState {
     case thumbnailLoading
     case thumbnailLoaded
     case cropping
     case completedConvertToAsset
   }
-  
+
   var selectedVideos: [PHAsset]
   var currentIndex = 0
   var thumbnails: [String: UIImage] = [:]
   var isLoading = true
-  var state: VideoState = .thumbnailLoaded
+  var state: CropState = .thumbnailLoaded
   var crops: [Crop] = []
-  var croppedVideos: [(AVAsset, AVVideoComposition)] = []
   var cropBoxStates: [Int: CropBoxState] = [:]
-  
+
   init(selectedVideos: [PHAsset]) {
     self.selectedVideos = selectedVideos
   }
@@ -36,11 +36,11 @@ struct CropBoxState {
   var frameSize: CGSize = .init(width: 1, height: 1)
 }
 
-extension RatioSettingViewModel {
+extension CropViewModel {
   func send(_ action: Action) {
     switch action {
     case .loadThumbnail:
-      loadThumbnails()
+      Task { await loadThumbnails() }
     case .goToNextPhoto:
       if currentIndex < 2 { currentIndex += 1 }
     case .goToPreviousPhoto:
@@ -89,43 +89,8 @@ extension RatioSettingViewModel {
   }
   
   @MainActor
-  func cropVideos() async {
-    state = .cropping
-    do {
-      let exportedAssets = try await PHImageManager.default().exportCroppedVideos(crops: crops)
-      croppedVideos = exportedAssets.map { ($0, AVMutableVideoComposition()) }
-    } catch {
-      if let assetError = error as? AssetError {
-        print("AssetError: \(assetError)")
-      }
-    }
-  }
-  
-  func createVideoSegments() async -> [VideoSegment] {
-    var segments: [VideoSegment] = []
-    for crop in croppedVideos {
-      segments.append(
-        VideoSegment(
-          source: VideoSource(
-            asset: crop.0,
-            url: "",
-            duration: crop.0.duration
-          )
-        )
-      )
-    }
-    state = .completedConvertToAsset
-    return segments
-  }
-  
-  private func loadThumbnails() {
-    Task {
-      await loadThumbnailsAsync()
-    }
-  }
-  
-  @MainActor
-  private func loadThumbnailsAsync() async {
+  private func loadThumbnails() async {
+    guard crops.isEmpty else { return }
     isLoading = true
     for video in selectedVideos {
       let thumbnail = await loadSingleThumbnail(for: video)

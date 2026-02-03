@@ -293,8 +293,11 @@ extension TrimmingTrackView {
     animation.duration = 0.4
     animation.values = [0, -12, 0]
     animation.keyTimes = [0, 0.5, 1.0]
-    
+
     confirmButton.layer.add(animation, forKey: "bounce")
+
+    let alertHaptic = UINotificationFeedbackGenerator()
+    alertHaptic.notificationOccurred(.warning)
   }
   private func updateThumbnails(_ thumbnails: [UIImage]) {
     thumbnailStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
