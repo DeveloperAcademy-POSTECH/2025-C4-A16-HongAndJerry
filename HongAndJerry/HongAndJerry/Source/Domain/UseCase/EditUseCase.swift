@@ -32,6 +32,19 @@ final class EditUseCase {
         }
     }
 
+    func initializeSegmentsFromCropResults(_ cropResults: [CropResult]) {
+        self.segments = cropResults.map { result in
+            VideoSegment(
+                source: VideoSource(
+                    asset: result.asset,
+                    url: "",
+                    duration: result.asset.duration
+                ),
+                cropRect: result.cropRect
+            )
+        }
+    }
+
     func rebuildPlayerItem() async throws -> AVPlayerItem? {
         guard !segments.isEmpty else {
             currentPlayerItem = nil

@@ -9,8 +9,6 @@ final class PHAssetRepository: AssetLoadRepository, AlbumRepository {
     self.imageManager = imageManager
   }
 
-  // MARK: - AssetLoadRepository
-
   func loadAVAsset(
     for asset: PHAsset,
     options: PHVideoRequestOptions?
@@ -33,8 +31,6 @@ final class PHAssetRepository: AssetLoadRepository, AlbumRepository {
     }
   }
 
-  // MARK: - AlbumRepository
-
   func checkAlbum(named title: String) throws -> PHAssetCollection {
     if let existingAlbum = fetchExistingAlbum(title: title) {
       return existingAlbum
@@ -55,8 +51,6 @@ final class PHAssetRepository: AssetLoadRepository, AlbumRepository {
       albumChangeRequest.addAssets([placeholder] as NSArray)
     }
   }
-
-  // MARK: - Private
 
   private func fetchExistingAlbum(title: String) -> PHAssetCollection? {
     let options = PHFetchOptions()

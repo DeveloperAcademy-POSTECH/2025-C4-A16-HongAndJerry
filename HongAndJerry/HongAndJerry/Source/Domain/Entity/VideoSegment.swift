@@ -12,22 +12,24 @@ import Observation
 class VideoSegment: Identifiable {
   let id: UUID = UUID()
   let source: VideoSource
+  let cropRect: CGRect?
   var startTime: CMTime
   var trimmedDuration: CMTime
   var thumbnails: [UIImage]
   var isMuted: Bool
-  
+
   var endTime: CMTime {
     startTime + trimmedDuration
   }
-  
-  init(source: VideoSource) {
+
+  init(source: VideoSource, cropRect: CGRect? = nil) {
     self.source = source
+    self.cropRect = cropRect
     self.startTime = .zero
     self.trimmedDuration = source.duration
     self.isMuted = false
     self.thumbnails = []
-    
+
     Task {
       await generateThumbnails()
     }

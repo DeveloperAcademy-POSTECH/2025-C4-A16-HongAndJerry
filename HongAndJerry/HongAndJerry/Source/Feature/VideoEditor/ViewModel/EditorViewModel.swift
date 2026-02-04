@@ -266,8 +266,8 @@ final class EditorViewModel {
     
 
     do {
-      let croppedAssets = try await cropUseCase.execute(crops: crops)
-      editUseCase.initializeSegmentsFromAssets(croppedAssets)
+      let cropResults = try await cropUseCase.execute(crops: crops)
+      editUseCase.initializeSegmentsFromCropResults(cropResults)
     } catch {
       print("Error processing crops: \(error)")
       state = .editing

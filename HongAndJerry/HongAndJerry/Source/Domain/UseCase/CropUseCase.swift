@@ -1,6 +1,11 @@
 import AVFoundation
 import Photos
 
+struct CropResult {
+  let asset: AVAsset
+  let cropRect: CGRect
+}
+
 @MainActor
 @Observable
 final class CropUseCase {
@@ -15,7 +20,7 @@ final class CropUseCase {
     self.videoEditRepository = videoEditRepository
   }
 
-  func execute(crops: [Crop]) async throws -> [AVAsset] {
+  func execute(crops: [Crop]) async throws -> [CropResult] {
     let options = PHVideoRequestOptions()
     options.isNetworkAccessAllowed = true
     options.deliveryMode = .highQualityFormat
@@ -23,7 +28,6 @@ final class CropUseCase {
     let loadedAssets = try await withThrowingTaskGroup(of: (Int, AVAsset).self) { group in
       for (index, crop) in crops.enumerated() {
         group.addTask {
-          let taskStart = CFAbsoluteTimeGetCurrent()
           let asset = try await self.assetLoadRepository.loadAVAsset(
             for: crop.video,
             options: options
@@ -38,15 +42,13 @@ final class CropUseCase {
       }
       return results.sorted { $0.0 < $1.0 }
     }
-    
-    var exportedAssets: [AVAsset] = []
+
+    var cropResults: [CropResult] = []
 
     for (index, originalAsset) in loadedAssets {
       let crop = crops[index]
-      let sizeStart = CFAbsoluteTimeGetCurrent()
       let videoSize = try await videoEditRepository.getVideoSize(from: originalAsset)
-      let rectStart = CFAbsoluteTimeGetCurrent()
-      
+
       let actualCropRect = convertThumbnailRectToVideoRect(
         thumbnailRect: crop.cropRect,
         thumbnailSize: crop.thumbnail.size,
@@ -54,23 +56,10 @@ final class CropUseCase {
         videoSize: videoSize
       )
 
-      let compositionStart = CFAbsoluteTimeGetCurrent()
-      let composition = try await videoEditRepository.makeVideoComposition(
-        cropRect: actualCropRect,
-        asset: originalAsset
-      )
-
-      let exportStart = CFAbsoluteTimeGetCurrent()
-      let exportedAsset = try await videoEditRepository.exportCroppedVideo(
-        asset: originalAsset,
-        composition: composition,
-        index: index
-      )
-
-      exportedAssets.append(exportedAsset)
+      cropResults.append(CropResult(asset: originalAsset, cropRect: actualCropRect))
     }
-    
-    return exportedAssets
+
+    return cropResults
   }
 
   private func convertThumbnailRectToVideoRect(
