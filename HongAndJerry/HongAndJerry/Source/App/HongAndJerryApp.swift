@@ -2,7 +2,6 @@ import SwiftUI
 
 @main
 struct HongAndJerryApp: App {
-  @State private var segments: [VideoSegment] = []
   @State private var router = Router()
   
   var body: some Scene {
@@ -14,17 +13,6 @@ struct HongAndJerryApp: App {
           }
       }
       .environmentObject(router)
-      //
-      //            Group {
-      //                if segments.isEmpty {
-      //                    ProgressView("Mock 데이터 로딩 중...")
-      //                } else {
-      //                    EditorView(segments: segments)
-      //                }
-      //            }
-      //            .task {
-      //                segments = await VideoSegment.mockList()
-      //            }
     }
   }
 }
