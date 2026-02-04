@@ -13,7 +13,6 @@ struct PlayerView: UIViewRepresentable {
     }
   }
 }
-<<<<<<< Updated upstream
 
 class PlayerUIView: UIView {
   private var playerLayer: AVPlayerLayer {
@@ -41,5 +40,3 @@ class PlayerUIView: UIView {
     fatalError("init(coder:) has not been implemented")
   }
 }
-=======
->>>>>>> Stashed changes
