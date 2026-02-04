@@ -14,12 +14,12 @@ struct AssetPickerView: View {
         if !viewModel.selectedVideos.isEmpty {
           selectedAssetsSection()
             .transition(.move(edge: .top).combined(with: .opacity))
-            .animation(.easeInOut, value: viewModel.selectedVideos)
         }
-        
+
         assetPickerSection()
           .frame(maxWidth: .infinity, maxHeight: .infinity)
       }
+      .animation(.easeInOut(duration: 0.3), value: viewModel.selectedVideos.count)
     }
     .hjNavigationBar(title: ExportNameSpace.AppMain.selectVideoTitle)
   }
@@ -35,6 +35,7 @@ struct AssetPickerView: View {
           SelectedAssetThumbnailCell(video: video, index: index + 1) {
             viewModel.send(.removeSelection(video))
           }
+          .transition(.scale.combined(with: .opacity))
         }
       }
       .padding(.vertical, 14)
@@ -73,7 +74,9 @@ struct AssetPickerView: View {
           ForEach(viewModel.videos, id: \.localIdentifier) { video in
             AlbumAssetThumbnailCell(
               video: video,
-              isSelected: viewModel.selectedVideos.contains(video),
+              downloadState: viewModel.downloadingVideos[video.localIdentifier],
+              isSelected: viewModel.selectedVideos.contains(video) ||
+                          viewModel.downloadingVideos[video.localIdentifier] != nil,
               selectionIndex: viewModel.getSelectionIndex(for: video),
               onTap: { viewModel.send(.toggleSelection(video)) }
             )

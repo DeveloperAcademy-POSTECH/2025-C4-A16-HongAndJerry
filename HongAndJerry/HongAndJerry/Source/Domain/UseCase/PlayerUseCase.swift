@@ -94,4 +94,13 @@ class PlayerUseCase {
       timeObserverToken = nil
     }
   }
+
+  @MainActor
+  func cleanup() {
+    pause()
+    removeTimeObserver()
+    player.replaceCurrentItem(with: nil)
+    currentTime = .zero
+    totalDuration = .zero
+  }
 }

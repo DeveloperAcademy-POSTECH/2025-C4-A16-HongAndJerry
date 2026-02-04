@@ -40,9 +40,7 @@ struct EditorView: View {
       }
       .environment(viewModel)
       .navigationBarHidden(true)
-      .onAppear {
-        viewModel.send(.load)
-      }
+      .onAppear { viewModel.send(.load) }
       .allowsHitTesting(!viewModel.isLoading)
 
       if viewModel.exportIsLoading {

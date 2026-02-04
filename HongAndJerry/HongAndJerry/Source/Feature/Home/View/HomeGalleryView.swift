@@ -4,13 +4,12 @@ import Photos
 struct HomeGalleryView: View {
   @EnvironmentObject var router: Router
   @State private var viewModel = HomeGalleryViewModel()
-  @State private var selectedAsset: PHAsset? = nil
-  
+
   private let columns = [
     GridItem(.flexible(), spacing: 16),
     GridItem(.flexible(), spacing: 16)
   ]
-  
+
   var body: some View {
     VStack(alignment: .leading) {
       if viewModel.videos.isEmpty {
@@ -18,21 +17,21 @@ struct HomeGalleryView: View {
       } else {
         galleryGridView()
       }
-      
+
       CtaButton(buttonType: .plus, isDisabled: .constant(false)) {
         router.push(screen: .selectVideo)
       }
     }
-    .sheet(isPresented: Binding(
-      get: { selectedAsset != nil },
-      set: { if !$0 { selectedAsset = nil } }
-    )) {
-      if let asset = selectedAsset {
-        PHAssetPlayer(asset: asset)
-      }
-    }
     .background(Color.background)
     .onAppear { viewModel.loadVideos(albumName: "Visemble") }
+    .sheet(isPresented: Binding(
+      get: { viewModel.selectedAsset != nil },
+      set: { if !$0 { viewModel.closePlayer() } }
+    )) {
+      if let asset = viewModel.selectedAsset {
+        playerView(for: asset)
+      }
+    }
   }
   
   @ViewBuilder
@@ -41,7 +40,7 @@ struct HomeGalleryView: View {
       LazyVGrid(columns: columns, spacing: 20) {
         ForEach(viewModel.videos) { video in
           galleryGridItem(video: video)
-            .onTapGesture { selectedAsset = video.asset }
+            .onTapGesture { viewModel.selectAsset(video.asset) }
         }
       }
       .padding(.horizontal, 16)
@@ -95,6 +94,54 @@ struct HomeGalleryView: View {
         .font(.SUITTitle)
         .foregroundStyle(.inactive)
       Spacer()
+    }
+  }
+
+  @ViewBuilder
+  private func playerView(for asset: PHAsset) -> some View {
+    ZStack {
+      Color.black.ignoresSafeArea()
+
+      VStack(spacing: 0) {
+        Spacer()
+
+        if viewModel.isLoadingVideo {
+          ProgressView()
+            .tint(.white)
+        } else {
+          PlayerView(player: viewModel.player)
+            .aspectRatio(
+              CGFloat(asset.pixelWidth) / CGFloat(asset.pixelHeight),
+              contentMode: .fit
+            )
+        }
+
+        Spacer()
+
+        VideoController(
+          isPlaying: viewModel.isPlaying,
+          currentTime: viewModel.currentTime,
+          totalDuration: viewModel.totalDuration,
+          onPlayPause: {
+            if viewModel.isPlaying {
+              Task { @MainActor in
+                viewModel.pause()
+              }
+            } else {
+              Task { @MainActor in
+                viewModel.play()
+              }
+            }
+          },
+          onSeek: { time in
+            Task { @MainActor in
+              viewModel.seek(to: time)
+            }
+          }
+        )
+        .padding(.vertical, 16)
+        .padding(.horizontal, 4)
+      }
     }
   }
 }

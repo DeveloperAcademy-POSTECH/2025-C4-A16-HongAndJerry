@@ -1,7 +1,6 @@
 import AVFoundation
 import Photos
 import SwiftUI
-import UIKit
 
 @Observable
 final class CropViewModel {
@@ -137,28 +136,6 @@ extension CropViewModel {
     return rect
   }
   
-  private func loadSingleThumbnail(for video: PHAsset) async -> UIImage? {
-    return await withCheckedContinuation { continuation in
-      let manager = PHImageManager.default()
-      let options = PHImageRequestOptions()
-      options.deliveryMode = .highQualityFormat
-      options.isNetworkAccessAllowed = true
-      options.isSynchronous = false
-      let targetSize = PHImageManagerMaximumSize
-      manager.requestImage(
-        for: video,
-        targetSize: targetSize,
-        contentMode: .aspectFill,
-        options: options
-      ) { image, info in
-        let isDegraded = info?[PHImageResultIsDegradedKey] as? Bool ?? false
-        if !isDegraded {
-          continuation.resume(returning: image)
-        }
-      }
-    }
-  }
-  
   private func setContainerSize(_ size: CGSize, at index: Int) {
     guard index < crops.count else { return }
     crops[index].containerSize = size
@@ -188,18 +165,12 @@ extension CropViewModel {
   private func loadAllVideos() async {
     guard !selectedVideos.isEmpty else { return }
 
-    for video in selectedVideos {
-      let thumbnail = await loadSingleThumbnail(for: video)
-      if let thumbnail = thumbnail {
-        crops.append(
-          Crop(
-            video: video,
-            localIdentifier: video.localIdentifier,
-            cropRect: .init(x: 0, y: 0, width: 10, height: 10),
-            thumbnail: thumbnail
-          )
-        )
-      }
+    crops = selectedVideos.map { video in
+      Crop(
+        video: video,
+        localIdentifier: video.localIdentifier,
+        cropRect: .init(x: 0, y: 0, width: 10, height: 10)
+      )
     }
 
     loadCurrentVideo()
@@ -260,10 +231,15 @@ extension CropViewModel {
     let newX = min(max(initialRect.origin.x + translation.width, 0), maxX)
     let maxY = frameSize.height - initialRect.height
     let newY = min(max(initialRect.origin.y + translation.height, 0), maxY)
-    
+
     return CGRect(
       origin: CGPoint(x: newX, y: newY),
       size: initialRect.size
     )
+  }
+
+  @MainActor
+  func cleanup() {
+    playerUseCase.cleanup()
   }
 }

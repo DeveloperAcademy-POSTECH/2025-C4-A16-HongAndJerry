@@ -16,7 +16,12 @@ struct CropView: View {
           .onAppear {
             viewModel.send(.loadVideos)
           }
-        
+          .onDisappear {
+            Task { @MainActor in
+              viewModel.cleanup()
+            }
+          }
+
         nextButton()
       }
       
@@ -59,8 +64,8 @@ struct CropView: View {
               PlayerView(player: viewModel.player)
                 .aspectRatio(aspectRatio, contentMode: .fit)
             } else {
-              Image(uiImage: crop.thumbnail)
-                .resizable()
+              Rectangle()
+                .fill(Color.gray.opacity(0.3))
                 .aspectRatio(aspectRatio, contentMode: .fit)
             }
           }

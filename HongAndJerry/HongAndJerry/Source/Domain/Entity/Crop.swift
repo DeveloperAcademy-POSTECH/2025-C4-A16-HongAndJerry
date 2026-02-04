@@ -12,7 +12,6 @@ struct Crop: Hashable {
   let video: PHAsset
   let localIdentifier: String
   var cropRect: CGRect
-  var thumbnail: UIImage
   var containerSize: CGSize = .zero
 
   static func == (lhs: Crop, rhs: Crop) -> Bool {

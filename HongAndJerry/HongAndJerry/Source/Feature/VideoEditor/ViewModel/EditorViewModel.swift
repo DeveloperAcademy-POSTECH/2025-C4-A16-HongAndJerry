@@ -184,7 +184,6 @@ final class EditorViewModel {
       playerUseCase.pause()
     case .seek(let time, let direction):
       playerUseCase.seek(to: time, direction: direction)
-
     case .activateTrimming(let segmentID):
       Task { await activateTrimming(segmentID: segmentID) }
     case .startTrimming(let handleType):
@@ -251,7 +250,10 @@ final class EditorViewModel {
   }
 
   private func load() async {
-    guard segments.isEmpty else { return }
+    guard segments.isEmpty else {
+      await initializePlayer()
+      return
+    }
 
     if let initialSegments {
       editUseCase.setSegments(initialSegments)
@@ -281,6 +283,7 @@ final class EditorViewModel {
     }
 
     await rebuildPlayerItem()
+    
     state = .editing
   }
 
@@ -489,5 +492,4 @@ final class EditorViewModel {
       router.popToRoot()
     }
   }
-
 }

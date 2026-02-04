@@ -49,9 +49,8 @@ final class CropUseCase {
       let crop = crops[index]
       let videoSize = try await videoEditRepository.getVideoSize(from: originalAsset)
 
-      let actualCropRect = convertThumbnailRectToVideoRect(
-        thumbnailRect: crop.cropRect,
-        thumbnailSize: crop.thumbnail.size,
+      let actualCropRect = convertContainerRectToVideoRect(
+        containerRect: crop.cropRect,
         containerSize: crop.containerSize,
         videoSize: videoSize
       )
@@ -62,22 +61,21 @@ final class CropUseCase {
     return cropResults
   }
 
-  private func convertThumbnailRectToVideoRect(
-    thumbnailRect: CGRect,
-    thumbnailSize: CGSize,
+  private func convertContainerRectToVideoRect(
+    containerRect: CGRect,
     containerSize: CGSize,
     videoSize: CGSize
   ) -> CGRect {
-    let fittedRect = calculateFittedRect(from: containerSize, imageSize: thumbnailSize)
-    let relativeX = thumbnailRect.origin.x - fittedRect.origin.x
-    let relativeY = thumbnailRect.origin.y - fittedRect.origin.y
+    let fittedRect = calculateFittedRect(from: containerSize, imageSize: videoSize)
+    let relativeX = containerRect.origin.x - fittedRect.origin.x
+    let relativeY = containerRect.origin.y - fittedRect.origin.y
     let scaleX = videoSize.width / fittedRect.width
     let scaleY = videoSize.height / fittedRect.height
     let videoRect = CGRect(
       x: relativeX * scaleX,
       y: relativeY * scaleY,
-      width: thumbnailRect.width * scaleX,
-      height: thumbnailRect.height * scaleY
+      width: containerRect.width * scaleX,
+      height: containerRect.height * scaleY
     )
 
     return videoRect

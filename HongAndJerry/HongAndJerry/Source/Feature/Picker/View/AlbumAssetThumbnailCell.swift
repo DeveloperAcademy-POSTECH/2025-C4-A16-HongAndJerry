@@ -3,10 +3,11 @@ import Photos
 
 struct AlbumAssetThumbnailCell: View {
   let video: PHAsset
+  let downloadState: AssetPickerViewModel.VideoDownloadState?
   let isSelected: Bool
   let selectionIndex: Int?
   let onTap: () -> Void
-  
+
   @State private var thumbnail: UIImage?
   
   var body: some View {
@@ -26,41 +27,11 @@ struct AlbumAssetThumbnailCell: View {
             }
           )
 
-        if video.duration > 0 && !isSelected {
-          Text(formattedDuration(video.duration))
-            .font(.SUITTimer)
-            .foregroundColor(.white)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(Color.black.opacity(0.6))
-            .cornerRadius(4)
-            .padding(6)
-            .frame(
-              maxWidth: .infinity,
-              maxHeight: .infinity,
-              alignment: .bottomTrailing
-            )
-        }
+        bottomTrailingOverlay()
 
-        if isSelected {
-          ZStack {
-            RoundedRectangle(cornerRadius: 4)
-              .stroke(Color.accent, lineWidth: 2)
-            if let index = selectionIndex {
-              Text("\(index)")
-                .font(.SUITTimer)
-                .foregroundColor(.background)
-                .frame(width: 20, height: 20)
-                .background(Color.accent)
-                .clipShape(Circle())
-                .padding(12)
-                .frame(
-                  maxWidth: .infinity,
-                  maxHeight: .infinity,
-                  alignment: .bottomTrailing
-                )
-            }
-          }
+        if isSelected || downloadState != nil {
+          RoundedRectangle(cornerRadius: 4)
+            .stroke(Color.accent, lineWidth: 2)
         }
       }
     }
@@ -73,6 +44,64 @@ struct AlbumAssetThumbnailCell: View {
     }
   }
   
+  @ViewBuilder
+  private func bottomTrailingOverlay() -> some View {
+    if let downloadState = downloadState {
+      switch downloadState {
+      case .downloading(let progress):
+        ZStack {
+          Circle()
+            .stroke(Color.white.opacity(0.3), lineWidth: 2)
+          Circle()
+            .trim(from: 0, to: progress)
+            .stroke(Color.accent, lineWidth: 2)
+            .rotationEffect(.degrees(-90))
+            .animation(.linear(duration: 0.1), value: progress)
+        }
+        .frame(width: 20, height: 20)
+        .padding(12)
+        .frame(
+          maxWidth: .infinity,
+          maxHeight: .infinity,
+          alignment: .bottomTrailing
+        )
+
+      case .completed:
+        if let index = selectionIndex {
+          Text("\(index)")
+            .font(.SUITTimer)
+            .foregroundColor(.background)
+            .frame(width: 20, height: 20)
+            .background(Color.accent)
+            .clipShape(Circle())
+            .padding(12)
+            .frame(
+              maxWidth: .infinity,
+              maxHeight: .infinity,
+              alignment: .bottomTrailing
+            )
+        }
+
+      default:
+        EmptyView()
+      }
+    } else if !isSelected && downloadState == nil {
+      Text(formattedDuration(video.duration))
+        .font(.SUITTimer)
+        .foregroundColor(.white)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 2)
+        .background(Color.black.opacity(0.6))
+        .cornerRadius(4)
+        .padding(6)
+        .frame(
+          maxWidth: .infinity,
+          maxHeight: .infinity,
+          alignment: .bottomTrailing
+        )
+    }
+  }
+
   private func formattedDuration(_ duration: TimeInterval) -> String {
     let totalSeconds = Int(duration)
     let minutes = totalSeconds / 60

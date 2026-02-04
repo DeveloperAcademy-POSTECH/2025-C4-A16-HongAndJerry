@@ -1,6 +1,7 @@
 import Photos
 import SwiftUI
 import Foundation
+import AVFoundation
 
 @Observable
 final class AssetPickerViewModel {
@@ -8,11 +9,30 @@ final class AssetPickerViewModel {
     case toggleSelection(PHAsset)
     case removeSelection(PHAsset)
   }
-  
+
+  enum VideoDownloadState: Equatable {
+    case notStarted
+    case downloading(progress: Double)
+    case completed(AVAsset)
+    case failed(Error)
+
+    static func == (lhs: VideoDownloadState, rhs: VideoDownloadState) -> Bool {
+      switch (lhs, rhs) {
+      case (.notStarted, .notStarted): return true
+      case (.downloading(let p1), .downloading(let p2)): return p1 == p2
+      case (.completed, .completed): return true
+      case (.failed, .failed): return true
+      default: return false
+      }
+    }
+  }
+
   var videos: [PHAsset] = []
   var selectedVideos: [PHAsset] = []
-  
+  var downloadingVideos: [String: VideoDownloadState] = [:]
+
   private let maxSelection = 3
+  private let assetRepository: PHAssetRepository
   
   var selectedCount: Int {
     selectedVideos.count
@@ -24,16 +44,20 @@ final class AssetPickerViewModel {
   
   init(
     videos: [PHAsset] = [],
-    selectedVideos: [PHAsset] = []
+    selectedVideos: [PHAsset] = [],
+    assetRepository: PHAssetRepository = PHAssetRepository()
   ) {
     self.videos = videos
     self.selectedVideos = selectedVideos
+    self.assetRepository = assetRepository
   }
   
   func send(_ action: Action) {
     switch action {
     case .toggleSelection(let pHAsset):
-      toggleSelection(pHAsset)
+      Task {
+        await handleToggleSelection(pHAsset)
+      }
     case .removeSelection(let pHAsset):
       removeVideo(pHAsset)
     }
@@ -88,17 +112,62 @@ final class AssetPickerViewModel {
     }
   }
   
-  private func toggleSelection(_ video: PHAsset) {
-    let videoId = video.localIdentifier
-    if let existingIndex = selectedVideos.firstIndex(where: { $0.localIdentifier == videoId }) {
-      selectedVideos.remove(at: existingIndex)
-    } else if selectedVideos.count < maxSelection {
-      selectedVideos.append(video)
+  @MainActor
+  private func handleToggleSelection(_ asset: PHAsset) async {
+    let identifier = asset.localIdentifier
+
+    if selectedVideos.contains(where: { $0.localIdentifier == identifier }) {
+      selectedVideos.removeAll { $0.localIdentifier == identifier }
+      downloadingVideos.removeValue(forKey: identifier)
+      return
+    }
+
+    if downloadingVideos[identifier] != nil {
+      downloadingVideos.removeValue(forKey: identifier)
+      return
+    }
+
+    let downloadingCount = downloadingVideos.values.filter { state in
+      if case .downloading = state { return true }
+      return false
+    }.count
+
+    if selectedVideos.count + downloadingCount >= maxSelection {
+      return
+    }
+
+    downloadingVideos[identifier] = .downloading(progress: 0)
+
+    do {
+      let isLocal = await assetRepository.isVideoAvailableLocally(asset: asset)
+
+      if isLocal {
+        let options = PHVideoRequestOptions()
+        options.isNetworkAccessAllowed = false
+        options.deliveryMode = .highQualityFormat
+
+        let avAsset = try await assetRepository.loadAVAsset(for: asset, options: options)
+        downloadingVideos[identifier] = .completed(avAsset)
+        selectedVideos.append(asset)
+      } else {
+        let avAsset = try await assetRepository.downloadVideo(asset: asset) { progress in
+          Task { @MainActor in
+            self.downloadingVideos[identifier] = .downloading(progress: progress)
+          }
+        }
+
+        downloadingVideos[identifier] = .completed(avAsset)
+        selectedVideos.append(asset)
+      }
+    } catch {
+      downloadingVideos[identifier] = .failed(error)
+      print("[AssetPickerViewModel] Failed to download video: \(error)")
     }
   }
-  
+
   private func removeVideo(_ video: PHAsset) {
     let videoId = video.localIdentifier
     selectedVideos.removeAll { $0.localIdentifier == videoId }
+    downloadingVideos.removeValue(forKey: videoId)
   }
 }

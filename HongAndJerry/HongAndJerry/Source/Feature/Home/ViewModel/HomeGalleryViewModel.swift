@@ -1,12 +1,39 @@
 import UIKit
 import Foundation
 import Photos
+import AVFoundation
 
 @Observable
 final class HomeGalleryViewModel {
   var videos: [VideoAsset] = []
-  
-  init() {
+  var selectedAsset: PHAsset?
+  var isLoadingVideo = false
+
+  let playerUseCase = PlayerUseCase()
+
+  var player: AVPlayer {
+    playerUseCase.player
+  }
+
+  @MainActor
+  var isPlaying: Bool {
+    playerUseCase.isPlaying
+  }
+
+  @MainActor
+  var currentTime: CMTime {
+    playerUseCase.currentTime
+  }
+
+  @MainActor
+  var totalDuration: CMTime {
+    playerUseCase.totalDuration
+  }
+
+  private let assetLoadRepository: AssetLoadRepository
+
+  init(assetLoadRepository: AssetLoadRepository = PHAssetRepository()) {
+    self.assetLoadRepository = assetLoadRepository
     requestPermissionAndLoadVideos()
   }
   
@@ -79,5 +106,57 @@ final class HomeGalleryViewModel {
         self.videos.append(video)
       }
     }
+  }
+
+  func selectAsset(_ asset: PHAsset) {
+    selectedAsset = asset
+    loadVideo(for: asset)
+  }
+
+  func closePlayer() {
+    selectedAsset = nil
+    Task { @MainActor in
+      cleanup()
+    }
+  }
+
+  private func loadVideo(for asset: PHAsset) {
+    isLoadingVideo = true
+
+    Task { @MainActor in
+      do {
+        let options = PHVideoRequestOptions()
+        options.isNetworkAccessAllowed = true
+        options.deliveryMode = .highQualityFormat
+
+        let avAsset = try await assetLoadRepository.loadAVAsset(for: asset, options: options)
+        let playerItem = AVPlayerItem(asset: avAsset)
+        playerUseCase.replaceCurrentItem(with: playerItem)
+        isLoadingVideo = false
+      } catch {
+        print("[HomeGalleryViewModel] ❌ Failed to load video: \(error)")
+        isLoadingVideo = false
+      }
+    }
+  }
+
+  @MainActor
+  func play() {
+    playerUseCase.play()
+  }
+
+  @MainActor
+  func pause() {
+    playerUseCase.pause()
+  }
+
+  @MainActor
+  func seek(to time: CMTime) {
+    playerUseCase.seek(to: time)
+  }
+
+  @MainActor
+  func cleanup() {
+    playerUseCase.cleanup()
   }
 }
