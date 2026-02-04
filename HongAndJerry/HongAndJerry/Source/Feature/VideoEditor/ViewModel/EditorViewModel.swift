@@ -250,10 +250,17 @@ final class EditorViewModel {
   }
 
   private func load() async {
+<<<<<<< Updated upstream
     guard segments.isEmpty else {
       await initializePlayer()
       return
     }
+=======
+//    guard segments.isEmpty else {
+//      await initializePlayer()
+//      return
+//    }
+>>>>>>> Stashed changes
 
     if let initialSegments {
       editUseCase.setSegments(initialSegments)
