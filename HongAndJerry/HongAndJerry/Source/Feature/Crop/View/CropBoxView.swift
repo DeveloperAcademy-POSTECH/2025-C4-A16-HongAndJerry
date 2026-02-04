@@ -48,15 +48,19 @@ struct CropBoxView: View {
   
   @ViewBuilder
   private var blur: some View {
-    Color.black.opacity(0.5)
-      .overlay(alignment: .topLeading) {
-        Color.white
-          .frame(width: rect.width - 1, height: rect.height - 1)
-          .offset(x: rect.origin.x, y: rect.origin.y)
+    GeometryReader { geometry in
+      Path { path in
+        path.addRect(CGRect(origin: .zero, size: geometry.size))
+
+        path.addRect(CGRect(
+          x: rect.origin.x,
+          y: rect.origin.y,
+          width: rect.width,
+          height: rect.height
+        ))
       }
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .drawingGroup()
-      .blendMode(.multiply)
+      .fill(Color.black.opacity(0.5), style: FillStyle(eoFill: true))
+    }
   }
   
   @ViewBuilder

@@ -7,18 +7,19 @@ struct CropView: View {
   @Bindable var viewModel: CropViewModel
   
   var body: some View {
-    ZStack {
+    ZStack(alignment: .bottom) {
       Color.background.ignoresSafeArea()
-      
       VStack {
-        cropTabView()
-          .onAppear { viewModel.send(.loadThumbnail) }
-        
         pageIndicator()
-          .padding(.vertical, 8)
+        
+        cropTabView()
+          .onAppear {
+            viewModel.send(.loadVideos)
+          }
         
         nextButton()
       }
+      
     }
     .hjNavigationBar(title: ExportNameSpace.AppMain.cropVideoTitle)
   }
@@ -30,39 +31,77 @@ struct CropView: View {
           Array(viewModel.selectedVideos.enumerated()),
           id: \.1.localIdentifier
         ) { index, video in
-          thumbnailCell(videoIndex: index)
+          selectedVideoTab(index: index)
             .tag(index)
         }
       }
       .indexViewStyle(.page(backgroundDisplayMode: .never))
       .tabViewStyle(.page(indexDisplayMode: .never))
+      .onChange(of: viewModel.currentIndex) { _, _ in
+        viewModel.send(.pause)
+        viewModel.send(.seek(to: .zero))
+      }
   }
   
   @ViewBuilder
-  private func thumbnailCell(videoIndex: Int) -> some View {
+  private func selectedVideoTab(index: Int) -> some View {
     Group {
-      if videoIndex < viewModel.crops.count {
-        let crop = viewModel.crops[videoIndex]
-        Image(uiImage: crop.thumbnail)
-          .resizable()
-          .aspectRatio(contentMode: .fit)
+      if index < viewModel.crops.count {
+        let crop = viewModel.crops[index]
+        let video = crop.video
+        let aspectRatio = CGFloat(video.pixelWidth) / CGFloat(video.pixelHeight)
+
+        VStack(spacing: 0) {
+          Spacer()
+
+          ZStack {
+            if !viewModel.isLoading {
+              PlayerView(player: viewModel.player)
+                .aspectRatio(aspectRatio, contentMode: .fit)
+            } else {
+              Image(uiImage: crop.thumbnail)
+                .resizable()
+                .aspectRatio(aspectRatio, contentMode: .fit)
+            }
+          }
           .overlay(alignment: .topLeading) {
             GeometryReader { geometry in
               CropBoxView(
-                rect: viewModel.bindingForCropRect(at: videoIndex),
+                rect: viewModel.bindingForCropRect(at: index),
                 viewModel: viewModel,
-                index: videoIndex
+                index: index
               )
               .allowsHitTesting(true)
               .onAppear {
-                handleThumbnailAppear(videoIndex: videoIndex, geometry: geometry, crop: crop)
+                handleThumbnailAppear(videoIndex: index, geometry: geometry, crop: crop)
               }
               .onChange(of: geometry.size) { oldValue, newValue in
-                viewModel.send(.setContainerSize(newValue, at: videoIndex))
+                viewModel.send(.setContainerSize(newValue, at: index))
               }
             }
           }
           .clipped()
+          
+          Spacer()
+
+          VideoController(
+            isPlaying: viewModel.isPlaying,
+            currentTime: viewModel.currentTime,
+            totalDuration: viewModel.totalDuration,
+            onPlayPause: {
+              if viewModel.isPlaying {
+                viewModel.send(.pause)
+              } else {
+                viewModel.send(.play)
+              }
+            },
+            onSeek: { time in
+              viewModel.send(.seek(to: time))
+            }
+          )
+          .padding(.vertical, 16)
+          .padding(.horizontal, 4)
+        }
       }
     }
   }

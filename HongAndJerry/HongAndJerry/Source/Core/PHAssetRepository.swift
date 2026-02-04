@@ -1,7 +1,6 @@
 import Photos
 import AVFoundation
 
-@MainActor
 final class PHAssetRepository: AssetLoadRepository, AlbumRepository {
   private let imageManager: PHImageManager
 

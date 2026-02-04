@@ -26,7 +26,7 @@ struct AlbumAssetThumbnailCell: View {
             }
           )
 
-        if video.duration > 0 {
+        if video.duration > 0 && !isSelected {
           Text(formattedDuration(video.duration))
             .font(.SUITTimer)
             .foregroundColor(.white)

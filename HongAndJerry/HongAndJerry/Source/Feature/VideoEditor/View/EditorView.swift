@@ -68,7 +68,25 @@ struct EditorView: View {
       VideoPlayerView()
         .matchedGeometryEffect(id: "videoPlayer", in: videoAnimation)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-      FullScreenControlsView()
+      VideoController(
+        isPlaying: viewModel.isPlaying,
+        currentTime: viewModel.currentTime,
+        totalDuration: viewModel.totalDuration,
+        onPlayPause: {
+          if viewModel.isPlaying {
+            viewModel.send(.pause)
+          } else {
+            viewModel.send(.play)
+          }
+        },
+        onSeek: { time in
+          viewModel.send(.seek(to: time))
+        },
+        showFullScreenButton: true,
+        onFullScreenToggle: {
+          viewModel.send(.exitFullScreen)
+        }
+      )
     }
     .background(Color.black.ignoresSafeArea())
   }

@@ -1,3 +1,4 @@
+import AVFoundation
 import Photos
 import SwiftUI
 import UIKit
@@ -5,29 +6,63 @@ import UIKit
 @Observable
 final class CropViewModel {
   enum Action {
-    case loadThumbnail
+    case loadVideos
     case goToNextPhoto
     case goToPreviousPhoto
     case setContainerSize(CGSize, at: Int)
+    case play
+    case pause
+    case seek(to: CMTime)
   }
 
   enum CropState {
-    case thumbnailLoading
-    case thumbnailLoaded
+    case loading
+    case loaded
     case cropping
-    case completedConvertToAsset
   }
 
   var selectedVideos: [PHAsset]
-  var currentIndex = 0
-  var thumbnails: [String: UIImage] = [:]
+  var currentIndex = 0 {
+    didSet {
+      if currentIndex != oldValue {
+        loadCurrentVideo()
+      }
+    }
+  }
   var isLoading = true
-  var state: CropState = .thumbnailLoaded
+  var state: CropState = .loaded
   var crops: [Crop] = []
   var cropBoxStates: [Int: CropBoxState] = [:]
 
-  init(selectedVideos: [PHAsset]) {
+  let playerUseCase = PlayerUseCase()
+
+  var player: AVPlayer {
+    playerUseCase.player
+  }
+
+  @MainActor
+  var isPlaying: Bool {
+    playerUseCase.isPlaying
+  }
+
+  @MainActor
+  var currentTime: CMTime {
+    playerUseCase.currentTime
+  }
+
+  @MainActor
+  var totalDuration: CMTime {
+    playerUseCase.totalDuration
+  }
+
+  private let assetLoadRepository: AssetLoadRepository
+
+  init(
+    selectedVideos: [PHAsset],
+    assetLoadRepository: AssetLoadRepository = PHAssetRepository()
+  ) {
     self.selectedVideos = selectedVideos
+    self.assetLoadRepository = assetLoadRepository
   }
 }
 
@@ -39,14 +74,28 @@ struct CropBoxState {
 extension CropViewModel {
   func send(_ action: Action) {
     switch action {
-    case .loadThumbnail:
-      Task { await loadThumbnails() }
+    case .loadVideos:
+      Task { @MainActor in
+        await self.loadAllVideos()
+      }
     case .goToNextPhoto:
       if currentIndex < 2 { currentIndex += 1 }
     case .goToPreviousPhoto:
       if currentIndex > 0 { currentIndex -= 1 }
     case .setContainerSize(let size, let index):
       setContainerSize(size, at: index)
+    case .play:
+      Task { @MainActor in
+        playerUseCase.play()
+      }
+    case .pause:
+      Task { @MainActor in
+        playerUseCase.pause()
+      }
+    case .seek(let time):
+      Task { @MainActor in
+        playerUseCase.seek(to: time)
+      }
     }
   }
   
@@ -88,27 +137,6 @@ extension CropViewModel {
     return rect
   }
   
-  @MainActor
-  private func loadThumbnails() async {
-    guard crops.isEmpty else { return }
-    isLoading = true
-    for video in selectedVideos {
-      let thumbnail = await loadSingleThumbnail(for: video)
-      if let thumbnail = thumbnail {
-        thumbnails[video.localIdentifier] = thumbnail
-        crops.append(
-          Crop(
-            video: video,
-            localIdentifier: video.localIdentifier,
-            cropRect: .init(x: 0, y: 0, width: 10, height: 10),
-            thumbnail: thumbnail
-          )
-        )
-      }
-    }
-    state = .thumbnailLoaded
-  }
-  
   private func loadSingleThumbnail(for video: PHAsset) async -> UIImage? {
     return await withCheckedContinuation { continuation in
       let manager = PHImageManager.default()
@@ -134,6 +162,47 @@ extension CropViewModel {
   private func setContainerSize(_ size: CGSize, at index: Int) {
     guard index < crops.count else { return }
     crops[index].containerSize = size
+  }
+
+  private func loadCurrentVideo() {
+    guard currentIndex < selectedVideos.count else { return }
+    let video = selectedVideos[currentIndex]
+
+    Task { @MainActor in
+      do {
+        let options = PHVideoRequestOptions()
+        options.isNetworkAccessAllowed = true
+        options.deliveryMode = .highQualityFormat
+
+        let avAsset = try await assetLoadRepository.loadAVAsset(for: video, options: options)
+        let playerItem = AVPlayerItem(asset: avAsset)
+        playerUseCase.replaceCurrentItem(with: playerItem)
+        isLoading = false
+      } catch {
+        print("[CropViewModel] ❌ Failed to load video: \(error)")
+      }
+    }
+  }
+
+  @MainActor
+  private func loadAllVideos() async {
+    guard !selectedVideos.isEmpty else { return }
+
+    for video in selectedVideos {
+      let thumbnail = await loadSingleThumbnail(for: video)
+      if let thumbnail = thumbnail {
+        crops.append(
+          Crop(
+            video: video,
+            localIdentifier: video.localIdentifier,
+            cropRect: .init(x: 0, y: 0, width: 10, height: 10),
+            thumbnail: thumbnail
+          )
+        )
+      }
+    }
+
+    loadCurrentVideo()
   }
   
   func getCropBoxState(at index: Int) -> CropBoxState {
