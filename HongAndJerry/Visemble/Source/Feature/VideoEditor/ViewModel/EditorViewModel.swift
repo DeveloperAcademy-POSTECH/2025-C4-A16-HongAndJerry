@@ -57,7 +57,6 @@ final class EditorViewModel {
   var trimmingHandleType: HandlesView.HandleType?
   var selectedSegmentID: UUID?
   var screenWidth: CGFloat = 0
-  var shouldShakeCheckButton: Bool = false
 
   var isTimelineDragging: Bool = false
   var currentTimelineOffset: CGFloat = 0
@@ -179,7 +178,7 @@ final class EditorViewModel {
       Task { await load() }
 
     case .play:
-      playerUseCase.play()
+      Task { await handlePlay() }
     case .pause:
       playerUseCase.pause()
     case .seek(let time, let direction):
@@ -311,13 +310,9 @@ final class EditorViewModel {
   }
 
   private func activateTrimming(segmentID: UUID) async {
-    if isTrimming,
-       let currentSelectedID = selectedSegmentID,
-       currentSelectedID != segmentID {
-      triggerCheckButtonShake()
-      return
-    }
-
+    // 다른 트랙으로 전환 시 상태 초기화
+    state = .editing
+    trimmingHandleType = nil
     selectedSegmentID = segmentID
 
     if let playerItem = editUseCase.createTrimmingPlayerItem(for: segmentID) {
@@ -326,20 +321,18 @@ final class EditorViewModel {
     }
   }
 
-  private func triggerCheckButtonShake() {
-    shouldShakeCheckButton = true
-
-    Task {
-      try? await Task.sleep(nanoseconds: 500_000_000)
-      shouldShakeCheckButton = false
-    }
+  private func confirmTrimming() async {
+    await rebuildPlayerItem()
   }
 
-  private func confirmTrimming() async {
-    state = .editing
-    trimmingHandleType = nil
-    selectedSegmentID = nil
-    await rebuildPlayerItem()
+  private func handlePlay() async {
+    if state == .trimming {
+      state = .editing
+      trimmingHandleType = nil
+      selectedSegmentID = nil
+      await rebuildPlayerItem()
+    }
+    playerUseCase.play()
   }
 
   private func updateTrimRange(start: Double, end: Double) async {

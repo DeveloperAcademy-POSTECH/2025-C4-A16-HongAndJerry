@@ -20,7 +20,6 @@ final class TrimmingTrackView: UIView {
   private var trimEndRatio: CGFloat = 1.0
   private var dragStartRatio: CGFloat = 0.0
   private var dragStartX: CGFloat = 0.0
-  private let confirmButton = UIButton(type: .system)
   private let thumbnailContainerView = UIView()
   private let containerBackgroundView = UIView()
   private let thumbnailStackView = UIStackView()
@@ -59,12 +58,6 @@ final class TrimmingTrackView: UIView {
     updateTrimFrame()
   }
   private func setStyle() {
-    confirmButton.do {
-      $0.setImage(UIImage(systemName: "checkmark"), for: .normal)
-      $0.tintColor = .white
-      $0.addTarget(self, action: #selector(confirmTapped), for: .touchUpInside)
-    }
-    
     thumbnailContainerView.do {
       $0.clipsToBounds = true
     }
@@ -100,7 +93,6 @@ final class TrimmingTrackView: UIView {
     }
   }
   private func setUI() {
-    addSubview(confirmButton)
     addSubview(containerBackgroundView)
     addSubview(thumbnailContainerView)
     addSubview(trimFrameView)
@@ -113,18 +105,13 @@ final class TrimmingTrackView: UIView {
     trimFrameView.addSubview(bottomBorderView)
   }
   private func setLayout() {
-    confirmButton.snp.makeConstraints {
-      $0.leading.top.bottom.equalToSuperview()
-      $0.width.equalTo(TrimmingConstants.confirmButtonWidth)
-    }
     containerBackgroundView.snp.makeConstraints {
-      $0.leading.equalTo(confirmButton.snp.trailing)
-      $0.trailing.equalToSuperview()
+      $0.leading.trailing.equalToSuperview()
       $0.top.bottom.equalToSuperview()
     }
-    
+
     thumbnailContainerView.snp.makeConstraints {
-      $0.leading.equalTo(confirmButton.snp.trailing).offset(TrimmingConstants.handleWidth)
+      $0.leading.equalToSuperview().offset(TrimmingConstants.handleWidth)
       $0.trailing.equalToSuperview().offset(-TrimmingConstants.handleWidth)
       $0.top.equalToSuperview().offset(TrimmingConstants.borderWidth)
       $0.bottom.equalToSuperview().offset(-TrimmingConstants.borderWidth)
@@ -151,8 +138,8 @@ final class TrimmingTrackView: UIView {
   }
   private func updateTrimFrame() {
     let containerWidth = thumbnailContainerView.bounds.width
-    let startX = TrimmingConstants.confirmButtonWidth + trimStartRatio * containerWidth
-    let endX = TrimmingConstants.confirmButtonWidth + trimEndRatio * containerWidth + TrimmingConstants.handleWidth * 2
+    let startX = trimStartRatio * containerWidth
+    let endX = trimEndRatio * containerWidth + TrimmingConstants.handleWidth * 2
     let frameWidth = endX - startX
     
     trimFrameView.snp.remakeConstraints {
@@ -227,12 +214,13 @@ extension TrimmingTrackView {
     case .ended, .cancelled:
       lastSnappedTime = nil
       onTrimEnded?()
-      
+      onTrimConfirmed?()
+
     default:
       break
     }
   }
-  
+
   @objc private func handleRightDrag(_ gesture: UIPanGestureRecognizer) {
     switch gesture.state {
     case .began:
@@ -263,13 +251,11 @@ extension TrimmingTrackView {
     case .ended, .cancelled:
       lastSnappedTime = nil
       onTrimEnded?()
-      
+      onTrimConfirmed?()
+
     default:
       break
     }
-  }
-  @objc private func confirmTapped() {
-    onTrimConfirmed?()
   }
 }
 
@@ -287,18 +273,6 @@ extension TrimmingTrackView {
     setNeedsLayout()
   }
   
-  func shakeConfirmButton() {
-    let animation = CAKeyframeAnimation(keyPath: "transform.translation.y")
-    animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-    animation.duration = 0.4
-    animation.values = [0, -12, 0]
-    animation.keyTimes = [0, 0.5, 1.0]
-
-    confirmButton.layer.add(animation, forKey: "bounce")
-
-    let alertHaptic = UINotificationFeedbackGenerator()
-    alertHaptic.notificationOccurred(.warning)
-  }
   private func updateThumbnails(_ thumbnails: [UIImage]) {
     thumbnailStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
     
@@ -332,7 +306,6 @@ extension TrimmingTrackView {
 struct TrimmingTrackViewRepresentable: UIViewRepresentable {
   let segment: VideoSegment?
   let snapEndTimes: [Double]
-  let shouldShake: Bool
   let isTrimming: Bool
   let onTrimStarted: (HandlesView.HandleType) -> Void
   let onTrimChanged: (Double, Double, HandlesView.HandleType) -> Void
@@ -352,10 +325,6 @@ struct TrimmingTrackViewRepresentable: UIViewRepresentable {
     uiView.updateSnapEndTimes(snapEndTimes)
     if let segment = segment {
       uiView.configure(with: segment, updateRatios: !isTrimming)
-    }
-    
-    if shouldShake {
-      uiView.shakeConfirmButton()
     }
   }
 }
