@@ -120,11 +120,13 @@ struct CropView: View {
   
   @ViewBuilder
   private func nextButton() -> some View {
-    CtaButton(
-      buttonType: .next,
-      isDisabled: .constant(viewModel.currentIndex != 2)
-    ) {
-      handleNextButtonTap()
+    if viewModel.currentIndex == viewModel.selectedVideos.count - 1 {
+      CtaButton(
+        buttonType: .next,
+        isDisabled: .constant(false)
+      ) {
+        handleNextButtonTap()
+      }
     }
   }
 }
