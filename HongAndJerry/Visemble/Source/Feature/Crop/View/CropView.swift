@@ -109,25 +109,39 @@ struct CropView: View {
   @ViewBuilder
   private func pageIndicator() -> some View {
     HStack(spacing: 8) {
+      if viewModel.currentIndex > 0 {
+        Image(systemName: "arrowshape.backward.fill")
+          .font(.system(size: 12))
+          .foregroundColor(.font.opacity(0.5))
+      }
+
       ForEach(0..<viewModel.selectedVideos.count, id: \.self) { index in
         Circle()
-          .fill(index == viewModel.currentIndex ? Color.font : Color.font.opacity(0.3))
+          .fill(index == viewModel.currentIndex ? Color.accent : Color.font.opacity(0.3))
           .frame(width: 8, height: 8)
           .animation(.easeInOut(duration: 0.3), value: viewModel.currentIndex)
+      }
+
+      if viewModel.currentIndex < viewModel.selectedVideos.count - 1 {
+        Image(systemName: "arrowshape.right.fill")
+          .font(.system(size: 12))
+          .foregroundColor(.font.opacity(0.5))
       }
     }
   }
   
   @ViewBuilder
   private func nextButton() -> some View {
-    if viewModel.currentIndex == viewModel.selectedVideos.count - 1 {
-      CtaButton(
-        buttonType: .next,
-        isDisabled: .constant(false)
-      ) {
-        handleNextButtonTap()
-      }
+    CtaButton(
+      buttonType: .next,
+      isDisabled: .constant(false)
+    ) {
+      handleNextButtonTap()
     }
+    .opacity(viewModel.currentIndex == viewModel.selectedVideos.count - 1 ? 1 : 0)
+    .offset(y: viewModel.currentIndex == viewModel.selectedVideos.count - 1 ? 0 : 20)
+    .animation(.easeInOut(duration: 0.3).delay(0.3), value: viewModel.currentIndex)
+    .allowsHitTesting(viewModel.currentIndex == viewModel.selectedVideos.count - 1)
   }
 }
 
