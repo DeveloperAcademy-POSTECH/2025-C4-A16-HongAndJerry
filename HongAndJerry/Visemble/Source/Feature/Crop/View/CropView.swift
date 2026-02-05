@@ -16,11 +16,6 @@ struct CropView: View {
           .onAppear {
             viewModel.send(.loadVideos)
           }
-          .onDisappear {
-            Task { @MainActor in
-              viewModel.cleanup()
-            }
-          }
 
         nextButton()
       }
@@ -145,6 +140,7 @@ extension CropView {
   }
   
   private func handleNextButtonTap() {
+    viewModel.cleanup()
     router.push(screen: .videoEditView(viewModel.crops))
   }
 }
