@@ -13,26 +13,26 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		217467852E1CED01008E0045 /* HongAndJerry.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HongAndJerry.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		217467852E1CED01008E0045 /* Visemble.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Visemble.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		F117EBE62E27F8E5004E3D81 /* Exceptions for "HongAndJerry" folder in "HongAndJerry" target */ = {
+		211568982F33CC3F001B9D01 /* Exceptions for "Visemble" folder in "Visemble" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 217467842E1CED01008E0045 /* HongAndJerry */;
+			target = 217467842E1CED01008E0045 /* Visemble */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		217467872E1CED01008E0045 /* HongAndJerry */ = {
+		217467872E1CED01008E0045 /* Visemble */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				F117EBE62E27F8E5004E3D81 /* Exceptions for "HongAndJerry" folder in "HongAndJerry" target */,
+				211568982F33CC3F001B9D01 /* Exceptions for "Visemble" folder in "Visemble" target */,
 			);
-			path = HongAndJerry;
+			path = Visemble;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -54,7 +54,7 @@
 		2174677C2E1CED00008E0045 = {
 			isa = PBXGroup;
 			children = (
-				217467872E1CED01008E0045 /* HongAndJerry */,
+				217467872E1CED01008E0045 /* Visemble */,
 				2177E2BA2E5638AA0064FBA8 /* Frameworks */,
 				217467862E1CED01008E0045 /* Products */,
 			);
@@ -63,7 +63,7 @@
 		217467862E1CED01008E0045 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				217467852E1CED01008E0045 /* HongAndJerry.app */,
+				217467852E1CED01008E0045 /* Visemble.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -78,9 +78,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		217467842E1CED01008E0045 /* HongAndJerry */ = {
+		217467842E1CED01008E0045 /* Visemble */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 217467932E1CED01008E0045 /* Build configuration list for PBXNativeTarget "HongAndJerry" */;
+			buildConfigurationList = 217467932E1CED01008E0045 /* Build configuration list for PBXNativeTarget "Visemble" */;
 			buildPhases = (
 				217467812E1CED01008E0045 /* Sources */,
 				217467822E1CED01008E0045 /* Frameworks */,
@@ -91,16 +91,16 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				217467872E1CED01008E0045 /* HongAndJerry */,
+				217467872E1CED01008E0045 /* Visemble */,
 			);
-			name = HongAndJerry;
+			name = Visemble;
 			packageProductDependencies = (
 				F1CE624F2E39E8270092E16C /* Lottie */,
 				218DBEC12F2109E40020B5DA /* SnapKit */,
 				218DBEC62F210EAC0020B5DA /* Then */,
 			);
 			productName = HongAndJerry;
-			productReference = 217467852E1CED01008E0045 /* HongAndJerry.app */;
+			productReference = 217467852E1CED01008E0045 /* Visemble.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -118,7 +118,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 217467802E1CED00008E0045 /* Build configuration list for PBXProject "HongAndJerry" */;
+			buildConfigurationList = 217467802E1CED00008E0045 /* Build configuration list for PBXProject "Visemble" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -137,7 +137,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				217467842E1CED01008E0045 /* HongAndJerry */,
+				217467842E1CED01008E0045 /* Visemble */,
 			);
 		};
 /* End PBXProject section */
@@ -289,11 +289,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"HongAndJerry/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Visemble/Preview Content\"";
 				DEVELOPMENT_TEAM = 3HYFT54PK2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = HongAndJerry/Info.plist;
+				INFOPLIST_FILE = Visemble/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Visemble;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "선택한 사진을 기기에 저장하기 위해 권한이 필요합니다.";
@@ -301,18 +301,22 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.HongAndJerry.WVDO;
+				PRODUCT_BUNDLE_IDENTIFIER = com.visemble;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -323,11 +327,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"HongAndJerry/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Visemble/Preview Content\"";
 				DEVELOPMENT_TEAM = 3HYFT54PK2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = HongAndJerry/Info.plist;
+				INFOPLIST_FILE = Visemble/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Visemble;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "선택한 사진을 기기에 저장하기 위해 권한이 필요합니다.";
@@ -335,25 +339,29 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.HongAndJerry.WVDO;
+				PRODUCT_BUNDLE_IDENTIFIER = com.visemble;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		217467802E1CED00008E0045 /* Build configuration list for PBXProject "HongAndJerry" */ = {
+		217467802E1CED00008E0045 /* Build configuration list for PBXProject "Visemble" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				217467912E1CED01008E0045 /* Debug */,
@@ -362,7 +370,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		217467932E1CED01008E0045 /* Build configuration list for PBXNativeTarget "HongAndJerry" */ = {
+		217467932E1CED01008E0045 /* Build configuration list for PBXNativeTarget "Visemble" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				217467942E1CED01008E0045 /* Debug */,
