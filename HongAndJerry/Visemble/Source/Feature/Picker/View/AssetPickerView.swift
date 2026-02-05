@@ -11,10 +11,8 @@ struct AssetPickerView: View {
       Color.background.ignoresSafeArea()
       
       VStack(spacing: 0) {
-        if !viewModel.selectedVideos.isEmpty {
           selectedAssetsSection()
             .transition(.move(edge: .top).combined(with: .opacity))
-        }
 
         assetPickerSection()
           .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -28,14 +26,18 @@ struct AssetPickerView: View {
   private func selectedAssetsSection() -> some View {
     ScrollView(.horizontal, showsIndicators: false) {
       HStack(spacing: 20) {
-        ForEach(
-          Array(viewModel.selectedVideos.enumerated()),
-          id: \.element.localIdentifier
-        ) { index, video in
-          SelectedAssetThumbnailCell(video: video, index: index + 1) {
-            viewModel.send(.removeSelection(video))
+        ForEach(Array(0..<3), id: \.self) { index in
+          if index < viewModel.selectedVideos.count {
+            let video = viewModel.selectedVideos[index]
+            SelectedAssetThumbnailCell(
+              video: video,
+              index: index + 1
+            ) {
+              viewModel.send(.removeSelection(video))
+            }
+          } else {
+            assetPlaceholderView(index: index + 1)
           }
-          .transition(.scale.combined(with: .opacity))
         }
       }
       .padding(.vertical, 14)
@@ -87,5 +89,18 @@ struct AssetPickerView: View {
       }
     }
     .task { await viewModel.loadVideos() }
+  }
+  
+  @ViewBuilder
+  private func assetPlaceholderView(index: Int) -> some View {
+    ZStack {
+      RoundedRectangle(cornerRadius: 8)
+        .stroke(Color.font, lineWidth: 1)
+        .frame(width: 68, height: 68)
+
+      Text("\(index)")
+        .font(.SUITHeader)
+        .foregroundColor(Color.font.opacity(0.8))
+    }
   }
 }
