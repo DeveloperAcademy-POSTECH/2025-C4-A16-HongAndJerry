@@ -66,16 +66,17 @@ final class EditUseCase {
     return try await rebuildPlayerItem()
   }
   
-  func createTrimmingPlayerItem(for segmentID: UUID) -> AVPlayerItem? {
-    guard let segment = segments.first(where: { $0.id == segmentID }) else {
-      return nil
+  func getSegmentCompositionTime(for segmentID: UUID) -> CMTime? {
+    var accumulatedTime = CMTime.zero
+
+    for segment in segments {
+      if segment.id == segmentID {
+        return accumulatedTime
+      }
+      accumulatedTime = CMTimeAdd(accumulatedTime, segment.trimmedDuration)
     }
-    
-    let singlePlayerItem = AVPlayerItem(asset: segment.source.asset)
-    let endTime = CMTimeAdd(segment.startTime, segment.trimmedDuration)
-    singlePlayerItem.forwardPlaybackEndTime = endTime
-    
-    return singlePlayerItem
+
+    return nil
   }
   
   func updateTrimRange(segmentID: UUID, start: Double, end: Double) {

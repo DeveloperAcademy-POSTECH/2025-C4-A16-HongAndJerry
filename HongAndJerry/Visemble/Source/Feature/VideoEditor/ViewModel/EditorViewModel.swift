@@ -65,6 +65,7 @@ final class EditorViewModel {
   private var lastDragTranslation: CGFloat = 0
   private var feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
   private var lastHapticSecond: Int = -1
+  private var trimUpdateTask: Task<Void, Never>?
 
   private var _showExportConfirmAlert: Bool = false
   private var _showResultAlert: Bool = false
@@ -310,26 +311,28 @@ final class EditorViewModel {
   }
 
   private func activateTrimming(segmentID: UUID) async {
-    // 다른 트랙으로 전환 시 상태 초기화
     state = .editing
     trimmingHandleType = nil
     selectedSegmentID = segmentID
 
-    if let playerItem = editUseCase.createTrimmingPlayerItem(for: segmentID) {
-      playerUseCase.replaceCurrentItem(with: playerItem)
+    if let segmentStartTime = editUseCase.getSegmentCompositionTime(for: segmentID) {
+      playerUseCase.seek(to: segmentStartTime)
       playerUseCase.pause()
     }
   }
 
   private func confirmTrimming() async {
+    trimUpdateTask?.cancel()
     await rebuildPlayerItem()
   }
 
   private func handlePlay() async {
     if state == .trimming {
+      trimUpdateTask?.cancel()
       state = .editing
       trimmingHandleType = nil
       selectedSegmentID = nil
+      
       await rebuildPlayerItem()
     }
     playerUseCase.play()
@@ -337,7 +340,14 @@ final class EditorViewModel {
 
   private func updateTrimRange(start: Double, end: Double) async {
     guard let selectedID = selectedSegmentID else { return }
+
     editUseCase.updateTrimRange(segmentID: selectedID, start: start, end: end)
+
+    trimUpdateTask?.cancel()
+    trimUpdateTask = Task {
+      try? await Task.sleep(nanoseconds: 150_000_000)
+      guard !Task.isCancelled else { return }
+    }
   }
 
   private func toggleAudioMute(segmentID: UUID) async throws {
