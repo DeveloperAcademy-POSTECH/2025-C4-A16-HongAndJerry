@@ -152,6 +152,7 @@ struct EditorView: View {
             TrimmingTrackViewRepresentable(
               segment: currentSegment,
               snapEndTimes: snapEndTimes,
+              shouldShake: viewModel.shouldShakeCheckButton,
               isTrimming: viewModel.isTrimming,
               onTrimStarted: { handleType in
                 viewModel.send(.startTrimming(handleType: handleType))
@@ -190,11 +191,13 @@ struct EditorView: View {
         }
         .frame(height: 60)
         .animation(
-          .spring(response: 0.3, dampingFraction: 0.8),
+          .spring(
+            response: 0.3,
+            dampingFraction: 0.8
+          ),
           value: viewModel.selectedSegmentID
         )
       }
-      
 
       Spacer()
     }

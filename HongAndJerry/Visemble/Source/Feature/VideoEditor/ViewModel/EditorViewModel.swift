@@ -57,6 +57,7 @@ final class EditorViewModel {
   var trimmingHandleType: HandlesView.HandleType?
   var selectedSegmentID: UUID?
   var screenWidth: CGFloat = 0
+  var shouldShakeCheckButton: Bool = false
 
   var isTimelineDragging: Bool = false
   var currentTimelineOffset: CGFloat = 0
@@ -65,7 +66,6 @@ final class EditorViewModel {
   private var lastDragTranslation: CGFloat = 0
   private var feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
   private var lastHapticSecond: Int = -1
-  private var trimUpdateTask: Task<Void, Never>?
 
   private var _showExportConfirmAlert: Bool = false
   private var _showResultAlert: Bool = false
@@ -179,7 +179,7 @@ final class EditorViewModel {
       Task { await load() }
 
     case .play:
-      Task { await handlePlay() }
+      playerUseCase.play()
     case .pause:
       playerUseCase.pause()
     case .seek(let time, let direction):
@@ -311,43 +311,40 @@ final class EditorViewModel {
   }
 
   private func activateTrimming(segmentID: UUID) async {
-    state = .editing
-    trimmingHandleType = nil
+    if isTrimming,
+       let currentSelectedID = selectedSegmentID,
+       currentSelectedID != segmentID {
+      triggerCheckButtonShake()
+      return
+    }
+
     selectedSegmentID = segmentID
 
-    if let segmentStartTime = editUseCase.getSegmentCompositionTime(for: segmentID) {
-      playerUseCase.seek(to: segmentStartTime)
+    if let playerItem = editUseCase.createTrimmingPlayerItem(for: segmentID) {
+      playerUseCase.replaceCurrentItem(with: playerItem)
       playerUseCase.pause()
     }
   }
 
-  private func confirmTrimming() async {
-    trimUpdateTask?.cancel()
-    await rebuildPlayerItem()
+  private func triggerCheckButtonShake() {
+    shouldShakeCheckButton = true
+
+    Task {
+      try? await Task.sleep(nanoseconds: 500_000_000)
+      shouldShakeCheckButton = false
+    }
   }
 
-  private func handlePlay() async {
-    if state == .trimming {
-      trimUpdateTask?.cancel()
-      state = .editing
-      trimmingHandleType = nil
-      selectedSegmentID = nil
-      
-      await rebuildPlayerItem()
-    }
-    playerUseCase.play()
+  private func confirmTrimming() async {
+    state = .editing
+    trimmingHandleType = nil
+    selectedSegmentID = nil
+    await rebuildPlayerItem()
   }
 
   private func updateTrimRange(start: Double, end: Double) async {
     guard let selectedID = selectedSegmentID else { return }
-
     editUseCase.updateTrimRange(segmentID: selectedID, start: start, end: end)
-
-    trimUpdateTask?.cancel()
-    trimUpdateTask = Task {
-      try? await Task.sleep(nanoseconds: 150_000_000)
-      guard !Task.isCancelled else { return }
-    }
   }
 
   private func toggleAudioMute(segmentID: UUID) async throws {
