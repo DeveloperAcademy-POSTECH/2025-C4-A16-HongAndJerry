@@ -95,12 +95,12 @@ struct AssetPickerView: View {
   private func assetPlaceholderView(index: Int) -> some View {
     ZStack {
       RoundedRectangle(cornerRadius: 8)
-        .stroke(Color.font, lineWidth: 1)
+        .stroke(Color.font.opacity(0.5), lineWidth: 1)
         .frame(width: 68, height: 68)
 
       Text("\(index)")
         .font(.SUITHeader)
-        .foregroundColor(Color.font.opacity(0.8))
+        .foregroundColor(Color.font.opacity(0.5))
     }
   }
 }

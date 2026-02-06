@@ -4,10 +4,18 @@ import Photos
 struct HomeGalleryView: View {
   @EnvironmentObject var router: Router
   @State private var viewModel = HomeGalleryViewModel()
+  @State private var currentOnboardingPage = 0
 
   private let columns = [
     GridItem(.flexible(), spacing: 16),
     GridItem(.flexible(), spacing: 16)
+  ]
+
+  private let onboardingItems: [(text: String, imageName: String)] = [
+    ("세 컷 비디오을 만들기 위한 비디오를 선택하세요", "onboarding0"),
+    ("각 컷에 나올 영역을 선택하세요", "onboarding1"),
+    ("만들어진 세컷 비디오를 확인하고 길이를 조절하세요", "onboarding2"),
+    ("트랙을 터치하면, 하단에서 비디오 길이를 조절할 수 있어요 ", "onboarding3")
   ]
 
   var body: some View {
@@ -87,13 +95,53 @@ struct HomeGalleryView: View {
   
   @ViewBuilder
   private func emptyStateView() -> some View {
-    VStack {
+    VStack(spacing: 24) {
       Spacer()
-      Text("아직 생성된 비디오가 없습니다")
-        .frame(maxWidth: .infinity, alignment: .center)
-        .font(.SUITTitle)
+
+      TabView(selection: $currentOnboardingPage) {
+        ForEach(0..<onboardingItems.count, id: \.self) { index in
+          onboardingPage(
+            text: onboardingItems[index].text,
+            imageName: onboardingItems[index].imageName
+          )
+          .tag(index)
+        }
+      }
+      .tabViewStyle(.page(indexDisplayMode: .never))
+      .frame(height: UIScreen.main.bounds.height * 0.6)
+
+      pageIndicator()
+
+      Spacer()
+    }
+  }
+
+  @ViewBuilder
+  private func onboardingPage(text: String, imageName: String) -> some View {
+    VStack(spacing: 36) {
+      Image(imageName)
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+        .frame(maxWidth: .infinity)
+      
+      Text(text)
+        .font(.SUITBody)
         .foregroundStyle(.inactive)
-      Spacer()
+        .multilineTextAlignment(.center)
+        .lineLimit(nil)
+
+    }
+  }
+
+  @ViewBuilder
+  private func pageIndicator() -> some View {
+    HStack(spacing: 8) {
+      ForEach(0..<onboardingItems.count, id: \.self) { index in
+        Circle()
+          .fill(index == currentOnboardingPage ? Color.accent : Color.font.opacity(0.3))
+          .frame(width: 8, height: 8)
+          .animation(.easeInOut(duration: 0.3), value: currentOnboardingPage)
+      }
     }
   }
 
