@@ -95,6 +95,14 @@ struct EditorView: View {
       .matchedGeometryEffect(id: "videoPlayer", in: videoAnimation)
       .frame(height: UIScreen.main.bounds.height * 0.4)
       .padding(.bottom, 12)
+      .contentShape(Rectangle())
+      .simultaneousGesture(
+        TapGesture().onEnded { _ in
+          if viewModel.state == .trimming, viewModel.selectedSegmentID != nil {
+            viewModel.send(.confirmTrimming)
+          }
+        }
+      )
 
     playbackControlSection()
   }
@@ -109,6 +117,14 @@ struct EditorView: View {
       fullScreenButton()
     }
     .padding(.horizontal, 20)
+    .contentShape(Rectangle())
+    .simultaneousGesture(
+      TapGesture().onEnded { _ in
+        if viewModel.state == .trimming, viewModel.selectedSegmentID != nil {
+          viewModel.send(.confirmTrimming)
+        }
+      }
+    )
   }
 
   private func playButton() -> some View {
@@ -146,13 +162,20 @@ struct EditorView: View {
           playheadView()
           timeDisplayView()
         }
+        .contentShape(Rectangle())
+        .simultaneousGesture(
+          TapGesture().onEnded { _ in
+            if viewModel.state == .trimming, viewModel.selectedSegmentID != nil {
+              viewModel.send(.confirmTrimming)
+            }
+          }
+        )
 
         ZStack {
           if viewModel.selectedSegmentID != nil {
             TrimmingTrackViewRepresentable(
               segment: currentSegment,
               snapEndTimes: snapEndTimes,
-              shouldShake: viewModel.shouldShakeCheckButton,
               isTrimming: viewModel.isTrimming,
               onTrimStarted: { handleType in
                 viewModel.send(.startTrimming(handleType: handleType))
@@ -179,8 +202,7 @@ struct EditorView: View {
                 viewModel.send(.confirmTrimming)
               }
             )
-            .padding(.leading, 12)
-            .padding(.trailing, 24)
+            .padding(.horizontal, 28)
             .transition(
               .asymmetric(
                 insertion: .offset(y: -15).combined(with: .opacity),

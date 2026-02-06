@@ -2,6 +2,7 @@ import AVFoundation
 import Photos
 import SwiftUI
 
+@MainActor
 @Observable
 final class CropViewModel {
   enum Action {
@@ -165,12 +166,14 @@ extension CropViewModel {
   private func loadAllVideos() async {
     guard !selectedVideos.isEmpty else { return }
 
-    crops = selectedVideos.map { video in
-      Crop(
-        video: video,
-        localIdentifier: video.localIdentifier,
-        cropRect: .init(x: 0, y: 0, width: 10, height: 10)
-      )
+    if crops.isEmpty {
+      crops = selectedVideos.map { video in
+        Crop(
+          video: video,
+          localIdentifier: video.localIdentifier,
+          cropRect: .init(x: 0, y: 0, width: 10, height: 10)
+        )
+      }
     }
 
     loadCurrentVideo()
@@ -238,7 +241,6 @@ extension CropViewModel {
     )
   }
 
-  @MainActor
   func cleanup() {
     playerUseCase.cleanup()
   }
