@@ -96,13 +96,11 @@ struct EditorView: View {
       .frame(height: UIScreen.main.bounds.height * 0.4)
       .padding(.bottom, 12)
       .contentShape(Rectangle())
-      .simultaneousGesture(
-        TapGesture().onEnded { _ in
-          if viewModel.state == .trimming, viewModel.selectedSegmentID != nil {
-            viewModel.send(.confirmTrimming)
-          }
+      .onTapGesture {
+        if viewModel.selectedSegmentID != nil {
+          viewModel.send(.deactivateTrimming)
         }
-      )
+      }
 
     playbackControlSection()
   }
@@ -119,9 +117,9 @@ struct EditorView: View {
     .padding(.horizontal, 20)
     .contentShape(Rectangle())
     .simultaneousGesture(
-      TapGesture().onEnded { _ in
-        if viewModel.state == .trimming, viewModel.selectedSegmentID != nil {
-          viewModel.send(.confirmTrimming)
+      TapGesture().onEnded {
+        if viewModel.selectedSegmentID != nil {
+          viewModel.send(.deactivateTrimming)
         }
       }
     )
@@ -162,15 +160,6 @@ struct EditorView: View {
           playheadView()
           timeDisplayView()
         }
-        .contentShape(Rectangle())
-        .simultaneousGesture(
-          TapGesture().onEnded { _ in
-            if viewModel.state == .trimming, viewModel.selectedSegmentID != nil {
-              viewModel.send(.confirmTrimming)
-            }
-          }
-        )
-
         ZStack {
           if viewModel.selectedSegmentID != nil {
             TrimmingTrackViewRepresentable(
@@ -202,6 +191,8 @@ struct EditorView: View {
                 viewModel.send(.confirmTrimming)
               }
             )
+            .contentShape(Rectangle())
+            .onTapGesture { }
             .padding(.horizontal, 28)
             .transition(
               .asymmetric(

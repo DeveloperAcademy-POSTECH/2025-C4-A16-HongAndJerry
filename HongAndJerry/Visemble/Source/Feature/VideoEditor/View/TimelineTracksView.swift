@@ -37,7 +37,11 @@ struct TimelineTracksView: View {
 
           viewModel.send(.timelineDragChanged(translation: value.translation.width))
         }
-        .onEnded { _ in
+        .onEnded { value in
+          let dragDistance = abs(value.translation.width) + abs(value.translation.height)
+          if dragDistance < 5, viewModel.selectedSegmentID != nil {
+            viewModel.send(.deactivateTrimming)
+          }
           viewModel.send(.timelineDragEnded)
         }
     )

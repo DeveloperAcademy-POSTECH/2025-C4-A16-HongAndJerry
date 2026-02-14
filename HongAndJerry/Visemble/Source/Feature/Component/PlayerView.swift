@@ -32,6 +32,10 @@ class PlayerUIView: UIView {
   override class var layerClass: AnyClass {
     AVPlayerLayer.self
   }
+  override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+    return nil
+  }
+
   init(player: AVPlayer) {
     super.init(frame: .zero)
     self.player = player

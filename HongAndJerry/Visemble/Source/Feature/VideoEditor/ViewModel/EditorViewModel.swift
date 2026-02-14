@@ -24,6 +24,7 @@ final class EditorViewModel {
 
     // Trimming
     case activateTrimming(segmentID: UUID)
+    case deactivateTrimming
     case startTrimming(handleType: HandlesView.HandleType)
     case endTrimming
     case confirmTrimming
@@ -186,6 +187,8 @@ final class EditorViewModel {
       playerUseCase.seek(to: time, direction: direction)
     case .activateTrimming(let segmentID):
       Task { await activateTrimming(segmentID: segmentID) }
+    case .deactivateTrimming:
+      Task { await deactivateTrimming() }
     case .startTrimming(let handleType):
       state = .trimming
       trimmingHandleType = handleType
@@ -311,11 +314,13 @@ final class EditorViewModel {
   }
 
   private func activateTrimming(segmentID: UUID) async {
-    if isTrimming,
-       let currentSelectedID = selectedSegmentID,
-       currentSelectedID != segmentID {
-      triggerCheckButtonShake()
-      return
+    if let currentSelectedID = selectedSegmentID {
+      if currentSelectedID == segmentID {
+        await deactivateTrimming()
+        return
+      } else {
+        await deactivateTrimming()
+      }
     }
 
     selectedSegmentID = segmentID
@@ -333,6 +338,14 @@ final class EditorViewModel {
       try? await Task.sleep(nanoseconds: 500_000_000)
       shouldShakeCheckButton = false
     }
+  }
+
+  private func deactivateTrimming() async {
+    guard selectedSegmentID != nil else { return }
+    state = .editing
+    trimmingHandleType = nil
+    selectedSegmentID = nil
+    await rebuildPlayerItem()
   }
 
   private func confirmTrimming() async {
