@@ -91,16 +91,22 @@ struct EditorView: View {
 
   @ViewBuilder
   private func previewSection() -> some View {
-    VideoPlayerView()
-      .matchedGeometryEffect(id: "videoPlayer", in: videoAnimation)
-      .frame(height: UIScreen.main.bounds.height * 0.4)
-      .padding(.bottom, 12)
-      .contentShape(Rectangle())
-      .onTapGesture {
-        if viewModel.selectedSegmentID != nil {
-          viewModel.send(.deactivateTrimming)
-        }
+    Group {
+      if viewModel.isTrimmingPreviewActive {
+        TrimmingPreviewView(segmentPlayers: viewModel.trimmingSegmentPlayers)
+      } else {
+        VideoPlayerView()
       }
+    }
+    .matchedGeometryEffect(id: "videoPlayer", in: videoAnimation)
+    .frame(height: UIScreen.main.bounds.height * 0.4)
+    .padding(.bottom, 12)
+    .contentShape(Rectangle())
+    .onTapGesture {
+      if viewModel.selectedSegmentID != nil {
+        viewModel.send(.deactivateTrimming)
+      }
+    }
 
     playbackControlSection()
   }
@@ -180,9 +186,12 @@ struct EditorView: View {
                 viewModel.send(.updateTrimRange(start: startTime, end: endTime))
 
                 let seekTime = handleType == .left ? startTime : endTime
-                viewModel.send(
-                  .seek(to: CMTime(seconds: seekTime, preferredTimescale: 600))
-                )
+                let time = CMTime(seconds: seekTime, preferredTimescale: 600)
+                if handleType == .left {
+                  viewModel.send(.seekSelectedOnly(to: time))
+                } else {
+                  viewModel.send(.seek(to: time))
+                }
               },
               onTrimEnded: {
                 viewModel.send(.endTrimming)
