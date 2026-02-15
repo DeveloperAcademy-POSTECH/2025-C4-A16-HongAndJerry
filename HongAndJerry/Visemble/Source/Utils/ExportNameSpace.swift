@@ -17,7 +17,7 @@ extension ExportNameSpace {
 extension ExportNameSpace {
   enum AlertConfirmMessage {
     static let title = "영상 저장"
-    static let message = "영상를 저장하시겠습니까?"
+    static let message = "영상을 저장하시겠습니까?"
     static let confirmButton = "확인"
     static let cancelButton = "취소"
   }
