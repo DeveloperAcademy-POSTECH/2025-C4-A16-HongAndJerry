@@ -16,8 +16,8 @@ extension ExportNameSpace {
 
 extension ExportNameSpace {
   enum AlertConfirmMessage {
-    static let title = "비디오 저장"
-    static let message = "비디오를 저장하시겠습니까?"
+    static let title = "영상 저장"
+    static let message = "영상을 저장하시겠습니까?"
     static let confirmButton = "확인"
     static let cancelButton = "취소"
   }
@@ -29,8 +29,8 @@ extension ExportNameSpace {
   }
   
   enum AlertSuccessMessage {
-    static let title = "성공"
-    static let message = "비디오를 사진에 저장했습니다"
+    static let title = "영상 저장 완료"
+    static let message = "영상을 사진에 저장했습니다"
     static let buttonTitle = "확인"
   }
   
@@ -45,7 +45,7 @@ extension ExportNameSpace {
   enum AppMain {
     static let AppName = "Visemble"
     static let frameNavigationTitle = "프레임 선택"
-    static let selectVideoTitle = "비디오 선택"
+    static let selectVideoTitle = "영상 선택"
     static let cropVideoTitle = " 비율 조정"
   }
 }

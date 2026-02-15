@@ -12,10 +12,10 @@ struct HomeGalleryView: View {
   ]
 
   private let onboardingItems: [(text: String, imageName: String)] = [
-    ("세 컷 비디오을 만들기 위한 비디오를 선택하세요", "onboarding0"),
+    ("세 컷 영상을 만들기 위한 영상을 선택하세요", "onboarding0"),
     ("각 컷에 나올 영역을 선택하세요", "onboarding1"),
-    ("만들어진 세컷 비디오를 확인하고 길이를 조절하세요", "onboarding2"),
-    ("트랙을 터치하면, 하단에서 비디오 길이를 조절할 수 있어요 ", "onboarding3")
+    ("만들어진 세 컷 영상을 확인하고 길이를 조절하세요", "onboarding2"),
+    ("트랙을 터치하면, 하단에서 영상 길이를 조절할 수 있어요 ", "onboarding3")
   ]
 
   var body: some View {

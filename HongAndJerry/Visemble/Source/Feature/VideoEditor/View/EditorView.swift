@@ -91,18 +91,22 @@ struct EditorView: View {
 
   @ViewBuilder
   private func previewSection() -> some View {
-    VideoPlayerView()
-      .matchedGeometryEffect(id: "videoPlayer", in: videoAnimation)
-      .frame(height: UIScreen.main.bounds.height * 0.4)
-      .padding(.bottom, 12)
-      .contentShape(Rectangle())
-      .simultaneousGesture(
-        TapGesture().onEnded { _ in
-          if viewModel.state == .trimming, viewModel.selectedSegmentID != nil {
-            viewModel.send(.confirmTrimming)
-          }
-        }
-      )
+    Group {
+      if viewModel.isTrimmingPreviewActive {
+        TrimmingPreviewView(segmentPlayers: viewModel.trimmingSegmentPlayers)
+      } else {
+        VideoPlayerView()
+      }
+    }
+    .matchedGeometryEffect(id: "videoPlayer", in: videoAnimation)
+    .frame(height: UIScreen.main.bounds.height * 0.4)
+    .padding(.bottom, 12)
+    .contentShape(Rectangle())
+    .onTapGesture {
+      if viewModel.selectedSegmentID != nil {
+        viewModel.send(.deactivateTrimming)
+      }
+    }
 
     playbackControlSection()
   }
@@ -119,9 +123,9 @@ struct EditorView: View {
     .padding(.horizontal, 20)
     .contentShape(Rectangle())
     .simultaneousGesture(
-      TapGesture().onEnded { _ in
-        if viewModel.state == .trimming, viewModel.selectedSegmentID != nil {
-          viewModel.send(.confirmTrimming)
+      TapGesture().onEnded {
+        if viewModel.selectedSegmentID != nil {
+          viewModel.send(.deactivateTrimming)
         }
       }
     )
@@ -162,15 +166,6 @@ struct EditorView: View {
           playheadView()
           timeDisplayView()
         }
-        .contentShape(Rectangle())
-        .simultaneousGesture(
-          TapGesture().onEnded { _ in
-            if viewModel.state == .trimming, viewModel.selectedSegmentID != nil {
-              viewModel.send(.confirmTrimming)
-            }
-          }
-        )
-
         ZStack {
           if viewModel.selectedSegmentID != nil {
             TrimmingTrackViewRepresentable(
@@ -191,9 +186,12 @@ struct EditorView: View {
                 viewModel.send(.updateTrimRange(start: startTime, end: endTime))
 
                 let seekTime = handleType == .left ? startTime : endTime
-                viewModel.send(
-                  .seek(to: CMTime(seconds: seekTime, preferredTimescale: 600))
-                )
+                let time = CMTime(seconds: seekTime, preferredTimescale: 600)
+                if handleType == .left {
+                  viewModel.send(.seekSelectedOnly(to: time))
+                } else {
+                  viewModel.send(.seek(to: time))
+                }
               },
               onTrimEnded: {
                 viewModel.send(.endTrimming)
@@ -202,6 +200,8 @@ struct EditorView: View {
                 viewModel.send(.confirmTrimming)
               }
             )
+            .contentShape(Rectangle())
+            .onTapGesture { }
             .padding(.horizontal, 28)
             .transition(
               .asymmetric(

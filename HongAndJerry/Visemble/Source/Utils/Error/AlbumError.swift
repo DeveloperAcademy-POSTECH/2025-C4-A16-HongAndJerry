@@ -29,9 +29,9 @@ enum VideoError: Error {
   var message: String {
     switch self {
     case .videoCreateError:
-      return "비디오 생성 실패"
+      return "영상 생성에 실패했습니다"
     case .videoFileError:
-      return "비디오 파일을 찾을 수 없음"
+      return "영상 파일을 찾을 수 없음"
     }
   }
 }

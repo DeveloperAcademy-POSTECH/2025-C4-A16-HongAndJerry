@@ -12,6 +12,7 @@ final class TrimmingTrackView: UIView {
   var onTrimConfirmed: (() -> Void)?
   
   private var segment: VideoSegment?
+  private(set) var currentSegmentID: UUID?
   private var totalDuration: Double = 1.0
   private var snapEndTimes: [Double] = []
   private var lastSnappedTime: Double?
@@ -259,13 +260,14 @@ extension TrimmingTrackView {
 extension TrimmingTrackView {
   func configure(with segment: VideoSegment, updateRatios: Bool = true) {
     self.segment = segment
+    self.currentSegmentID = segment.id
     self.totalDuration = segment.source.duration.seconds
-    
+
     if updateRatios {
       trimStartRatio = CGFloat(segment.startTime.seconds / totalDuration)
       trimEndRatio = CGFloat(segment.endTime.seconds / totalDuration)
     }
-    
+
     updateThumbnails(segment.thumbnails)
     setNeedsLayout()
   }
@@ -321,7 +323,8 @@ struct TrimmingTrackViewRepresentable: UIViewRepresentable {
   func updateUIView(_ uiView: TrimmingTrackView, context: Context) {
     uiView.updateSnapEndTimes(snapEndTimes)
     if let segment = segment {
-      uiView.configure(with: segment, updateRatios: !isTrimming)
+      let segmentChanged = uiView.currentSegmentID != segment.id
+      uiView.configure(with: segment, updateRatios: segmentChanged || !isTrimming)
     }
   }
 }

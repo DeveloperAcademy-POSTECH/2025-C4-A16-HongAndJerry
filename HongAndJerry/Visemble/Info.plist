@@ -8,5 +8,7 @@
 		<string>SUIT-SemiBold.otf</string>
 		<string>SUIT-Medium.otf</string>
 	</array>
+	<key>UILaunchScreen</key>
+	<false/>
 </dict>
 </plist>
