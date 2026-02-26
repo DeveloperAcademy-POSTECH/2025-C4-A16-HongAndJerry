@@ -44,6 +44,7 @@ extension ExportNameSpace {
 extension ExportNameSpace {
   enum AppMain {
     static let AppName = "Visemble"
+    static let homeGallaryTitle = "영상 보관함"
     static let frameNavigationTitle = "프레임 선택"
     static let selectVideoTitle = "영상 선택"
     static let cropVideoTitle = " 비율 조정"

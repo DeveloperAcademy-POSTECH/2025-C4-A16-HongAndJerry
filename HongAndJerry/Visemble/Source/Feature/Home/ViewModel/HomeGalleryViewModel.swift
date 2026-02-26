@@ -9,6 +9,9 @@ final class HomeGalleryViewModel {
   var selectedAsset: PHAsset?
   var isLoadingVideo = false
 
+  var isEditing = false
+  var selectedForDeletion: Set<String> = []
+
   let playerUseCase = PlayerUseCase()
 
   var player: AVPlayer {
@@ -158,5 +161,48 @@ final class HomeGalleryViewModel {
   @MainActor
   func cleanup() {
     playerUseCase.cleanup()
+  }
+
+  func toggleEditing() {
+    isEditing.toggle()
+    if !isEditing {
+      selectedForDeletion.removeAll()
+    }
+  }
+
+  func toggleSelection(for video: VideoAsset) {
+    let id = video.asset.localIdentifier
+    if selectedForDeletion.contains(id) {
+      selectedForDeletion.remove(id)
+    } else {
+      selectedForDeletion.insert(id)
+    }
+  }
+
+  func isSelected(_ video: VideoAsset) -> Bool {
+    selectedForDeletion.contains(video.asset.localIdentifier)
+  }
+
+  func deleteSelectedVideos() {
+    let assetsToDelete = videos
+      .filter { selectedForDeletion.contains($0.asset.localIdentifier) }
+      .map { $0.asset }
+
+    guard !assetsToDelete.isEmpty else { return }
+
+    PHPhotoLibrary.shared().performChanges {
+      PHAssetChangeRequest.deleteAssets(assetsToDelete as NSFastEnumeration)
+    } completionHandler: { [weak self] success, error in
+      guard let self else { return }
+      Task { @MainActor in
+        if success {
+          self.videos.removeAll { self.selectedForDeletion.contains($0.asset.localIdentifier) }
+          self.selectedForDeletion.removeAll()
+          self.isEditing = false
+        } else if let error {
+          print("[HomeGalleryViewModel] ❌ Failed to delete videos: \(error)")
+        }
+      }
+    }
   }
 }
