@@ -85,6 +85,44 @@ final class PHAssetRepository: AssetLoadRepository, AlbumRepository {
     }
   }
 
+  func downloadVideo(
+    asset: PHAsset,
+    progressHandler: @escaping (Double) -> Void,
+    requestIDHandler: @escaping (PHImageRequestID) -> Void
+  ) async throws -> AVAsset {
+    try await withCheckedThrowingContinuation { continuation in
+      let options = PHVideoRequestOptions()
+      options.isNetworkAccessAllowed = true
+      options.deliveryMode = .highQualityFormat
+      options.progressHandler = { progress, error, stop, info in
+        DispatchQueue.main.async {
+          progressHandler(progress)
+        }
+      }
+
+      let requestID = imageManager.requestAVAsset(
+        forVideo: asset,
+        options: options
+      ) { avAsset, _, info in
+        if let error = info?[PHImageErrorKey] as? Error {
+          continuation.resume(throwing: error)
+          return
+        }
+        if let avAsset = avAsset {
+          continuation.resume(returning: avAsset)
+        } else {
+          continuation.resume(throwing: AssetError.assetNotFound)
+        }
+      }
+
+      requestIDHandler(requestID)
+    }
+  }
+
+  func cancelRequest(_ requestID: PHImageRequestID) {
+    imageManager.cancelImageRequest(requestID)
+  }
+
   func checkAlbum(named title: String) throws -> PHAssetCollection {
     if let existingAlbum = fetchExistingAlbum(title: title) {
       return existingAlbum

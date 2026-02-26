@@ -33,6 +33,8 @@ final class AssetPickerViewModel {
 
   private let maxSelection = 3
   private let assetRepository: PHAssetRepository
+  private var downloadTasks: [String: Task<Void, Never>] = [:]
+  private var downloadRequestIDs: [String: PHImageRequestID] = [:]
   
   var selectedCount: Int {
     selectedVideos.count
@@ -52,12 +54,11 @@ final class AssetPickerViewModel {
     self.assetRepository = assetRepository
   }
   
+  @MainActor
   func send(_ action: Action) {
     switch action {
     case .toggleSelection(let pHAsset):
-      Task {
-        await handleToggleSelection(pHAsset)
-      }
+      handleToggleSelection(pHAsset)
     case .removeSelection(let pHAsset):
       removeVideo(pHAsset)
     }
@@ -113,7 +114,7 @@ final class AssetPickerViewModel {
   }
   
   @MainActor
-  private func handleToggleSelection(_ asset: PHAsset) async {
+  private func handleToggleSelection(_ asset: PHAsset) {
     let identifier = asset.localIdentifier
 
     if selectedVideos.contains(where: { $0.localIdentifier == identifier }) {
@@ -122,8 +123,8 @@ final class AssetPickerViewModel {
       return
     }
 
-    if downloadingVideos[identifier] != nil {
-      downloadingVideos.removeValue(forKey: identifier)
+    if case .downloading = downloadingVideos[identifier] {
+      cancelDownload(for: identifier)
       return
     }
 
@@ -136,33 +137,80 @@ final class AssetPickerViewModel {
       return
     }
 
+    startDownload(asset: asset)
+  }
+
+  @MainActor
+  private func startDownload(asset: PHAsset) {
+    let identifier = asset.localIdentifier
     downloadingVideos[identifier] = .downloading(progress: 0)
 
-    do {
-      let isLocal = await assetRepository.isVideoAvailableLocally(asset: asset)
+    let task = Task { @MainActor in
+      do {
+        let isLocal = await assetRepository.isVideoAvailableLocally(asset: asset)
 
-      if isLocal {
-        let options = PHVideoRequestOptions()
-        options.isNetworkAccessAllowed = false
-        options.deliveryMode = .highQualityFormat
+        try Task.checkCancellation()
 
-        let avAsset = try await assetRepository.loadAVAsset(for: asset, options: options)
-        downloadingVideos[identifier] = .completed(avAsset)
-        selectedVideos.append(asset)
-      } else {
-        let avAsset = try await assetRepository.downloadVideo(asset: asset) { progress in
-          Task { @MainActor in
-            self.downloadingVideos[identifier] = .downloading(progress: progress)
-          }
+        if isLocal {
+          let options = PHVideoRequestOptions()
+          options.isNetworkAccessAllowed = false
+          options.deliveryMode = .highQualityFormat
+
+          let avAsset = try await assetRepository.loadAVAsset(for: asset, options: options)
+
+          try Task.checkCancellation()
+
+          downloadingVideos[identifier] = .completed(avAsset)
+          selectedVideos.append(asset)
+        } else {
+          let avAsset = try await assetRepository.downloadVideo(
+            asset: asset,
+            progressHandler: { progress in
+              Task { @MainActor in
+                self.downloadingVideos[identifier] = .downloading(progress: progress)
+              }
+            },
+            requestIDHandler: { requestID in
+              Task { @MainActor in
+                self.downloadRequestIDs[identifier] = requestID
+              }
+            }
+          )
+
+          try Task.checkCancellation()
+
+          downloadingVideos[identifier] = .completed(avAsset)
+          selectedVideos.append(asset)
         }
-
-        downloadingVideos[identifier] = .completed(avAsset)
-        selectedVideos.append(asset)
+      } catch is CancellationError {
+        downloadingVideos.removeValue(forKey: identifier)
+      } catch {
+        if !Task.isCancelled {
+          downloadingVideos[identifier] = .failed(error)
+          print("[AssetPickerViewModel] Failed to download video: \(error)")
+        } else {
+          downloadingVideos.removeValue(forKey: identifier)
+        }
       }
-    } catch {
-      downloadingVideos[identifier] = .failed(error)
-      print("[AssetPickerViewModel] Failed to download video: \(error)")
+
+      downloadTasks.removeValue(forKey: identifier)
+      downloadRequestIDs.removeValue(forKey: identifier)
     }
+
+    downloadTasks[identifier] = task
+  }
+
+  @MainActor
+  private func cancelDownload(for identifier: String) {
+    downloadTasks[identifier]?.cancel()
+    downloadTasks.removeValue(forKey: identifier)
+
+    if let requestID = downloadRequestIDs[identifier] {
+      assetRepository.cancelRequest(requestID)
+      downloadRequestIDs.removeValue(forKey: identifier)
+    }
+
+    downloadingVideos.removeValue(forKey: identifier)
   }
 
   private func removeVideo(_ video: PHAsset) {
