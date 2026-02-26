@@ -139,10 +139,11 @@ struct HomeGalleryView: View {
       Spacer()
 
       TabView(selection: $currentOnboardingPage) {
-        ForEach(0..<pageCount, id: \.self) { index in
+        ForEach(0...pageCount, id: \.self) { index in
+          let actualIndex = index % pageCount
           onboardingPage(
-            text: onboardingItems[index].text,
-            imageName: onboardingItems[index].imageName
+            text: onboardingItems[actualIndex].text,
+            imageName: onboardingItems[actualIndex].imageName
           )
           .tag(index)
         }
@@ -150,11 +151,9 @@ struct HomeGalleryView: View {
       .tabViewStyle(.page(indexDisplayMode: .never))
       .frame(height: UIScreen.main.bounds.height * 0.6)
       .onChange(of: currentOnboardingPage) { _, newValue in
-        if newValue == pageCount - 1 {
-          DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-            withAnimation {
-              currentOnboardingPage = 0
-            }
+        if newValue == pageCount {
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            currentOnboardingPage = 0
           }
         }
       }
@@ -184,12 +183,13 @@ struct HomeGalleryView: View {
 
   @ViewBuilder
   private func pageIndicator() -> some View {
+    let displayPage = currentOnboardingPage % onboardingItems.count
     HStack(spacing: 8) {
       ForEach(0..<onboardingItems.count, id: \.self) { index in
         Circle()
-          .fill(index == currentOnboardingPage ? Color.accent : Color.font.opacity(0.3))
+          .fill(index == displayPage ? Color.accent : Color.font.opacity(0.3))
           .frame(width: 8, height: 8)
-          .animation(.easeInOut(duration: 0.3), value: currentOnboardingPage)
+          .animation(.easeInOut(duration: 0.3), value: displayPage)
       }
     }
   }
