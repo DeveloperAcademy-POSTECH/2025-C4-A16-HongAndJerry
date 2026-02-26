@@ -26,10 +26,29 @@ struct HomeGalleryView: View {
         galleryGridView()
       }
 
-      CtaButton(buttonType: .plus, isDisabled: .constant(false)) {
-        router.push(screen: .selectVideo)
+      if viewModel.isEditing {
+        CtaButton(
+          buttonType: .delete,
+          isDisabled: .constant(viewModel.selectedForDeletion.isEmpty)
+        ) {
+          viewModel.deleteSelectedVideos()
+        }
+      } else {
+        CtaButton(buttonType: .plus, isDisabled: .constant(false)) {
+          router.push(screen: .selectVideo)
+        }
       }
     }
+    .hjNavigationBar(title: ExportNameSpace.AppMain.homeGallaryTitle) {
+      Button {
+        viewModel.toggleEditing()
+      } label: {
+        Text(viewModel.isEditing ? "취소" : "선택")
+          .font(.SUITBody)
+          .foregroundStyle(.white)
+      }
+    }
+    .navigationBarHidden(viewModel.videos.isEmpty)
     .background(Color.background)
     .onAppear { viewModel.loadVideos(albumName: "Visemble") }
     .sheet(isPresented: Binding(
@@ -41,74 +60,104 @@ struct HomeGalleryView: View {
       }
     }
   }
-  
+
   @ViewBuilder
   private func galleryGridView() -> some View {
     ScrollView {
       LazyVGrid(columns: columns, spacing: 20) {
         ForEach(viewModel.videos) { video in
           galleryGridItem(video: video)
-            .onTapGesture { viewModel.selectAsset(video.asset) }
+            .onTapGesture {
+              if viewModel.isEditing {
+                viewModel.toggleSelection(for: video)
+              } else {
+                viewModel.selectAsset(video.asset)
+              }
+            }
         }
       }
       .padding(.horizontal, 16)
       .padding(.top, 12)
     }
   }
-  
+
   @ViewBuilder
   private func galleryGridItem(video: VideoAsset) -> some View {
     VStack(alignment: .leading, spacing: 6) {
       galleryThumbnailView(video: video)
-      
+
       Text(video.creationDateValue)
         .font(.SUITTimer)
         .foregroundStyle(.inactive)
     }
   }
-  
+
   @ViewBuilder
   private func galleryThumbnailView(video: VideoAsset) -> some View {
     let aspectRatio = CGFloat(video.asset.pixelWidth) / CGFloat(video.asset.pixelHeight)
     let screenWidth = UIScreen.main.bounds.width
     let gridWidth = (screenWidth - 16 * 2 - 16) / 2
     let thumbnailHeight = (gridWidth / aspectRatio) * 0.9
-    
-    ZStack(alignment: .bottomTrailing) {
-      Image(uiImage: video.thumbnail)
-        .resizable()
-        .aspectRatio(aspectRatio, contentMode: .fill)
-        .frame(height: thumbnailHeight)
-        .clipped()
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-      
-      Text(video.durationValue)
-        .font(.SUITTimer)
-        .foregroundStyle(.white)
-        .padding(.horizontal, 6)
-        .padding(.vertical, 4)
-        .background(Color.black.opacity(0.6))
-        .clipShape(RoundedRectangle(cornerRadius: 4))
-        .padding(6)
+
+    ZStack(alignment: .topTrailing) {
+      ZStack(alignment: .bottomTrailing) {
+        Image(uiImage: video.thumbnail)
+          .resizable()
+          .aspectRatio(aspectRatio, contentMode: .fill)
+          .frame(height: thumbnailHeight)
+          .clipped()
+          .clipShape(RoundedRectangle(cornerRadius: 8))
+
+        Text(video.durationValue)
+          .font(.SUITTimer)
+          .foregroundStyle(.white)
+          .padding(.horizontal, 6)
+          .padding(.vertical, 4)
+          .background(Color.black.opacity(0.6))
+          .clipShape(RoundedRectangle(cornerRadius: 4))
+          .padding(6)
+      }
+
+      if viewModel.isEditing {
+        Image(systemName: viewModel.isSelected(video) ? "checkmark.circle.fill" : "circle")
+          .font(.system(size: 22))
+          .foregroundStyle(viewModel.isSelected(video) ? Color.accent : .white.opacity(0.8))
+          .background(
+            Circle()
+              .fill(viewModel.isSelected(video) ? Color.background : Color.background.opacity(0.4))
+              .frame(width: 20, height: 20)
+          )
+          .padding(8)
+      }
     }
   }
-  
+
   @ViewBuilder
   private func emptyStateView() -> some View {
+    let pageCount = onboardingItems.count
+
     VStack(spacing: 24) {
       Spacer()
 
       TabView(selection: $currentOnboardingPage) {
-        ForEach(0..<onboardingItems.count, id: \.self) { index in
+        ForEach(0...pageCount, id: \.self) { index in
+          let actualIndex = index % pageCount
           onboardingPage(
-            text: onboardingItems[index].text,
-            imageName: onboardingItems[index].imageName
+            text: onboardingItems[actualIndex].text,
+            imageName: onboardingItems[actualIndex].imageName
           )
           .tag(index)
         }
       }
       .tabViewStyle(.page(indexDisplayMode: .never))
       .frame(height: UIScreen.main.bounds.height * 0.6)
+      .onChange(of: currentOnboardingPage) { _, newValue in
+        if newValue == pageCount {
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            currentOnboardingPage = 0
+          }
+        }
+      }
 
       pageIndicator()
 
@@ -123,7 +172,7 @@ struct HomeGalleryView: View {
         .resizable()
         .aspectRatio(contentMode: .fit)
         .frame(maxWidth: .infinity)
-      
+
       Text(text)
         .font(.SUITBody)
         .foregroundStyle(.inactive)
@@ -135,12 +184,13 @@ struct HomeGalleryView: View {
 
   @ViewBuilder
   private func pageIndicator() -> some View {
+    let displayPage = currentOnboardingPage % onboardingItems.count
     HStack(spacing: 8) {
       ForEach(0..<onboardingItems.count, id: \.self) { index in
         Circle()
-          .fill(index == currentOnboardingPage ? Color.accent : Color.font.opacity(0.3))
+          .fill(index == displayPage ? Color.accent : Color.font.opacity(0.3))
           .frame(width: 8, height: 8)
-          .animation(.easeInOut(duration: 0.3), value: currentOnboardingPage)
+          .animation(.easeInOut(duration: 0.3), value: displayPage)
       }
     }
   }
@@ -187,8 +237,50 @@ struct HomeGalleryView: View {
             }
           }
         )
-        .padding(.vertical, 16)
+        .padding(.top, 16)
         .padding(.horizontal, 4)
+
+        shareButtonsView(for: asset)
+          .padding(.top, 24)
+      }
+    }
+  }
+
+  @ViewBuilder
+  private func shareButtonsView(for asset: PHAsset) -> some View {
+    HStack(spacing: 32) {
+      if InstagramShareService.canShareToInstagramStories {
+        Button {
+          viewModel.shareToInstagramStories()
+        } label: {
+          VStack(spacing: 8) {
+            ZStack {
+              Circle()
+                .fill(.white)
+                .frame(width: 32, height: 32)
+              Image("instagram")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 18, height: 18)
+            }
+            Text("Instagram")
+              .font(.SUITTimer)
+              .foregroundStyle(.font)
+          }
+        }
+      }
+
+      Button {
+        viewModel.shareVideo()
+      } label: {
+        VStack(spacing: 8) {
+          Image(systemName: "square.and.arrow.up.circle.fill")
+            .font(.system(size: 32))
+            .foregroundStyle(.white)
+          Text("공유")
+            .font(.SUITTimer)
+            .foregroundStyle(.font)
+        }
       }
     }
   }

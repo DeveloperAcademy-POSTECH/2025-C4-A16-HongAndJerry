@@ -37,7 +37,12 @@ struct VideoController: View {
   var body: some View {
     HStack(spacing: 15) {
       Button {
-        onPlayPause()
+        if isPlaybackFinished {
+          onSeek(CMTime(seconds: 0, preferredTimescale: 600))
+          onPlayPause()
+        } else {
+          onPlayPause()
+        }
       } label: {
         Image(systemName: shouldShowPlayButton ? "play.fill" : "pause.fill")
           .foregroundColor(.white)
@@ -91,6 +96,10 @@ struct VideoController: View {
         }
       }
     }
+  }
+
+  private var isPlaybackFinished: Bool {
+    !isPlaying && currentTime.seconds >= totalDuration.seconds - 0.1
   }
 
   private var shouldShowPlayButton: Bool {

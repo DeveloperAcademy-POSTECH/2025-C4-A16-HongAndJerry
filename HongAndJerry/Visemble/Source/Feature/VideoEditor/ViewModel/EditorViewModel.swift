@@ -301,8 +301,12 @@ final class EditorViewModel {
     }
 
     await rebuildPlayerItem()
-    
+
     state = .editing
+
+    if let firstSegmentID = segments.first?.id {
+      await activateTrimming(segmentID: firstSegmentID)
+    }
   }
 
   private func rebuildPlayerItem() async {

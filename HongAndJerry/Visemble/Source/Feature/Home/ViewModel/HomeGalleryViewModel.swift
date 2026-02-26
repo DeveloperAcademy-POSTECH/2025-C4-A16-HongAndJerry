@@ -9,6 +9,9 @@ final class HomeGalleryViewModel {
   var selectedAsset: PHAsset?
   var isLoadingVideo = false
 
+  var isEditing = false
+  var selectedForDeletion: Set<String> = []
+
   let playerUseCase = PlayerUseCase()
 
   var player: AVPlayer {
@@ -158,5 +161,80 @@ final class HomeGalleryViewModel {
   @MainActor
   func cleanup() {
     playerUseCase.cleanup()
+  }
+
+  func toggleEditing() {
+    isEditing.toggle()
+    if !isEditing {
+      selectedForDeletion.removeAll()
+    }
+  }
+
+  func toggleSelection(for video: VideoAsset) {
+    let id = video.asset.localIdentifier
+    if selectedForDeletion.contains(id) {
+      selectedForDeletion.remove(id)
+    } else {
+      selectedForDeletion.insert(id)
+    }
+  }
+
+  func isSelected(_ video: VideoAsset) -> Bool {
+    selectedForDeletion.contains(video.asset.localIdentifier)
+  }
+
+  func shareToInstagramStories() {
+    guard let asset = selectedAsset else { return }
+    InstagramShareService.shareVideoToStories(asset: asset)
+  }
+
+  func shareVideo() {
+    guard let asset = selectedAsset else { return }
+
+    let options = PHVideoRequestOptions()
+    options.isNetworkAccessAllowed = true
+    options.deliveryMode = .highQualityFormat
+
+    PHImageManager.default().requestAVAsset(forVideo: asset, options: options) { avAsset, _, _ in
+      guard let urlAsset = avAsset as? AVURLAsset else { return }
+      Task { @MainActor in
+        let activityVC = UIActivityViewController(
+          activityItems: [urlAsset.url],
+          applicationActivities: nil
+        )
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = scene.windows.first,
+              let rootVC = window.rootViewController else { return }
+
+        var presentingVC = rootVC
+        while let presented = presentingVC.presentedViewController {
+          presentingVC = presented
+        }
+        presentingVC.present(activityVC, animated: true)
+      }
+    }
+  }
+
+  func deleteSelectedVideos() {
+    let assetsToDelete = videos
+      .filter { selectedForDeletion.contains($0.asset.localIdentifier) }
+      .map { $0.asset }
+
+    guard !assetsToDelete.isEmpty else { return }
+
+    PHPhotoLibrary.shared().performChanges {
+      PHAssetChangeRequest.deleteAssets(assetsToDelete as NSFastEnumeration)
+    } completionHandler: { [weak self] success, error in
+      guard let self else { return }
+      Task { @MainActor in
+        if success {
+          self.videos.removeAll { self.selectedForDeletion.contains($0.asset.localIdentifier) }
+          self.selectedForDeletion.removeAll()
+          self.isEditing = false
+        } else if let error {
+          print("[HomeGalleryViewModel] ❌ Failed to delete videos: \(error)")
+        }
+      }
+    }
   }
 }
