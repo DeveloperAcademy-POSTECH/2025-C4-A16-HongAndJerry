@@ -183,6 +183,38 @@ final class HomeGalleryViewModel {
     selectedForDeletion.contains(video.asset.localIdentifier)
   }
 
+  func shareToInstagramStories() {
+    guard let asset = selectedAsset else { return }
+    InstagramShareService.shareVideoToStories(asset: asset)
+  }
+
+  func shareVideo() {
+    guard let asset = selectedAsset else { return }
+
+    let options = PHVideoRequestOptions()
+    options.isNetworkAccessAllowed = true
+    options.deliveryMode = .highQualityFormat
+
+    PHImageManager.default().requestAVAsset(forVideo: asset, options: options) { avAsset, _, _ in
+      guard let urlAsset = avAsset as? AVURLAsset else { return }
+      Task { @MainActor in
+        let activityVC = UIActivityViewController(
+          activityItems: [urlAsset.url],
+          applicationActivities: nil
+        )
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = scene.windows.first,
+              let rootVC = window.rootViewController else { return }
+
+        var presentingVC = rootVC
+        while let presented = presentingVC.presentedViewController {
+          presentingVC = presented
+        }
+        presentingVC.present(activityVC, animated: true)
+      }
+    }
+  }
+
   func deleteSelectedVideos() {
     let assetsToDelete = videos
       .filter { selectedForDeletion.contains($0.asset.localIdentifier) }

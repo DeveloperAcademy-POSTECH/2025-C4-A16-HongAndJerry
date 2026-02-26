@@ -43,7 +43,8 @@ struct HomeGalleryView: View {
       Button {
         viewModel.toggleEditing()
       } label: {
-        Image(systemName: viewModel.isEditing ? "checkmark" : "pencil")
+        Text(viewModel.isEditing ? "취소" : "선택")
+          .font(.SUITBody)
           .foregroundStyle(.white)
       }
     }
@@ -236,8 +237,50 @@ struct HomeGalleryView: View {
             }
           }
         )
-        .padding(.vertical, 16)
+        .padding(.top, 16)
         .padding(.horizontal, 4)
+
+        shareButtonsView(for: asset)
+          .padding(.top, 24)
+      }
+    }
+  }
+
+  @ViewBuilder
+  private func shareButtonsView(for asset: PHAsset) -> some View {
+    HStack(spacing: 32) {
+      if InstagramShareService.canShareToInstagramStories {
+        Button {
+          viewModel.shareToInstagramStories()
+        } label: {
+          VStack(spacing: 8) {
+            ZStack {
+              Circle()
+                .fill(.white)
+                .frame(width: 32, height: 32)
+              Image("instagram")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 18, height: 18)
+            }
+            Text("Instagram")
+              .font(.SUITTimer)
+              .foregroundStyle(.font)
+          }
+        }
+      }
+
+      Button {
+        viewModel.shareVideo()
+      } label: {
+        VStack(spacing: 8) {
+          Image(systemName: "square.and.arrow.up.circle.fill")
+            .font(.system(size: 32))
+            .foregroundStyle(.white)
+          Text("공유")
+            .font(.SUITTimer)
+            .foregroundStyle(.font)
+        }
       }
     }
   }
