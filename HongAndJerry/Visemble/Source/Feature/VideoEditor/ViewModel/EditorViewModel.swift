@@ -239,7 +239,14 @@ final class EditorViewModel {
       state = .editing
 
     case .requestExport:
-      showExportConfirmAlert = true
+      if selectedSegmentID != nil {
+        Task {
+          await deactivateTrimming()
+          showExportConfirmAlert = true
+        }
+      } else {
+        showExportConfirmAlert = true
+      }
     case .handleExport(let router):
       handleExport(router: router)
     case .handleAlertDismiss(let router):
